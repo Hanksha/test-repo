@@ -1,0 +1,138 @@
+{
+    "comments": "# Setting Multiple String Keys\n\nThis service shows how to set multiple Redis String Key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection`, the service will set multiple string key using `RedisStringMethods.mset` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection`  input properties. Default value is already set for the `connection`.\n\nThe `RedisStringMethods.mset` has an output property `redisMsetOutput` which will return the result of setting multiple string keys in Redis.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `redisMsetOutput`'s value is `OK`, then `output.message` will be set to `\"Multiple key set was successful\"`\n- else, `output.message` will be set to `\"Multiple key set was not successful\"`\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Multiple key set was successful\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This step was to set multiple string key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisMsetOutput",
+                            "comments": "String simple-string-reply always {@code OK} since {@code MSET} can't fail."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisStringMethods",
+            "methodName": "mset",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.object.property.GloopModel",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "[\n\tredisMap {\n\t\tname \"User\"\n\t\tvalue \"John Doe\"\n\t},\n\tredisMap {\n\t\tname \"Address\"\n\t\tvalue \"USA\"\n\t}\n]",
+                    "evaluate": true,
+                    "to": [
+                        "redisMap"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisMsetOutput"
+                    ],
+                    "to": [
+                        "redisMsetOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This will determine if the set was success or not",
+            "expression": "redisMsetOutput",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "OK",
+                    "comments": "OK, if the set was successful and will log a message and map it to the output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Multiple key set was successful",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "$else",
+                    "comments": "else, if the set was not successful and will log a message and map it to the output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Multiple key set was not successful",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

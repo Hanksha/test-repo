@@ -1,0 +1,77 @@
+{
+    "comments": "This Gloop service removes the cached value for a given username.",
+    "input": [
+        {
+            "name": "username"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "websocket.guessingGame.util.GetCacheUserGuessingNumber",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "userGuessingNumber",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "username"
+                    ],
+                    "to": [
+                        "username"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "userGuessingNumber"
+                    ],
+                    "to": [
+                        "userGuessingNumber"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "expression": "userGuessingNumber != null",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "true",
+                    "className": "io.toro.martini.CacheMethods",
+                    "methodName": "cacheInvalidate",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Object"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "username"
+                            ],
+                            "to": [
+                                "key"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "guessingGame",
+                            "to": [
+                                "cacheName"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

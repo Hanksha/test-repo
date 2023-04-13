@@ -1,0 +1,296 @@
+{
+    "comments": "# Using Redis for Caching\n\nThis service shows on how to use Redis for caching in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/). \n\nGiven a list of data that are already recorded and a String `connection` and `restaurant`, the service will search the `restaurant` through the given dataset and return its cuisine. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\nWe'll save the restaurant cuisine response to the Redis database, the cache response doesn't have an expiration but if you want to set an expiration, you can look at the `basics` directory and check the `ExpireKey.gloop` service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` and `restaurant` input properties. A default values are already set for `connection` and `restaurant`.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n\n- The `output.message` will be set to `\"The Chopstix Restaurant cuisine is Chinese\"`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Getting Data from restaurants.json\nINFO  [Martini] The Chopstix Restaurant cuisine is Chinese\n\n```",
+    "input": [
+        {
+            "name": "restaurant",
+            "defaultValue": "Chopstix Restaurant"
+        },
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "bigData.util.GetData",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "restaurant1",
+                            "type": "model",
+                            "array": true,
+                            "reference": "bigData.model.Restaurant"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "restaurant"
+                    ],
+                    "to": [
+                        "restaurant1"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will check if the key exists in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisExistsOutput",
+                            "type": "long",
+                            "comments": "Long integer-reply specifically: Number of existing keys"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisKeyMethods",
+            "methodName": "exists",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext",
+                "java.lang.Object[]"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant"
+                    ],
+                    "to": [
+                        "keys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisExistsOutput"
+                    ],
+                    "to": [
+                        "redisExistsOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This step will determine if the key is existing",
+            "expression": "redisExistsOutput",
+            "children": [
+                {
+                    "type": "block",
+                    "label": "1",
+                    "comments": "If key is existing it will return 1",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will get the key value in Redis",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "redisGetOutput",
+                                            "type": "object",
+                                            "comments": "V bulk-string-reply the value of {@code key}, or {@literal null} when {@code key} does not exist."
+                                        }
+                                    ]
+                                }
+                            ],
+                            "className": "io.toro.martini.redis.RedisStringMethods",
+                            "methodName": "get",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Object",
+                                "io.toro.gloop.engine.GloopExecutionContext"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "connection"
+                                    ],
+                                    "to": [
+                                        "connectionName"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant"
+                                    ],
+                                    "to": [
+                                        "key"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "redisGetOutput"
+                                    ],
+                                    "to": [
+                                        "redisGetOutput"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will log the value of the key and map it to the output model",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"The ${restaurant} cuisine is ${redisGetOutput}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "output"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "block",
+                    "label": "0",
+                    "comments": "If key is not existing it will return 0",
+                    "children": [
+                        {
+                            "type": "iterate",
+                            "comments": "This step will iterate the restaurant dataset",
+                            "input": {
+                                "path": [
+                                    "restaurant1"
+                                ]
+                            },
+                            "children": [
+                                {
+                                    "type": "fork",
+                                    "comments": "This step will check if the input restaurant is same to the restaurant name",
+                                    "expression": "restaurant == restaurant1.name",
+                                    "children": [
+                                        {
+                                            "type": "block",
+                                            "label": "true",
+                                            "comments": "true, if the input restaurant is same to the restaurant name",
+                                            "children": [
+                                                {
+                                                    "type": "invokeCode",
+                                                    "comments": "This step will set a key in Redis",
+                                                    "className": "io.toro.martini.redis.RedisStringMethods",
+                                                    "methodName": "set",
+                                                    "parameters": [
+                                                        "java.lang.String",
+                                                        "java.lang.Object",
+                                                        "java.lang.Object",
+                                                        "io.toro.gloop.engine.GloopExecutionContext"
+                                                    ],
+                                                    "inputs": [
+                                                        {
+                                                            "from": [
+                                                                "restaurant"
+                                                            ],
+                                                            "to": [
+                                                                "key"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "from": [
+                                                                "connection"
+                                                            ],
+                                                            "to": [
+                                                                "connectionName"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "set",
+                                                            "expression": "restaurant1.cuisine",
+                                                            "evaluate": true,
+                                                            "to": [
+                                                                "value"
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "invokeCode",
+                                                    "comments": "This will log the value of the key and map it to the output model",
+                                                    "className": "io.toro.martini.LoggerMethods",
+                                                    "methodName": "info",
+                                                    "parameters": [
+                                                        "java.lang.String"
+                                                    ],
+                                                    "inputs": [
+                                                        {
+                                                            "type": "set",
+                                                            "expression": "\"The ${restaurant} cuisine is ${restaurant1.cuisine}\"",
+                                                            "evaluate": true,
+                                                            "to": [
+                                                                "message"
+                                                            ]
+                                                        }
+                                                    ],
+                                                    "outputs": [
+                                                        {
+                                                            "from": [
+                                                                "output"
+                                                            ],
+                                                            "to": [
+                                                                "output",
+                                                                "message"
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

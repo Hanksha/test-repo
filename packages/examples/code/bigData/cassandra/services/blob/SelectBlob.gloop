@@ -1,0 +1,138 @@
+{
+    "comments": "# [Selecting Blobs in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) returns an array of records from the `blob_example` column family in the `cassandra_examples` keyspace.\n\nThis service showcases how to handle [blobs](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/blob_r.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n## Expected Output\n\nThe output of this service depends on the entries in the `blob_example` column family. If you want to have the same entries as described below, you should run `bigData/cassandra/services/blob/InsertBlob.gloop`. Doing so will ensure your database contains similar data as the output below.\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nblobData {\n\t\"id\": 1,\n\t\"blob\": \"blob0\",\n\t\"blob2\": [\"blob1\", \"blob2\"],\n\t\"blob3\": {\n\t\t\"name\": 1,\n\t\t\"value\": \"blob3\"\n\t},\n\t\"blob4\": [\"blob4\",\"blob5\"]\n}\n```",
+    "output": [
+        {
+            "name": "blobData",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "blob",
+                    "defaultValue": "blob0"
+                },
+                {
+                    "name": "blob2",
+                    "array": true,
+                    "defaultValue": [
+                        "blob1",
+                        "blob2"
+                    ]
+                },
+                {
+                    "name": "blob3",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name",
+                            "type": "integer",
+                            "defaultValue": 1
+                        },
+                        {
+                            "name": "value",
+                            "defaultValue": "blob3"
+                        }
+                    ]
+                },
+                {
+                    "name": "blob4",
+                    "array": true
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Invokes the CQL query to produce the inputCursor",
+            "name": "bigData.cassandra.cql.blob.SelectBlob",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputCursor",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "inputCursor"
+                    ],
+                    "to": [
+                        "inputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterates over the inputCursor to be mapped",
+            "input": {
+                "path": [
+                    "inputCursor"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Maps the inputCursor to the output properties of this service",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.id",
+                            "evaluate": true,
+                            "to": [
+                                "blobData",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.blob",
+                            "evaluate": true,
+                            "to": [
+                                "blobData",
+                                "blob"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "[inputCursor.blob2]",
+                            "evaluate": true,
+                            "to": [
+                                "blobData",
+                                "blob2"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "[inputCursor.blob3]",
+                            "evaluate": true,
+                            "to": [
+                                "blobData",
+                                "blob3"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "[inputCursor.blob4]",
+                            "evaluate": true,
+                            "to": [
+                                "blobData",
+                                "blob4"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

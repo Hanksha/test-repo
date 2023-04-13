@@ -1,0 +1,16 @@
+{
+    "model": {
+        "name": "flatFileModel",
+        "type": "model",
+        "comments": "## [Using the Flat File Descriptor](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/flat-file/)\n\n---\n\nThis Gloop model is used in the ffd file for the Flat File Descriptor demo.",
+        "gloopProperties": [
+            {
+                "name": "firstName"
+            },
+            {
+                "name": "lastName"
+            }
+        ]
+    },
+    "textDelimiter": null
+}

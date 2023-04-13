@@ -1,0 +1,185 @@
+{
+    "comments": "This Gloop service will delete the user created by `CreateAdminUser.gloop`.",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "username"
+                                }
+                            ]
+                        }
+                    ],
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Admin",
+                            "to": [
+                                "username"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Cleaning up Solr user settings",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "userExists",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.user.User"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.UserGroupMethods",
+                    "methodName": "findUser",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "username"
+                            ],
+                            "to": [
+                                "username"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "user"
+                            ],
+                            "to": [
+                                "userExists"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Deleting created user named '${username}'\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "userExists?.username != null",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.UserGroupMethods",
+                                    "methodName": "removeUserFromGroup",
+                                    "parameters": [
+                                        "java.lang.String",
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "username"
+                                            ],
+                                            "to": [
+                                                "username"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "ESBAPIAdminGroup",
+                                            "to": [
+                                                "groupname"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.UserGroupMethods",
+                                    "methodName": "deleteUser",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "username"
+                                            ],
+                                            "to": [
+                                                "id"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

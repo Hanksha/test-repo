@@ -1,0 +1,64 @@
+{
+    "comments": "# [Deleting UUIDs in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) deletes an entry where id matches the value in the `uuid_example` column family in the `cassandra_examples` keyspace.\n\nThis service showcases how to handle [Universal Unique IDs (UUID)](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/uuid_type_r.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nOnly the `id` is required by the service as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). To ensure successful deletion, use the id `1`. The record with that id is created when running `bigData/cassandra/cql/services/uuid/InsertUuid.gloop` or `bigData/cassandra/cql/services/uuid/UpdateUuid.gloop`.\n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Deleting uuid with id 1\nINFO  [Martini] Successful deleted id 1\n```",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "defaultValue": 1
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Deleting uuid with id $id\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Deletes a UUID by id",
+            "name": "bigData.cassandra.cql.uuid.DeleteUuid",
+            "inputs": [
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "input",
+                        "id"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Successful deleted id $id\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+{
+    "type": "customSql",
+    "comments": "This [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) retrieves a `blob_column` entry in the `texts` table based on the specified `id`.",
+    "input": [
+        {
+            "name": "selectBlobInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "selectBlobOutput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "BLOB_COLUMN",
+                    "type": "object",
+                    "required": true,
+                    "objectClassName": "java.sql.Blob"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "conversion_sample",
+    "sqlType": "SELECT_SINGLE",
+    "query": "SELECT BLOB_COLUMN\nFROM\n    texts\nWHERE (\n    id = :id\n)"
+}

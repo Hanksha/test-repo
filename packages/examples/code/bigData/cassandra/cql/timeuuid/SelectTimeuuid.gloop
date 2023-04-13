@@ -1,0 +1,57 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be iterated over to retrieve entries from the `timeuuid_example` column family.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "SELECT_MULTI",
+    "query": "SELECT *\nFROM\n    timeuuid_example",
+    "keyspace": "cassandra_examples"
+}

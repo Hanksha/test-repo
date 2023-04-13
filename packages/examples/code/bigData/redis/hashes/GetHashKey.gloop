@@ -1,0 +1,139 @@
+{
+    "comments": "# Getting a Single Hash Key\n\nThis service shows how to get a Redis hash key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection`, `key`, and `field`, the service will get the value of the hash key using `RedisHashMethods.hget`. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection`, `key` and `field` input properties. The default values are already set for `connection`, `key`, and `field`.\n\nThe `RedisHashMethods.hget` has an object `redisHgetOutput` which will return the value of the hash key.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- The `output.message`'s value will be set to the value of `redisHgetOutput`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Successfully Set Hash Key\nINFO  [Martini] John Doe\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "hashKey"
+        },
+        {
+            "name": "field",
+            "defaultValue": "user"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This will set a single hash field in the hash key",
+            "name": "bigData.redis.hashes.SetHashKey",
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connection"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "from": [
+                        "field"
+                    ],
+                    "to": [
+                        "field"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This will get a single value from the hash key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisHgetOutput",
+                            "type": "object",
+                            "comments": "V bulk-string-reply the value associated with {@code field}, or {@literal null} when {@code field} is not\npresent         in the hash or {@code key} does not exist."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisHashMethods",
+            "methodName": "hget",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "java.lang.Object",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "from": [
+                        "field"
+                    ],
+                    "to": [
+                        "field"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisHgetOutput"
+                    ],
+                    "to": [
+                        "redisHgetOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will log the value of the hash key",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "redisHgetOutput"
+                    ],
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

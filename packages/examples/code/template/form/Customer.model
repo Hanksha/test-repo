@@ -1,0 +1,17 @@
+{
+    "name": "Customer",
+    "type": "model",
+    "comments": "Gloop model which represents a customer.",
+    "gloopProperties": [
+        {
+            "name": "firstName",
+            "defaultValue": ""
+        },
+        {
+            "name": "lastName"
+        },
+        {
+            "name": "email"
+        }
+    ]
+}

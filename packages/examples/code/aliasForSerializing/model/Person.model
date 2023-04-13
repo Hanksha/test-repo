@@ -1,0 +1,66 @@
+{
+    "name": "Person",
+    "type": "model",
+    "comments": "This [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model) is used in the `PrintPerson.gloop` service, which demonstrates [how Gloop serializes a model with property aliases](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/alias-property).\n\nFor the purpose of said example, some properties of this model are [named after keywords, or contain invalid characters](https://docs.torocloud.com/martini/latest/appendix/naming-conventions/#gloop-properties-and-variables).\n\nWhile adding properties with invalid names, [Martini](https://docs.torocloud.com/martini/latest/developing/ides) will automatically rename them so that they are valid but will retain the invalid name as aliases using the `Alias` property. Thus, we end up with properties named the way they are in this model.\n\nAll properties in this model are marked as required (`Required` = `true`). A required property means that even if a property's value is `null`, they will still end up in the resulting XML, JSON, or YAML string.",
+    "gloopProperties": [
+        {
+            "name": "firstName",
+            "required": true,
+            "defaultValue": "John",
+            "comments": "camelCase is the recommended standard for naming models, variables and objects"
+        },
+        {
+            "name": "last_name",
+            "required": true,
+            "defaultValue": "Doe",
+            "comments": "Using '_' is okay"
+        },
+        {
+            "name": "invalidNames",
+            "type": "model",
+            "required": true,
+            "comments": "Gloop Automatically converts an invalid name into a valid one for use in Groovy code. When a property has an invalid name, it's replaced with a groovy-friendly one, and the 'alias' is displayed after in brackets. When properties with an alias are marshalled to XML, JSON. or YAML the alias is used\n",
+            "gloopProperties": [
+                {
+                    "name": "middle_name",
+                    "alias": "middle-name",
+                    "required": true,
+                    "defaultValue": "Roe",
+                    "comments": "Contains a symbol"
+                },
+                {
+                    "name": "SSN_",
+                    "alias": "SSN#",
+                    "required": true,
+                    "defaultValue": "123-45-6789 ",
+                    "comments": "Contains a symbol"
+                },
+                {
+                    "name": "_3mail",
+                    "alias": "3mail",
+                    "required": true,
+                    "defaultValue": "johndoe@example.com",
+                    "comments": "Begins with a number (This is marked as an XML attribute so when an XML version of this property is being written, it will be written as an attribute)",
+                    "xmlAttribute": true
+                },
+                {
+                    "name": "_grade",
+                    "alias": "%grade",
+                    "type": "double",
+                    "required": true,
+                    "defaultValue": 90.0,
+                    "comments": "Begins with a symbol. (This is marked as an XML attribute so when an XML version of this property is being written, it will be written as an attribute)",
+                    "xmlAttribute": true
+                }
+            ]
+        },
+        {
+            "name": "phone_number",
+            "alias": "phone number",
+            "required": true,
+            "defaultValue": "123-456-7890 ",
+            "comments": "Contains whitespaces. (This is marked as an XML attribute so when an XML version of this property is being written, it will be written as an attribute)",
+            "xmlAttribute": true
+        }
+    ]
+}

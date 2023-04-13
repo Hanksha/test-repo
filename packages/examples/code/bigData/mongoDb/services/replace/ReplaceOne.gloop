@@ -1,0 +1,103 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "$upsert",
+                    "type": "boolean"
+                },
+                {
+                    "name": "itemName"
+                },
+                {
+                    "name": "replacement",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "_id"
+                        },
+                        {
+                            "name": "item"
+                        },
+                        {
+                            "name": "qty",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "status"
+                        },
+                        {
+                            "name": "size",
+                            "type": "model",
+                            "allowExtraProperties": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "h",
+                                    "type": "double"
+                                },
+                                {
+                                    "name": "w",
+                                    "type": "double"
+                                },
+                                {
+                                    "name": "uom"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "tags",
+                            "type": "object",
+                            "array": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "matchedCount",
+                    "type": "long"
+                },
+                {
+                    "name": "modifiedCount",
+                    "type": "long"
+                },
+                {
+                    "name": "upsertedId",
+                    "type": "object"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "inventory",
+    "queryType": "REPLACE_ONE",
+    "filter": "{\n\titem: {{itemName:string}}\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\n]"
+}

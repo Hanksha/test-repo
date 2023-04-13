@@ -1,0 +1,221 @@
+{
+    "comments": "Sends a copy of the provided file to the configured FTP server. Also logs the sent file to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view).\n\nThis service requires `ftp.*` package properties to be set.\n\nThis can be used as the service of an [FTP client](https://docs.torocloud.com/martini/latest/developing/endpoints/types/ftp-client/) or [Directory watcher](https://docs.torocloud.com/martini/latest/developing/endpoints/types/directory-watcher/) endpoint.",
+    "input": [
+        {
+            "name": "bytes",
+            "type": "object"
+        },
+        {
+            "name": "filename"
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Get ftp credentials in package property",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "username"
+                        },
+                        {
+                            "name": "password"
+                        },
+                        {
+                            "name": "protocol"
+                        },
+                        {
+                            "name": "host"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "'ftp.username'.getPackageProperty()",
+                    "evaluate": true,
+                    "to": [
+                        "username"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "'ftp.password'.getPackageProperty()",
+                    "evaluate": true,
+                    "to": [
+                        "password"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "'ftp.host'.getPackageProperty()",
+                    "evaluate": true,
+                    "to": [
+                        "host"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "'ftp.protocol'.getPackageProperty()",
+                    "evaluate": true,
+                    "to": [
+                        "protocol"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "import io.toro.martini.exception.ToroException\nif ( username ) {\n\t\"Received file with a name ${filename}.\"\n} else {\n\tthrow new ToroException( \"No package has been set, cannot get properties. Please go to package property and configure ftp credentials\" );\n}",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Get a Gloop VFS Object from the Apache Virtual File System. File will be automatically created if not exist",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "vfsFileContentObject",
+                                    "type": "object",
+                                    "objectClassName": "org.apache.commons.vfs2.FileContent"
+                                }
+                            ]
+                        }
+                    ],
+                    "unload": [
+                        [
+                            "username"
+                        ],
+                        [
+                            "password"
+                        ],
+                        [
+                            "protocol"
+                        ],
+                        [
+                            "host"
+                        ]
+                    ],
+                    "className": "io.toro.martini.VfsMethods",
+                    "methodName": "getVfsFile",
+                    "parameters": [
+                        "java.lang.String",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${protocol}://${URLEncoder.encode(username, 'UTF-8')}:${URLEncoder.encode(password, 'UTF-8')}@${host}/${filename}\"",
+                            "evaluate": true,
+                            "to": [
+                                "url"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "vfsFileSystemOptions",
+                                "ftpOpts",
+                                "passiveMode"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "vfsFileSystemOptions",
+                                "ftpOpts",
+                                "userDirIsRoot"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "vfsFile",
+                                "fileContent",
+                                "vfsFileContentObject"
+                            ],
+                            "to": [
+                                "vfsFileContentObject"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Writes the content of the input string to the file",
+                    "className": "io.toro.martini.VfsMethods",
+                    "methodName": "writeFile",
+                    "parameters": [
+                        "org.apache.commons.vfs2.FileContent",
+                        "byte[]",
+                        "boolean",
+                        "int"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "bytes"
+                            ],
+                            "to": [
+                                "data"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "vfsFileContentObject"
+                            ],
+                            "to": [
+                                "fileContent"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "$gloopException.message",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

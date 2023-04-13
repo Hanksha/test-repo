@@ -1,0 +1,68 @@
+{
+    "comments": "## [Using Websocket](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/websocket/)\n\n---\n\nThis example gloop service illustrates a use case of [Websocket](https://docs.torocloud.com/martini/latest/developing/services/one-liners/web-socket-methods/)\n\nThis gloop service uses JmsMethods to publish data to the websocket listener.\n\n## Getting Started\n\n---\n\n### How to Invoke\n\n### Setup\n\nFor this to work, please do the following:\n1. Create an [JMS Listener](https://docs.torocloud.com/martini/latest/developing/endpoints/types/jms-listener/).\n2. Input the required credentials.\n\nor just simple enable the jms listener endpoint `WebsocketListener`. This is an endpoint that comes with the example package which we have configured for your convenience.\n\n#### Martini Desktop\n\n1. Open the webpage `<martini-home>/packages/examples/web/websocket` in your browser.\n2. Enter a message and send by pressing the enter button in your keyboard.\n\n#### Martini Online\n\n1. Open the webpage `<martini-home>/packages/examples/web/websocket` in your browser.\n2. Enter a message and send by pressing the enter button in your keyboard.",
+    "input": [
+        {
+            "name": "username"
+        },
+        {
+            "name": "message"
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we publish a string to the jms topic.",
+                    "className": "io.toro.martini.JmsMethods",
+                    "methodName": "publishString",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "message"
+                            ],
+                            "to": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"topic://guessingGame.${username}\"",
+                            "evaluate": true,
+                            "to": [
+                                "destinationName"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

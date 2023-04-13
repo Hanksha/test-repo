@@ -1,0 +1,111 @@
+{
+    "comments": "The service will return the sum and average of all numbers provided in the input array.\n\nIt will be used by `invokeGloop.groovy.GloopInvoker.groovy` to demonstrate how to invoke a [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) in Groovy.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). This service requires you to provide an array of numbers.\n\n## Expected Output\n\n### Properties\n\nThis service will return an `output` model with the properties `average` and `sum`.\n\nThe output of this service depends on the values provided for `numbers`.\n\nIf the numbers provided were:\n\n```\n1.1\n2.2\n3.3\n4.4\n5.5\n```\n\n... the service will return:\n\n- `2.0` as `output.average`\n- `6.0` as `output.sum`\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a model tree.\n\n### Logs\n\nThe following [logs will be visible in Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) upon execution of this service:\n\n```\nINFO  [Martini] computeNumbers: received [1.1, 2.2, 3.3, 4.4, 5.5]\nINFO  [Martini] If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "numbers",
+            "type": "double",
+            "array": true,
+            "defaultValue": [
+                1.1,
+                2.2,
+                3.3,
+                4.4,
+                5.5
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "average",
+                    "type": "double"
+                },
+                {
+                    "name": "sum",
+                    "type": "double",
+                    "defaultValue": 0
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Log the list of numbers received by this Gloop service in the console",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"computeNumbers: received ${numbers}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Let's iterate over the numbers provided in the input",
+            "input": {
+                "path": [
+                    "numbers"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Compute the total of all the numbers and map it to output.sum",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "output.sum + numbers",
+                            "evaluate": true,
+                            "to": [
+                                "output",
+                                "sum"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In this step, we map the average to the output.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "output.sum / numbers.size()",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "average"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

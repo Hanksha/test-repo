@@ -1,0 +1,110 @@
+{
+    "comments": "## [Using the Flat File Descriptor](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/flat-file/)\n\n---\n\nThis Gloop services opens the input or output cursor based from the service input.",
+    "input": [
+        {
+            "name": "flatFileData",
+            "type": "object"
+        },
+        {
+            "name": "type",
+            "defaultValue": "Input",
+            "choices": [
+                "Input",
+                "Output"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "EmployeesCursor",
+            "type": "model",
+            "array": true,
+            "reference": "flatfile.model.Employee"
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "In this step, we check if the `type` is Input or Output.",
+            "expression": "type",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "Input",
+                    "className": "io.toro.martini.FlatFileMethods",
+                    "methodName": "getFlatFileInputCursor",
+                    "parameters": [
+                        "java.io.InputStream",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "flatFileData"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "flatfile.ffd.Employees",
+                            "to": [
+                                "flatFileDescriptorName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "EmployeesCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "Output",
+                    "className": "io.toro.martini.FlatFileMethods",
+                    "methodName": "getFlatFileOutputCursor",
+                    "parameters": [
+                        "java.io.OutputStream",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "flatFileData"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "flatfile.ffd.Employees",
+                            "to": [
+                                "flatFileDescriptorName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "EmployeesCursor"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

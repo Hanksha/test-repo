@@ -1,0 +1,228 @@
+{
+    "comments": "This [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) will enable or disable the database XA transaction based on the input property value provided.\n\nTo see how this service is used, check out `databaseTransaction.DatabaseMigration`.",
+    "input": [
+        {
+            "name": "enableXA",
+            "type": "boolean"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will get the defined datasources",
+            "name": "sqlServices.conf.util.DataSourceHelper",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "datasources",
+                            "array": true
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "datasources"
+                    ],
+                    "to": [
+                        "datasources"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Send an info message to the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${enableXA?'Enabling':'Disabling'} xa for data sources ${datasources}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "input": {
+                "path": [
+                    "datasources"
+                ]
+            },
+            "children": [
+                {
+                    "type": "block",
+                    "blockType": "TRY_CATCH",
+                    "children": [
+                        {
+                            "type": "fork",
+                            "expression": "!datasources.equalsIgnoreCase( 'conversion_sample' )",
+                            "children": [
+                                {
+                                    "type": "block",
+                                    "label": "true",
+                                    "children": [
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "This step will get the connection pool info and will set xa to `enableXA`",
+                                            "declare": [
+                                                {
+                                                    "variables": [
+                                                        {
+                                                            "name": "connectionPoolInfo",
+                                                            "type": "model",
+                                                            "reference": "io.toro.martini.jdbc.JDBCConnectionPoolInfo"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                            "methodName": "getConnectionPoolInfo",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "datasources"
+                                                    ],
+                                                    "to": [
+                                                        "name"
+                                                    ]
+                                                }
+                                            ],
+                                            "outputs": [
+                                                {
+                                                    "from": [
+                                                        "connectionPoolInfo"
+                                                    ],
+                                                    "to": [
+                                                        "connectionPoolInfo"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "set",
+                                                    "expression": "enableXA",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "connectionPoolInfo",
+                                                        "xa"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "set",
+                                                    "expression": "\"\"",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "connectionPoolInfo",
+                                                        "password"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "This step will stop the connection pool.",
+                                            "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                            "methodName": "stopPool",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "datasources"
+                                                    ],
+                                                    "to": [
+                                                        "name"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "This step will save the pool to update connection pool xa property",
+                                            "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                            "methodName": "savePool",
+                                            "parameters": [
+                                                "io.toro.gloop.object.property.GloopModel"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "connectionPoolInfo"
+                                                    ],
+                                                    "to": [
+                                                        "connectionPoolInfo"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "This step will start the connection pool.",
+                                            "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                            "methodName": "startPool",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "connectionPoolInfo",
+                                                        "name"
+                                                    ],
+                                                    "to": [
+                                                        "name"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "catch": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "error",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Throwable"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "$gloopException",
+                                        "realException"
+                                    ],
+                                    "to": [
+                                        "throwable"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Please run sqlServices.conf.SqlStartupService to create example_db and example_xa_db_migrated",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

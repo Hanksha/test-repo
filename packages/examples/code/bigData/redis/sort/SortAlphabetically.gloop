@@ -1,0 +1,212 @@
+{
+    "comments": "# Sort Alphabetically a Set Key\n\nThis service shows on how to sort alphabetically a Redis set in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection` and `key`, the service will sort the given set alphabetically by setting the score to `0` using the `RedisSortedSetMethods.zadd` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` and `key` input properties. The default values are already set for `connection` and `key`.\n\nUsing the `RedisSortedSetMethods.zrange` this will return the list alphabetically as long as all members score are fixed to `0` and this one-liner has an output property `redisZrangeOutput` which has the list of all the member in the sorted set. \n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `redisZrangeOutput`'s value is not `null`, then the `output.message` will be set to `\"Success\"`.\n- else, The `output.message` will be set to `\"Failed\"`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Getting Data from restaurants.json\nINFO  [Martini] Successfully Populate Sorted Set Key\nINFO  [Martini] (Lewis Drug Store) Locanda Vini E Olii\nINFO  [Martini] 1 East 66Th Street Kitchen\nINFO  [Martini] 101 Deli\nINFO  [Martini] 101 Restaurant And Bar\nINFO  [Martini] 1020 Bar\nINFO  [Martini] 104-01 Foster Avenue Coffee Shop(Ups)\nINFO  [Martini] 111 Restaurant\nand so on.....\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "sortKey"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This step will delete the existing sorted set in Redis",
+            "className": "io.toro.martini.redis.RedisKeyMethods",
+            "methodName": "del",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext",
+                "java.lang.Object[]"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "keys"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "This step will populate the sorted set key in Redis",
+            "name": "bigData.redis.sort.PopulateSortKey",
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connection"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will return a list of members in the sorted set key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisZrangeOutput",
+                            "type": "object",
+                            "array": true,
+                            "comments": "List&lt;V&gt; array-reply list of elements in the specified range."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisSortedSetMethods",
+            "methodName": "zrange",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "long",
+                "long",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "0",
+                    "evaluate": true,
+                    "to": [
+                        "start"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "-1",
+                    "evaluate": true,
+                    "to": [
+                        "stop"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisZrangeOutput"
+                    ],
+                    "to": [
+                        "redisZrangeOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "This step will iterate the list of member",
+            "input": {
+                "path": [
+                    "redisZrangeOutput"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This will log each member in the list",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "redisZrangeOutput"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This step determine if the returned sorted set is was null or not",
+            "expression": "redisZrangeOutput != null",
+            "children": [
+                {
+                    "label": "true",
+                    "comments": "Map output model to \"Success\" if true",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Success",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "false",
+                    "comments": "Map output model to \"Failed\" if false",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Failed",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

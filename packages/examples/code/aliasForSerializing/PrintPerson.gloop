@@ -1,0 +1,142 @@
+{
+    "validateOutput": true,
+    "comments": "# [Using the `Alias` Property](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/alias-property)\n\nThis Gloop service demonstrates how the [`Alias` property](https://docs.torocloud.com/martini/latest/developing/gloop/model/object-type/#alias) affects the serialization of [Gloop models](https://docs.torocloud.com/martini/latest/developing/gloop/model). \n\nIn particular, this service will serialize the input [model](https://docs.torocloud.com/martini/latest/developing/gloop/model) to XML, JSON, and YAML, and [log](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods/) the results  at the `INFO` level.\n\n_While the resulting XML is invalid due to the use of invalid characters in property aliases, it will still be displayed for the sake of this demonstration._\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), Martini will prompt you to populate the fields of the model `input`. For your convenience, all required fields are already populated; changing these values is optional but possible. They will be serialized with the model.\n\n## Expected Output\n\nAfter successfully running the service, the service will return a model named `output` which will be populated with the following serialized values, all of which will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n- `output._xmlString`\n\n    ```\n    <?xml version=\"1.0\"?>\n    <input phone number=\"123-456-7890 \">\n        <firstName>John</firstName>\n        <last_name>Doe</last_name>\n        <invalidNames 3mail=\"johndoe@example.com\" %grade=\"90.0\">\n            <middle-name>Roe</middle-name>\n            <SSN#>123-45-6789 </SSN#>\n        </invalidNames>\n    </input>\n    ```\n\n- `output.jsonString`\n\n    ```\n    {\n        \"input\": {\n            \"firstName\": \"John\",\n            \"last_name\": \"Doe\",\n            \"invalidNames\": {\n                \"middle-name\": \"Roe\",\n                \"SSN#\": \"123-45-6789 \",\n                \"3mail\": \"johndoe@example.com\",\n                \"%grade\": 90.0\n            },\n            \"phone number\": \"123-456-7890 \"\n        }\n    }\n    ```\n\n- `output.yamlString`\n\n    ```\n    input:\n      firstName: John\n      last_name: Doe\n      invalidNames:\n        middle-name: Roe\n        SSN#: 123-45-6789 \n        3mail: johndoe@example.com\n        %grade: 90.0\n      phone number: 123-456-7890 \n    ```\n\nThese will all depend on the values provided for the `input` model.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "reference": "aliasForSerializing.model.Person"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs, or view the xmlString, jsonString, and yamlString outputs of the service. You can see how to view the Martini logs at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                },
+                {
+                    "name": "_xmlString",
+                    "alias": "xmlString"
+                },
+                {
+                    "name": "jsonString"
+                },
+                {
+                    "name": "yamlString"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This line will log the input model in an XML format to the Martini Runtime info log.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\n\"This is what it looks like when the input model is serialized to XML:\\n\\n${input.asXml()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "set",
+                    "expression": "input.asXml()",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "_xmlString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This line will log the input model in a JSON format to the Martini Runtime info log.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"This is what it looks like when the input model is serialized to JSON:\\n\\n${input.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "set",
+                    "expression": "input.asJson()",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "jsonString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This line will log the input model in a YAML format to the Martini Runtime info log.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"This is what it looks like when the input model is serialized to YAML:\\n\\n${input.asYaml()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "set",
+                    "expression": "input.asYaml()",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "yamlString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

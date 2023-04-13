@@ -1,0 +1,110 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which updates an existing row in the `blob_example` column family. Row data is specified through input parameters.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                },
+                {
+                    "name": "address",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "building"
+                        },
+                        {
+                            "name": "coord",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "tupleEntry0",
+                                    "type": "bigDecimal"
+                                },
+                                {
+                                    "name": "tupleEntry1",
+                                    "type": "bigDecimal"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "street"
+                        },
+                        {
+                            "name": "zipcode",
+                            "type": "integer"
+                        }
+                    ]
+                },
+                {
+                    "name": "borough"
+                },
+                {
+                    "name": "cuisine"
+                },
+                {
+                    "name": "grades",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "date",
+                            "type": "date"
+                        },
+                        {
+                            "name": "grade"
+                        },
+                        {
+                            "name": "score",
+                            "type": "integer"
+                        }
+                    ]
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "restaurantid",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "UPDATE",
+    "query": "UPDATE restaurants\nSET\n    address = :address,\n    borough = :borough,\n    cuisine = :cuisine,\n    grades = :grades\nWHERE\n    name = :name\n    AND\n    restaurant_id = :restaurantId",
+    "keyspace": "restaurants"
+}

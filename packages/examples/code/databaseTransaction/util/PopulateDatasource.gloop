@@ -1,0 +1,195 @@
+{
+    "comments": "This [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) will select records from the provided `fromDataSource` and insert the first five records to the `toDataSource`.  This shows you how easy it is to have Gloop batch migrate data from one datasource to another.\n\nTo see how this service is used, check out `databaseTransaction.DatabaseMigration`.",
+    "input": [
+        {
+            "name": "fromDataSource"
+        },
+        {
+            "name": "toDataSource"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will get an input cursor that will return all records from the `NAMES` table from the database based on the `fromDatasource` value provided.",
+            "name": "sqlServices.sql.multiple.SelectMultipleNames",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "selectMultipleNamesInputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "ID",
+                                    "type": "integer",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "FIRST_NAME",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "LAST_NAME",
+                                    "required": true,
+                                    "allowNull": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "fromDataSource"
+                    ],
+                    "to": [
+                        "selectMultipleNamesInput",
+                        "$martiniConnectionPool"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "selectMultipleNamesInputCursor"
+                    ],
+                    "to": [
+                        "selectMultipleNamesInputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we are going to create an output cursor that will insert rows to a table called `NAMES` for the database based on the `toDataSource` value provided",
+            "name": "sqlServices.sql.multiple.InsertMultipleNames",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "insertMultipleNamesOutputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "firstName"
+                                },
+                                {
+                                    "name": "lastName"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "toDataSource"
+                    ],
+                    "to": [
+                        "insertMultipleNamesInput",
+                        "$martiniConnectionPool"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "selectMultipleNamesInputCursor.size()",
+                    "evaluate": true,
+                    "to": [
+                        "insertMultipleNamesInput",
+                        "$batchSize"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "insertMultipleNamesOutputCursor"
+                    ],
+                    "to": [
+                        "insertMultipleNamesOutputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterates over the selectMultipleNamesOutputCursor and maps it to the insertMultipleNamesOutputCursor.",
+            "input": {
+                "path": [
+                    "selectMultipleNamesInputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "insertMultipleNamesOutputCursor"
+                ]
+            },
+            "children": [
+                {
+                    "type": "fork",
+                    "comments": "This step will check if the $gloopIndex is greater than or equals to 5",
+                    "expression": "$gloopIndex >= 5",
+                    "children": [
+                        {
+                            "type": "break",
+                            "label": "true",
+                            "comments": "If the parent fork condition is true, then we run this step which will break the current iteration.",
+                            "expression": "$gloopIterate"
+                        },
+                        {
+                            "label": "false",
+                            "comments": "If the parent fork condition is false, then we map the selectMultipleNamesOutputCursor property to insertMultipleNamesOutputCursor",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "selectMultipleNamesInputCursor",
+                                        "FIRST_NAME"
+                                    ],
+                                    "to": [
+                                        "insertMultipleNamesOutputCursor",
+                                        "firstName"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "selectMultipleNamesInputCursor",
+                                        "LAST_NAME"
+                                    ],
+                                    "to": [
+                                        "insertMultipleNamesOutputCursor",
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Successfully migrated data from ${fromDataSource} to ${toDataSource}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

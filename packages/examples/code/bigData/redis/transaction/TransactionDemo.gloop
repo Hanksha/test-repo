@@ -1,0 +1,461 @@
+{
+    "comments": "# Transaction in Redis\n\nThis service shows how to use a transaction for Redis in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/). \n\nGiven a String `connection`, the service will make a transaction using the `RedisTransactionalMethods.multi` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` input properties. The default value is already set for the `connection`.\n\nThe service has already a set of commands which will be used to the transaction. after that, the service will be using the `RedisTransactionalMethods.exec` to execute the commands in the transaction. The `RedisTransactionalMethods.exec` has a `redisExecOutput` output property which will return an array of command response.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `redisExecOutput.size()`'s value is `4`,  then `output.message` will be set to `\"Transaction on redis connection was successfully executed\"`.\n- else, `output.message` will be set to `\"Failed to make a transaction on redis connection\"`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Ping redis connection\nINFO  [Martini] Setting keyOne\nINFO  [Martini] Setting keyTwo\nINFO  [Martini] Setting keyThree\nINFO  [Martini] Waiting for 5 seconds before executing the transaction\nINFO  [Martini] Transaction on redis connection has successfully executed\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This step will initiate the command for Redis transaction",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisMultiOutput",
+                            "comments": "String simple-string-reply always {@code OK}."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisTransactionalMethods",
+            "methodName": "multi",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisMultiOutput"
+                    ],
+                    "to": [
+                        "redisMultiOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This will determine if the transaction has started",
+            "expression": "redisMultiOutput",
+            "children": [
+                {
+                    "type": "block",
+                    "label": "OK",
+                    "comments": "Will return `OK` if it has started",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will log a message that will ping the connection",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Ping ${connection} connection\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This command will ping the connection",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "redisPingOutput",
+                                            "comments": "String simple-string-reply"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "className": "io.toro.martini.redis.RedisConnectionMethods",
+                            "methodName": "ping",
+                            "parameters": [
+                                "java.lang.String",
+                                "io.toro.gloop.engine.GloopExecutionContext"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "connection"
+                                    ],
+                                    "to": [
+                                        "connectionName"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "redisPingOutput"
+                                    ],
+                                    "to": [
+                                        "redisPingOutput"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will log a message that will set a string key",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "Setting keyOne",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will set a string key in Redis",
+                            "className": "io.toro.martini.redis.RedisStringMethods",
+                            "methodName": "set",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Object",
+                                "java.lang.Object",
+                                "io.toro.gloop.engine.GloopExecutionContext"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "connection"
+                                    ],
+                                    "to": [
+                                        "connectionName"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "keyOne",
+                                    "to": [
+                                        "key"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Hello One",
+                                    "to": [
+                                        "value"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will log a message that will set a string key",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "Setting keyTwo",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will set a string key in Redis",
+                            "className": "io.toro.martini.redis.RedisStringMethods",
+                            "methodName": "set",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Object",
+                                "java.lang.Object",
+                                "io.toro.gloop.engine.GloopExecutionContext"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "connection"
+                                    ],
+                                    "to": [
+                                        "connectionName"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "keyTwo",
+                                    "to": [
+                                        "key"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Hello Two",
+                                    "to": [
+                                        "value"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will log a message that will set a string key",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "Setting keyThree",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This will set a string key in Redis",
+                            "className": "io.toro.martini.redis.RedisStringMethods",
+                            "methodName": "set",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Object",
+                                "java.lang.Object",
+                                "io.toro.gloop.engine.GloopExecutionContext"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "connection"
+                                    ],
+                                    "to": [
+                                        "connectionName"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "keyThree",
+                                    "to": [
+                                        "key"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Hello Three",
+                                    "to": [
+                                        "value"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "$else",
+                    "comments": "else, if the transaction failed to start",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Failed to make a transaction",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Will log a message for waiting a seconds to execute",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Waiting for 5 seconds before executing the transaction",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "gloovy",
+            "comments": "Will wait for 5 seconds before executing the transaction",
+            "gloovyScript": "Thread.sleep(5000)"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will execute all the commands for the transaction",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisExecOutput",
+                            "type": "object",
+                            "comments": "List&lt;Object&gt; array-reply each element being the reply to each of the commands in the atomic\ntransaction.          When using {@code WATCH}, {@code EXEC} can return a",
+                            "objectClassName": "io.lettuce.core.TransactionResult"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisTransactionalMethods",
+            "methodName": "exec",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisExecOutput"
+                    ],
+                    "to": [
+                        "redisExecOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "Determine if the execution was successful",
+            "expression": "redisExecOutput.size()",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "4",
+                    "comments": "4, if all the commands execute properly and will log a message and map to output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Transaction on ${connection} connection has successfully executed\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "$else",
+                    "comments": "else, if failed to execute and will log a message and map to output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Failed to make a transaction on ${connection} connection\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,61 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                },
+                {
+                    "name": "$skip",
+                    "type": "integer"
+                },
+                {
+                    "name": "coordX",
+                    "type": "double"
+                },
+                {
+                    "name": "coordY",
+                    "type": "double"
+                },
+                {
+                    "name": "mileRadius",
+                    "type": "object"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurants",
+    "queryType": "FIND_MANY",
+    "filter": "{\n\t\"address.coord\": {\n\t\t$geoWithin: {\n\t\t\t$centerSphere: [\n\t\t\t\t[{{coordX:double}}, {{coordY:double}}],\n\t\t\t\t{{mileRadius}}\n\t\t\t]\n\t\t}\n\t}\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\n]"
+}

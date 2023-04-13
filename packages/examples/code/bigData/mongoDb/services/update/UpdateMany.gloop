@@ -1,0 +1,73 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "$upsert",
+                    "type": "boolean"
+                },
+                {
+                    "name": "max",
+                    "type": "integer"
+                },
+                {
+                    "name": "min",
+                    "type": "integer"
+                },
+                {
+                    "name": "qty",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "matchedCount",
+                    "type": "long"
+                },
+                {
+                    "name": "modifiedCount",
+                    "type": "long"
+                },
+                {
+                    "name": "acknowledged",
+                    "type": "boolean"
+                },
+                {
+                    "name": "upsertedId",
+                    "type": "object"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "inventory",
+    "queryType": "UPDATE_MANY",
+    "filter": "{\n\t$and: [\n\t\t{\n\t\t\tqty: {\n\t\t\t\t$lt: {{max:int}}\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\tqty: {\n\t\t\t\t$gt: {{min:int}}\n\t\t\t}\n\t\t}\n\t]\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\t$inc: {\n\t\tqty: {{qty:int}}\n\t}\n}",
+    "pipelines": "[\n\n]"
+}

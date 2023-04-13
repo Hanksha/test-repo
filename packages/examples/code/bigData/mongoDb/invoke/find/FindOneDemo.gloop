@@ -1,0 +1,121 @@
+{
+    "comments": "## Retrieving a Single Record Using `Find One`\n\nThis Gloop service demonstrates how to query `findOne` to get a single record from a Mongo DB collection. The MongoDB service (line 4) used in this Gloop service holds the query to find a single document from the `restaurant` collection by `borough`\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a `city` to be sent as an input to the query to be performed. For your convenience, the `city` is already populated with a value; changing this value is optional but possible.\n\n## Expected Output\n\nIf the query is successfully executed, the service will return the first document it can find in the `restaurant` collection. This document will be returned as a Gloop model called `restaurant`. This will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\n{\n    \"restaurant\": {\n        \"_id\": \"5d1d58d708a71c022a3dec93\",\n        \"address\": {\n            \"building\": \"1007\",\n            \"coord\": [\n                -73.856077,\n                40.848447\n            ],\n            \"street\": \"Morris Park Ave\",\n            \"zipcode\": \"10462\"\n        },\n        \"borough\": \"Bronx\",\n        \"cuisine\": \"Bakery\",\n        \"grades\": [\n            {\n                \"date\": \"2014-03-03T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 2\n            },\n            {\n                \"date\": \"2013-09-11T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 6\n            },\n            {\n                \"date\": \"2013-01-24T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 10\n            },\n            {\n                \"date\": \"2011-11-23T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 9\n            },\n            {\n                \"date\": \"2011-03-10T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 14\n            }\n        ],\n        \"name\": \"Morris Park Bake Shop\",\n        \"restaurant_id\": \"30075445\"\n    }\n}\n```",
+    "input": [
+        {
+            "name": "city",
+            "defaultValue": "Bronx",
+            "comments": "The city name to be sent as an input",
+            "choices": [
+                "Bronx",
+                "Manhattan",
+                "Queens",
+                "Staten Island",
+                "Brooklyn"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "restaurant",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection, as well as the documents required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Queries the city input to this service, and will only return the first document it finds regardless of document matches",
+                    "name": "bigData.mongoDb.services.find.FindOne",
+                    "inputs": [
+                        {
+                            "from": [
+                                "city"
+                            ],
+                            "to": [
+                                "input",
+                                "city"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "restaurant"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Found one restaurant for the queried city: ${city}.\\n${restaurant.asJson()}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

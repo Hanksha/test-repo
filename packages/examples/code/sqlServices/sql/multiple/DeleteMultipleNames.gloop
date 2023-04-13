@@ -1,0 +1,40 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be used as the output array of an [iterate](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/) or [while](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/) step for deleting multiple entries in the `NAMES` table.",
+    "input": [
+        {
+            "name": "deleteMultipleNamesInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$batchSize",
+                    "type": "integer"
+                },
+                {
+                    "name": "$parentJDBCBatchCursor",
+                    "type": "object",
+                    "objectClassName": "io.toro.gloop.cursor.jdbc.JDBCBatchGloopCursor"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "deleteMultipleNamesOutputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "DELETE_BATCH",
+    "query": "DELETE FROM NAMES WHERE (ID = :id)"
+}

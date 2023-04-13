@@ -1,0 +1,157 @@
+{
+    "comments": "# [Using Data from Tracker in a Chart](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/report-builder/)\n\nThis Gloop service creates a [Tracker document](https://docs.torocloud.com/martini/tracker-search-index/#documents) with a `State` property.\n\nThe `State` property's value is randomly selected from any of the following values: `Arizona`, `California`, `Alaska`, `New York`, or `Texas`.\n\nAside from generating Tracker data, this service creates a report named `report-builder-demo`. This report displays the number of times each state was referenced in Tracker documents in a chart, of which data was [obtained through the Solr REST API](https://docs.torocloud.com/martini/report-builder/creating-reports/charts/tracker/).\n\nRepeatedly running this service will change the data rendered by the report in its [preview](https://docs.torocloud.com/martini/report-builder/previewing/).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nYou should see a new Tracker document in the [Tracker UI](https://docs.torocloud.com/martini/latest/tracker-search-index/searching/#via-the-user-interface) every time you run this service. Moreover, the new document will have a document type of `report-builder-demo`, and a state `Received`.",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "comments": "Let's declare the state property here",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "state"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "random",
+            "comments": "Set a random value into state",
+            "children": [
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Arizona",
+                            "to": [
+                                "state"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "California",
+                            "to": [
+                                "state"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Alaska",
+                            "to": [
+                                "state"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "New York",
+                            "to": [
+                                "state"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Texas",
+                            "to": [
+                                "state"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Create a tracker document containing the value",
+            "className": "io.toro.martini.TrackerMethods",
+            "methodName": "addDocument",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "java.util.Map"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "[\n\t\"State\":state\n]",
+                    "evaluate": true,
+                    "to": [
+                        "properties"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "System.currentTimeMillis().toString().sha1Hex()",
+                    "evaluate": true,
+                    "to": [
+                        "internalId"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "System.currentTimeMillis()",
+                    "evaluate": true,
+                    "to": [
+                        "externalId"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "Received",
+                    "to": [
+                        "stateName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "report-builder-demo/gloop/randomNumbers",
+                    "to": [
+                        "receiverId"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "report-builder-demo/gloop/randomNumbers",
+                    "to": [
+                        "senderId"
+                    ]
+                }
+            ]
+        }
+    ]
+}

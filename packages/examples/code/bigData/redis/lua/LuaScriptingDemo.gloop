@@ -1,0 +1,153 @@
+{
+    "comments": "# Lua Scripting in Redis\n\nThis service shows on how to do Lua Scripting in Redis in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection`, `key` and `value`, the service will set the `key` and will get the value using a Lua script. To execute a Lua script will be using `RedisScriptingMethods.eval` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection`, `key`, and `value` input properties. The default values are already set for `connection`, `key`, and `value`.\n\nThe `RedisScriptingMethods.eval` one-liner has a `redisEvalOutput` property which will return an object type which also depends on what type you choose. \n\nThe service has already set a default Lua script on the one-liner but you can experiment it on which you desire.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- The `redisSetOutput`'s value will be set to `output.message`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] HELLO WORLD\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "sampleKey"
+        },
+        {
+            "name": "value",
+            "defaultValue": "Hello World"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This step will set a key in Redis",
+            "className": "io.toro.martini.redis.RedisStringMethods",
+            "methodName": "set",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "java.lang.Object",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "from": [
+                        "value"
+                    ],
+                    "to": [
+                        "value"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will evaluate the lua script and return a object according to the type",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisEvalOutput",
+                            "type": "object",
+                            "comments": "script result"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisScriptingMethods",
+            "methodName": "eval",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext",
+                "java.lang.Object[]"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "keys"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "local value = redis.call(\"GET\", KEYS[1])\nreturn string.upper(value)",
+                    "to": [
+                        "script"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "VALUE",
+                    "to": [
+                        "type"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisEvalOutput"
+                    ],
+                    "to": [
+                        "redisEvalOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This will log the returned object of the evaluated lua script",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "redisEvalOutput"
+                    ],
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

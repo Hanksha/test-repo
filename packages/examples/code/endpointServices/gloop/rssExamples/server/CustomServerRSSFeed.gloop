@@ -1,0 +1,178 @@
+{
+    "comments": "A Gloop service that generates RSS feed entries.",
+    "output": [
+        {
+            "name": "rss",
+            "type": "model",
+            "reference": "io.toro.martini.rss.Feed"
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Set Feed basic information",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "Custom RSS Feed",
+                    "to": [
+                        "rss",
+                        "title"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "http://torocloud.com",
+                    "to": [
+                        "rss",
+                        "link"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "This is a custom rss feed that is populates the entries.",
+                    "to": [
+                        "rss",
+                        "description"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "John Doe",
+                    "to": [
+                        "rss",
+                        "authors",
+                        "name"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "john.doe@torocloud.com",
+                    "to": [
+                        "rss",
+                        "authors",
+                        "email"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "TORO Limited",
+                    "to": [
+                        "rss",
+                        "copyright"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "comments": "Loops while $gloopCount is less than 5",
+            "expression": "5",
+            "children": [
+                {
+                    "comments": "Set RSS Feed entries",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Description",
+                            "to": [
+                                "rss",
+                                "entries",
+                                "description",
+                                "type"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"http://example.com/${$gloopCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "rss",
+                                "entries",
+                                "uri"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"Title ${$gloopCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "rss",
+                                "entries",
+                                "title"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "[\"http://example.com/link1\",\"http://example.com/link1\"]",
+                            "evaluate": true,
+                            "to": [
+                                "rss",
+                                "entries",
+                                "links"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"Example Description ${$gloopCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "rss",
+                                "entries",
+                                "description",
+                                "value"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "contents {\n\ttype \"Content\"\n\tmode \"\"\n\tvalue \"Example Content ${$gloopCount}\"\n}\n",
+                            "evaluate": true,
+                            "to": [
+                                "rss",
+                                "entries",
+                                "contents"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "now",
+                            "to": [
+                                "rss",
+                                "entries",
+                                "publishedDate"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "now",
+                            "to": [
+                                "rss",
+                                "entries",
+                                "updatedDate"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "John Doe",
+                            "to": [
+                                "rss",
+                                "entries",
+                                "author"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "output": {
+                "path": [
+                    "rss",
+                    "entries"
+                ]
+            }
+        }
+    ]
+}

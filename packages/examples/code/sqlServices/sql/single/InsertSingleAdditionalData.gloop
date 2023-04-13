@@ -1,0 +1,48 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which inserts a new row in the `ADDITIONAL_DATA` table, with values specified through the provided parameters.\n\n",
+    "input": [
+        {
+            "name": "insertSingleAdditionalDataInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$getGeneratedKeys",
+                    "type": "boolean",
+                    "defaultValue": false
+                },
+                {
+                    "name": "image",
+                    "type": "object",
+                    "objectClassName": "java.sql.Blob"
+                },
+                {
+                    "name": "information",
+                    "type": "object",
+                    "objectClassName": "java.sql.Clob"
+                },
+                {
+                    "name": "nameId",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        },
+        {
+            "name": "generatedKeys",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO ADDITIONAL_DATA (\n    IMAGE,\n    INFORMATION,\n    NAME_ID\n)\nVALUES (\n    :image,\n    :information,\n    :nameId\n)"
+}

@@ -1,0 +1,39 @@
+{
+    "type": "customSql",
+    "comments": "This [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) inserts an entry in the `texts` table with the provided `clobColumn`.",
+    "input": [
+        {
+            "name": "insertClobInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$getGeneratedKeys",
+                    "type": "boolean",
+                    "defaultValue": false
+                },
+                {
+                    "name": "clobColumn",
+                    "type": "object",
+                    "objectClassName": "java.sql.Clob"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        },
+        {
+            "name": "generatedKeys",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "conversion_sample",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO texts (\n    CLOB_COLUMN\n)\nVALUES (\n    :clobColumn\n)"
+}

@@ -1,0 +1,54 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be used as the output array of an [iterate](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/) or [while](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/) step for updating multiple entries in the `ADDITIONAL_DATA` table.",
+    "input": [
+        {
+            "name": "updateMultipleAdditionalDataInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$batchSize",
+                    "type": "integer"
+                },
+                {
+                    "name": "$parentJDBCBatchCursor",
+                    "type": "object",
+                    "objectClassName": "io.toro.gloop.cursor.jdbc.JDBCBatchGloopCursor"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateMultipleAdditionalDataOutputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "image",
+                    "type": "object",
+                    "objectClassName": "java.sql.Blob"
+                },
+                {
+                    "name": "information",
+                    "type": "object",
+                    "objectClassName": "java.sql.Clob"
+                },
+                {
+                    "name": "nameId",
+                    "type": "integer"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "UPDATE_BATCH",
+    "query": "UPDATE ADDITIONAL_DATA\nSET \n\tIMAGE = :image,\n\tINFORMATION = :information,\n\tNAME_ID = :nameId\nWHERE ( ID = :id)"
+}

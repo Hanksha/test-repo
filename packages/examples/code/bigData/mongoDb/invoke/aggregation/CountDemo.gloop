@@ -1,0 +1,154 @@
+{
+    "comments": "## Counting the Number of Document Results Using `$count`\n\nThis Gloop service demonstrates a simple use case of `$count` aggregation query to count the number of documents that matches a given filter. The MongoDB service (line 4) uses aggregation with `$count` to return the number of good restaurants with a given `averageScore` from the whole restaurants collection\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a `averageScore` to be sent as an input to the query to be performed. For your convenience, the `averageScore` property is already set with a default value; changing this value is optional but possible.\n\n## Expected Output\n\nIf the service invoke is successful, depending on the `averageScore` provided in the input, you will see a similar log message that will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Total number of restaurants with average score of 9.0 and above: 2669\n```",
+    "input": [
+        {
+            "name": "averageScore",
+            "type": "double",
+            "defaultValue": 9.0
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "count",
+                    "type": "integer",
+                    "defaultValue": 0
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.aggregation.Count",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "averageScore"
+                            ],
+                            "to": [
+                                "input",
+                                "averageScore"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "result"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "result?.goodRestaurants",
+                                    "evaluate": true,
+                                    "to": [
+                                        "output",
+                                        "count"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Total number of restaurants with average score of ${averageScore} and above: ${output.count}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

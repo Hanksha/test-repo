@@ -1,0 +1,55 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be used as the output array of an [iterate](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/) or [while](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/) step for inserting multiple new entries in the `ADDITIONAL_DATA` table.",
+    "input": [
+        {
+            "name": "insertMultipleAdditionalDataInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$batchSize",
+                    "type": "integer"
+                },
+                {
+                    "name": "$parentJDBCBatchCursor",
+                    "type": "object",
+                    "objectClassName": "io.toro.gloop.cursor.jdbc.JDBCBatchGloopCursor"
+                },
+                {
+                    "name": "getGeneratedKeys",
+                    "type": "boolean",
+                    "defaultValue": false
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "insertMultipleAdditionalDataOutputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "image",
+                    "type": "object",
+                    "objectClassName": "java.sql.Blob"
+                },
+                {
+                    "name": "information",
+                    "type": "object",
+                    "objectClassName": "java.sql.Clob"
+                },
+                {
+                    "name": "nameId",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "INSERT_BATCH",
+    "query": "INSERT INTO ADDITIONAL_DATA (\n    IMAGE,\n    INFORMATION,\n    NAME_ID \n)\nVALUES ( \n    :image,\n    :information,\n    :nameId\n)"
+}

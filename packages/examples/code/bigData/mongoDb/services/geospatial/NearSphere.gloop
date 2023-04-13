@@ -1,0 +1,65 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                },
+                {
+                    "name": "$skip",
+                    "type": "integer"
+                },
+                {
+                    "name": "longitude",
+                    "type": "double"
+                },
+                {
+                    "name": "latitude",
+                    "type": "double"
+                },
+                {
+                    "name": "minDistance",
+                    "type": "double"
+                },
+                {
+                    "name": "maxDistance",
+                    "type": "double"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurants",
+    "queryType": "FIND_MANY",
+    "filter": "{\n\t\"address.coord\": {\n\t\t$nearSphere: {\n\t\t\t$geometry: {\n\t\t\t\ttype: \"Point\",\n\t\t\t\tcoordinates: [\n\t\t\t\t\t{{longitude:double}},\n\t\t\t\t\t{{latitude:double}}\n\t\t\t\t]\n\t\t\t},\n\t\t\t$minDistance: {{minDistance:double}},\n\t\t\t$maxDistance: {{maxDistance:double}}\n\t\t}\n\t}\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\n]"
+}

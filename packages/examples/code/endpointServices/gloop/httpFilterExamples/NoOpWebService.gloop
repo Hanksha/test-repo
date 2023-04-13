@@ -1,0 +1,12 @@
+{
+    "comments": "A service that does nothing, exposed as a `GET` web service at `/sample/noop`.",
+    "paths": [
+        "/sample/noop"
+    ],
+    "methods": [
+        "GET"
+    ],
+    "steps": [
+        
+    ]
+}

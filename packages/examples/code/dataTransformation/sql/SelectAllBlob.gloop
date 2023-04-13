@@ -1,0 +1,37 @@
+{
+    "type": "customSql",
+    "comments": "This [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be iterated over (as an input array of an [iterate step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/)) to retrieve multiple entries from the `texts` table.\n",
+    "input": [
+        {
+            "name": "selectAllBlobInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "selectAllBlobInputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "BLOB_COLUMN",
+                    "type": "object",
+                    "required": true,
+                    "objectClassName": "java.sql.Blob"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "conversion_sample",
+    "sqlType": "SELECT_MULTI",
+    "query": "SELECT BLOB_COLUMN\nFROM\n    texts"
+}

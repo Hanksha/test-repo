@@ -1,0 +1,695 @@
+{
+    "comments": "This Gloop service generates a JSON string from the `resources/dataset.xml` file.\n\nIt creates an XML input cursor for the XML document, which it then iterates over to read through this document's entries. We then use `JsonMethods.printJson(...)` to build the JSON string.\n\nThe XML file it reads from contains 1000 entries under the `<records>` node but to keep our JSON small, we'll only be reading and rewriting the first 10 `<record>`s.\n\nThis service is used by `jsonCursor.input.ReadAndWriteSimpleJson.gloop` to generate a JSON string.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\n### Properties\n\nThis service will return `output.jsonString` with the value of:\n\n```\n{\n    \"header\": {\n        \"details\": \"This is the header for 1000 random people records\",\n        \"recordCount\": \"1000\",\n        \"totalCount\": \"12345\"\n    },    \n    \"records\": [\n        {\n            \"id\": \"1\",\n            \"firstName\": \"Wald\",\n            \"lastName\": \"Seys\",\n            \"email\": \"wseys0@furl.net\",\n            \"gender\": \"Male\",\n            \"ipAddress\": \"178.36.248.203\"\n        },\n        {\n            \"id\": \"2\",\n            \"firstName\": \"Rolland\",\n            \"lastName\": \"Matthieson\",\n            \"email\": \"rmatthieson1@canalblog.com\",\n            \"gender\": \"Male\",\n            \"ipAddress\": \"16.193.131.98\"\n        },\n        {\n            \"id\": \"3\",\n            \"firstName\": \"Carey\",\n            \"lastName\": \"Nickolls\",\n            \"email\": \"cnickolls2@multiply.com\",\n            \"gender\": \"Male\",\n            \"ipAddress\": \"68.126.219.148\"\n        },\n        {\n            \"id\": \"4\",\n            \"firstName\": \"Ingmar\",\n            \"lastName\": \"Hanning\",\n            \"email\": \"ihanning3@addtoany.com\",\n            \"gender\": \"Male\",\n            \"ipAddress\": \"192.194.58.46\"\n        },\n        {\n            \"id\": \"5\",\n            \"firstName\": \"Selig\",\n            \"lastName\": \"Brader\",\n            \"email\": \"sbrader4@kickstarter.com\",\n            \"gender\": \"Male\",\n            \"ipAddress\": \"71.82.241.24\"\n        },\n        {\n            \"id\": \"6\",\n            \"firstName\": \"Else\",\n            \"lastName\": \"Pawle\",\n            \"email\": \"epawle5@oakley.com\",\n            \"gender\": \"Female\",\n            \"ipAddress\": \"86.69.211.13\"\n        },\n        {\n            \"id\": \"7\",\n            \"firstName\": \"Christye\",\n            \"lastName\": \"Swindle\",\n            \"email\": \"cswindle6@youku.com\",\n            \"gender\": \"Female\",\n            \"ipAddress\": \"21.189.169.160\"\n        },\n        {\n            \"id\": \"8\",\n            \"firstName\": \"Gabby\",\n            \"lastName\": \"Boni\",\n            \"email\": \"gboni7@yandex.ru\",\n            \"gender\": \"Male\",\n            \"ipAddress\": \"82.102.45.53\"\n        },\n        {\n            \"id\": \"9\",\n            \"firstName\": \"Binnie\",\n            \"lastName\": \"Brunner\",\n            \"email\": \"bbrunner8@nature.com\",\n            \"gender\": \"Female\",\n            \"ipAddress\": \"71.191.175.193\"\n        },\n        {\n            \"id\": \"10\",\n            \"firstName\": \"Rowena\",\n            \"lastName\": \"Ivanyukov\",\n            \"email\": \"rivanyukov9@nationalgeographic.com\",\n            \"gender\": \"Female\",\n            \"ipAddress\": \"139.167.5.112\"\n        }\n    ],\n    \"trailer\": {\n        \"trailerDescription\": \"The trailer description goes here\",\n        \"nextRecords\": \"http://api.com/getPeople?start=1000\"\n    }\n}\n```\n\n### Logs\n\nAfter execution, logs like the following will be [displayed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\n{\n    \"header\": {\n        \"details\": \"This is the header for 1000 random people records\",\n        \"recordCount\": \"1000\",\n        \"totalCount\": \"12345\"\n    },    \n    \"records\": [\n        /* ... */\n    ],\n    \"trailer\": {\n        \"trailerDescription\": \"The trailer description goes here\",\n        \"nextRecords\": \"http://api.com/getPeople?start=1000\"\n    }\n}\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "jsonString"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step opens an xml dataset from the resource folder and returning an input stream to read from the resource.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "inputStream",
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "resourceStream",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/dataset.xml",
+                            "to": [
+                                "resource"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will open an input cursor that will be used to read from a large XML file.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "gloopXmlCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "nodeName"
+                                        },
+                                        {
+                                            "name": "cursorRecord",
+                                            "type": "model",
+                                            "allowExtraProperties": true
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "stringBuffer",
+                                    "type": "object",
+                                    "objectClassName": "java.lang.StringBuffer"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.XmlMethods",
+                    "methodName": "getInputCursorFromInputStream",
+                    "parameters": [
+                        "java.io.InputStream",
+                        "java.lang.String",
+                        "java.util.List",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "inputStream"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "UTF-8",
+                            "to": [
+                                "encoding"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "['header','record','trailer']",
+                            "evaluate": true,
+                            "to": [
+                                "_xmlNodeNames"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "gloopXmlCursor"
+                            ],
+                            "to": [
+                                "gloopXmlCursor"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "new StringBuffer()",
+                            "evaluate": true,
+                            "to": [
+                                "stringBuffer"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will open a cursor that will be used to write json data.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "jsonCursorOutput",
+                                    "type": "model",
+                                    "gloopProperties": [
+                                        {
+                                            "name": "indentPrinter",
+                                            "type": "object",
+                                            "comments": "printer used to write the json out to",
+                                            "objectClassName": "groovy.util.IndentPrinter"
+                                        },
+                                        {
+                                            "name": "jsonOutputCursor",
+                                            "type": "model",
+                                            "array": true,
+                                            "allowExtraProperties": true
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.JsonMethods",
+                    "methodName": "openJsonOutputCursor",
+                    "parameters": [
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "java.lang.Object",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "stringBuffer"
+                            ],
+                            "to": [
+                                "destination"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "printEndDocumentBrace"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "records",
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "jsonCursorOutput"
+                            ],
+                            "to": [
+                                "jsonCursorOutput"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "This step will iterate over the `gloopXmlCursor`.",
+                    "input": {
+                        "path": [
+                            "gloopXmlCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "fork",
+                            "comments": "This step checks the name of the node, so we can process all the nodes differently",
+                            "expression": "gloopXmlCursor.nodeName",
+                            "children": [
+                                {
+                                    "type": "block",
+                                    "label": "header",
+                                    "comments": "Process `header` node",
+                                    "children": [
+                                        {
+                                            "comments": "In this step, we declare the xml header property and map the xml record.",
+                                            "declare": [
+                                                {
+                                                    "variables": [
+                                                        {
+                                                            "name": "_xmlHeader",
+                                                            "alias": "xmlHeader",
+                                                            "type": "model",
+                                                            "reference": "xmlCursor.models.Header"
+                                                        },
+                                                        {
+                                                            "name": "header",
+                                                            "type": "model",
+                                                            "reference": "jsonCursor.model.Header"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "gloopXmlCursor",
+                                                        "cursorRecord"
+                                                    ],
+                                                    "to": [
+                                                        "_xmlHeader"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "comments": "In this step, we map the xml header record to the json record.",
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "_xmlHeader",
+                                                        "details"
+                                                    ],
+                                                    "to": [
+                                                        "header",
+                                                        "details"
+                                                    ]
+                                                },
+                                                {
+                                                    "from": [
+                                                        "_xmlHeader",
+                                                        "record_count"
+                                                    ],
+                                                    "to": [
+                                                        "header",
+                                                        "recordCount"
+                                                    ]
+                                                },
+                                                {
+                                                    "from": [
+                                                        "_xmlHeader",
+                                                        "total_count"
+                                                    ],
+                                                    "to": [
+                                                        "header",
+                                                        "totalCount"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "In this step, we print the json record.",
+                                            "className": "io.toro.martini.JsonMethods",
+                                            "methodName": "printJson",
+                                            "parameters": [
+                                                "groovy.util.IndentPrinter",
+                                                "io.toro.gloop.object.property.GloopObject",
+                                                "boolean",
+                                                "boolean",
+                                                "boolean"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "jsonCursorOutput",
+                                                        "indentPrinter"
+                                                    ],
+                                                    "to": [
+                                                        "printer"
+                                                    ]
+                                                },
+                                                {
+                                                    "from": [
+                                                        "header"
+                                                    ],
+                                                    "to": [
+                                                        "gloopObject"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "set",
+                                                    "expression": "true",
+                                                    "to": [
+                                                        "includeRoot"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "block",
+                                    "label": "record",
+                                    "comments": "Process `record` node",
+                                    "children": [
+                                        {
+                                            "type": "fork",
+                                            "comments": "We will only process the first 10 records, to keep the JSON small. The expression has 11 instead of 10 though, since one iteration will be used for the header.",
+                                            "expression": "$gloopIndex < 11",
+                                            "children": [
+                                                {
+                                                    "type": "block",
+                                                    "label": "true",
+                                                    "children": [
+                                                        {
+                                                            "comments": "In this step, we declare the xml record property and map the xml record.",
+                                                            "declare": [
+                                                                {
+                                                                    "variables": [
+                                                                        {
+                                                                            "name": "_xmlRecord",
+                                                                            "alias": "xmlRecord",
+                                                                            "type": "model",
+                                                                            "reference": "xmlCursor.models.Record"
+                                                                        },
+                                                                        {
+                                                                            "name": "record",
+                                                                            "type": "model",
+                                                                            "reference": "jsonCursor.model.Record"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "lines": [
+                                                                {
+                                                                    "from": [
+                                                                        "gloopXmlCursor",
+                                                                        "cursorRecord"
+                                                                    ],
+                                                                    "to": [
+                                                                        "_xmlRecord"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "comments": "In this step, we map the xml record to the json record.",
+                                                            "lines": [
+                                                                {
+                                                                    "from": [
+                                                                        "_xmlRecord",
+                                                                        "id"
+                                                                    ],
+                                                                    "to": [
+                                                                        "record",
+                                                                        "id"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "from": [
+                                                                        "_xmlRecord",
+                                                                        "first_name"
+                                                                    ],
+                                                                    "to": [
+                                                                        "record",
+                                                                        "firstName"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "from": [
+                                                                        "_xmlRecord",
+                                                                        "last_name"
+                                                                    ],
+                                                                    "to": [
+                                                                        "record",
+                                                                        "lastName"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "from": [
+                                                                        "_xmlRecord",
+                                                                        "email"
+                                                                    ],
+                                                                    "to": [
+                                                                        "record",
+                                                                        "email"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "from": [
+                                                                        "_xmlRecord",
+                                                                        "gender"
+                                                                    ],
+                                                                    "to": [
+                                                                        "record",
+                                                                        "gender"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "from": [
+                                                                        "_xmlRecord",
+                                                                        "ip_address"
+                                                                    ],
+                                                                    "to": [
+                                                                        "record",
+                                                                        "ipAddress"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "invokeCode",
+                                                            "comments": "In this step, we append the json record to the cursor.",
+                                                            "className": "io.toro.martini.GloopMethods",
+                                                            "methodName": "cursorAppend",
+                                                            "parameters": [
+                                                                "io.toro.gloop.object.cursor.GloopCursor",
+                                                                "java.lang.Object"
+                                                            ],
+                                                            "inputs": [
+                                                                {
+                                                                    "from": [
+                                                                        "jsonCursorOutput",
+                                                                        "jsonOutputCursor"
+                                                                    ],
+                                                                    "to": [
+                                                                        "cursor"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "from": [
+                                                                        "record"
+                                                                    ],
+                                                                    "to": [
+                                                                        "value"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "block",
+                                    "label": "trailer",
+                                    "comments": "Process `trailer` node",
+                                    "children": [
+                                        {
+                                            "comments": "In this step, we declare the xml trailer property and map the xml record.",
+                                            "declare": [
+                                                {
+                                                    "variables": [
+                                                        {
+                                                            "name": "_xmlTrailer",
+                                                            "alias": "xmlTrailer",
+                                                            "type": "model",
+                                                            "reference": "xmlCursor.models.Footer"
+                                                        },
+                                                        {
+                                                            "name": "trailer",
+                                                            "type": "model",
+                                                            "reference": "jsonCursor.model.Trailer"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "gloopXmlCursor",
+                                                        "cursorRecord"
+                                                    ],
+                                                    "to": [
+                                                        "_xmlTrailer"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "comments": "In this step, we map the xml trailer record to the json record.",
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "_xmlTrailer",
+                                                        "trailer_description"
+                                                    ],
+                                                    "to": [
+                                                        "trailer",
+                                                        "trailerDescription"
+                                                    ]
+                                                },
+                                                {
+                                                    "from": [
+                                                        "_xmlTrailer",
+                                                        "next_records"
+                                                    ],
+                                                    "to": [
+                                                        "trailer",
+                                                        "nextRecords"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "In this step, we close the cursor.",
+                                            "className": "io.toro.martini.GloopMethods",
+                                            "methodName": "cursorClose",
+                                            "parameters": [
+                                                "io.toro.gloop.object.cursor.GloopCursor"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "jsonCursorOutput",
+                                                        "jsonOutputCursor"
+                                                    ],
+                                                    "to": [
+                                                        "cursor"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "gloovy",
+                                            "comments": "In this step, we print the trailing comma after the cursor array.",
+                                            "gloovyScript": "jsonCursorOutput.indentPrinter.print(',\\n')"
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "In this step, we print the json record.",
+                                            "className": "io.toro.martini.JsonMethods",
+                                            "methodName": "printJson",
+                                            "parameters": [
+                                                "groovy.util.IndentPrinter",
+                                                "io.toro.gloop.object.property.GloopObject",
+                                                "boolean",
+                                                "boolean",
+                                                "boolean"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "jsonCursorOutput",
+                                                        "indentPrinter"
+                                                    ],
+                                                    "to": [
+                                                        "printer"
+                                                    ]
+                                                },
+                                                {
+                                                    "from": [
+                                                        "trailer"
+                                                    ],
+                                                    "to": [
+                                                        "gloopObject"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "set",
+                                                    "expression": "true",
+                                                    "to": [
+                                                        "includeRoot"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "gloovy",
+                    "comments": "In this step, we print the trailing comma after the cursor array.",
+                    "gloovyScript": "jsonCursorOutput.indentPrinter.print('\\n}')"
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will log the stringBuffer to the underlying log engine.",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "stringBuffer"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "type": "set",
+                            "expression": "stringBuffer",
+                            "evaluate": true,
+                            "to": [
+                                "output",
+                                "jsonString"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

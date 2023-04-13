@@ -1,0 +1,25 @@
+{
+    "comments": "A helper service that provides an array of `streams.model.Person`s.\n\nThis will be used by the services under `streams` as collection data to process.",
+    "output": [
+        {
+            "name": "people",
+            "type": "model",
+            "array": true,
+            "reference": "streams.model.Person"
+        }
+    ],
+    "steps": [
+        {
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "people {\n\tname 'Laz'\n\tage 20\n}\npeople {\n\tname 'John'\n\tage 21\n}\npeople {\n\tname 'Angela'\n\tage 12\n}\npeople {\n\tname 'Lianne'\n\tage 12\n}\npeople {\n\tname 'Daniel'\n\tage 21\n}\npeople {\n\tname 'Jane'\n\tage 22\n}\npeople {\n\tname 'Andrew'\n\tage 23\n}\npeople {\n\tname 'William'\n\tage 23\n}",
+                    "evaluate": true,
+                    "to": [
+                        "people"
+                    ]
+                }
+            ]
+        }
+    ]
+}

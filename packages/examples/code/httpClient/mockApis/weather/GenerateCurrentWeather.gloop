@@ -1,0 +1,177 @@
+{
+    "comments": "A [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) that generates a mock weather report.\n\nThis service is [exposed as a RESTful web service by `httpClient.mockApis.HttpClientMockEndpoints.api`](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Two [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required: `city` and `country`.\n\t\n## Expected Output\n\nThis service will return two properties:\n`responseCode` and `getCurrentWeatherOutput`. If the service's output were serialized to JSON, it would look something like:\n\n```\n{\n    \"responseCode\": 200,\n    \"getCurrentWeatherOutput\": {\n        \"location\": {\n            \"city\": \"Manila\",\n            \"country\": \"PH\"\n        },\n        \"weather\": \"shower rain\",\n        \"temperature\": 29.567680693394166\n    }\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a model tree.",
+    "input": [
+        {
+            "name": "city",
+            "required": true,
+            "allowNull": false,
+            "defaultValue": "",
+            "comments": "City to get the weather from"
+        },
+        {
+            "name": "country",
+            "required": true,
+            "allowNull": false,
+            "comments": "Country of the city to get the weather from",
+            "minLength": 2,
+            "maxLength": 2
+        }
+    ],
+    "output": [
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        },
+        {
+            "name": "getCurrentWeatherOutput",
+            "type": "model",
+            "comments": "Gloop model output containing the response of this Gloop service",
+            "reference": "httpClient.model.GetCurrentWeatherOutput"
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we capitalize the city and country under the `getCurrentWeatherOutput` model.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "country.toUpperCase()",
+                    "evaluate": true,
+                    "to": [
+                        "getCurrentWeatherOutput",
+                        "location",
+                        "country"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "city.capitalize()",
+                    "evaluate": true,
+                    "to": [
+                        "getCurrentWeatherOutput",
+                        "location",
+                        "city"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "This step uses the service `GenerateRandomTemperature` which generates a random number.",
+            "name": "httpClient.mockApis.weather.GenerateRandomTemperature",
+            "outputs": [
+                {
+                    "from": [
+                        "temperature"
+                    ],
+                    "to": [
+                        "getCurrentWeatherOutput",
+                        "temperature"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "random",
+            "children": [
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "clear sky",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "few clouds",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "scattered clouds",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "broken clouds",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "shower rain",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "rain",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "thunderstorm",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "mist",
+                            "to": [
+                                "getCurrentWeatherOutput",
+                                "weather"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

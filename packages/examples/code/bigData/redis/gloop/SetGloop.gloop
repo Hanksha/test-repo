@@ -1,0 +1,168 @@
+{
+    "comments": "# Setting a [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) into a Redis key\n\nThis service shows on how to set a [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) into a Redis Key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a string `connection`, `key` and a model `value`, the service will set the `key` using `RedisGloopMethods.gloopSet` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection`, `key`, and `value` input properties. The default values are already set for `connection`, `key`, and `value`.\n\nThe `RedisGloopMethods.gloopSet` one-liner has a `redisGloopSetOutput` property which will return `OK` if the command was successfully executed. The `redisGloopSetOutput` was declared to the `output` property.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `redisGloopSetOutput`'s value is `OK`, then `output.message` will be set to `\"gloopKey was successfully set\"`\n- else, `output.message` will be set to `\"gloopKey was not successfully set\"`\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] gloopKey was successfully set\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "gloopKey"
+        },
+        {
+            "name": "value",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "name",
+                    "defaultValue": "John Doe"
+                },
+                {
+                    "name": "age",
+                    "type": "integer",
+                    "defaultValue": 20
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This will set a single gloop model in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisGloopSetOutput",
+                            "comments": "String simple-string-reply {@code OK} if {@code SET} was executed correctly."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisGloopMethods",
+            "methodName": "gloopSet",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "io.toro.gloop.object.property.GloopModel",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "value"
+                    ],
+                    "to": [
+                        "value"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisGloopSetOutput"
+                    ],
+                    "to": [
+                        "redisGloopSetOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This will determine if the set was successful or not",
+            "expression": "redisGloopSetOutput",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "OK",
+                    "comments": "will return `OK` if successful and will log a message and map it to the output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${key} was successfully set\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "$else",
+                    "comments": "else, will log a message and map it to the output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${key} was not successfully set\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

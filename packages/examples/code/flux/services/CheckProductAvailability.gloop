@@ -1,0 +1,110 @@
+{
+    "comments": "This [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) is used by [example Flux services](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/flux/). Product information returned by this service depends on provided `order` input.\n\n## Invoking the Service\n\nUsing the Flux Service editor is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/services/flux/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nThe outputs of this service are:\n\n- `available`, a boolean value indicating the availability of the product\n- `product`, a model with product data\n- `nextRestock`, a date value indicating the next restock date of the product\n\n`available` is only `true` if `order.productId` is equal to `productA`.\n\n`product.name` will contain the capitalized version of `order.productId`; and `product.price` will always be set to `10`.\n\n`nextRestock` will be set to a date two days from the current date.\n\n### `productA`\n\nIf `order.productId` is set to `productA`, the expected service output would look like (if displayed as JSON):\n\n```\n{\n    \"available\": true,\n    \"product\": {\n        \"name\": \"ProductA\",\n        \"price\": 10\n    },\n    \"nextRestock\": \"2019-04-16T16:00:00+0000\"\n}\n```\n\n### `productB`\n\nIf `order.productId` is set to `productB`, the expected service output would look like (if displayed as JSON):\n\n```\n{\n    \"available\": false,\n    \"product\": {\n        \"name\": \"ProductB\",\n        \"price\": 10\n    },\n    \"nextRestock\": \"2019-04-16T16:00:00+0000\"\n}\n```",
+    "input": [
+        {
+            "name": "order",
+            "type": "model",
+            "allowNull": false,
+            "reference": "flux.model.Order"
+        }
+    ],
+    "output": [
+        {
+            "name": "available",
+            "type": "boolean",
+            "defaultValue": false
+        },
+        {
+            "name": "product",
+            "type": "model",
+            "reference": "flux.model.Product"
+        },
+        {
+            "name": "nextRestock",
+            "type": "date"
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "Let's check if the input product name is productA or productB",
+            "expression": "order.productId",
+            "children": [
+                {
+                    "label": "productA",
+                    "comments": "Return available to true if productA",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "true",
+                            "to": [
+                                "available"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "productB",
+                    "comments": "Return available to false if productB",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "available"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Let's set value to other properties",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "$startState"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "comments": "just capitalize the productId",
+                    "expression": "order.productId.capitalize()",
+                    "evaluate": true,
+                    "to": [
+                        "product",
+                        "name"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "10",
+                    "to": [
+                        "product",
+                        "price"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "comments": "set the next restock date in two days",
+                    "expression": "use(groovy.time.TimeCategory) { 2.days.from.now }",
+                    "evaluate": true,
+                    "to": [
+                        "nextRestock"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "Start_State",
+                    "to": [
+                        "$startState"
+                    ]
+                }
+            ]
+        }
+    ]
+}

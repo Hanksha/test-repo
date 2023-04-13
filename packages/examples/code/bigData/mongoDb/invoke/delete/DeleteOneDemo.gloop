@@ -1,0 +1,184 @@
+{
+    "comments": "## Deleting a Single Document Using `deleteOne`\n\nThis Gloop service demonstrates how to query `deleteOne` to delete a single record in the `inventory` collection. The MongoDB service (line 4) that queries the delete operation uses `$or` operator to look for a document match either by `_id` or by `item` and then deletes the first document that matched.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide an `id` or `itemName` to be sent as an input to the query to be performed. The query will try to look for a document match for the provided input. For your convenience, the `city` is already populated with a value; changing this value is optional but possible.\n\n## Expected Output\n\nThe first document that matches the query will be deleted after this service executes and will return an `output` model that contains the count of deleted document. The expected value of the `deleteCount` should be `1`. If you also find a `message` property in the output, then the delete has failed.",
+    "input": [
+        {
+            "name": "id",
+            "defaultValue": "507f1f77bcf86cd799439011",
+            "comments": "The id of the document to be deleted."
+        },
+        {
+            "name": "itemName",
+            "comments": "The name of the item to be deleted."
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "deleteCount",
+                    "type": "integer",
+                    "defaultValue": 0
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Executes the delete query. The query will delete the first matching document it can find.",
+                    "name": "bigData.mongoDb.services.delete.DeleteOne",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "gloopProperties": [
+                                        {
+                                            "name": "deleteCount",
+                                            "type": "long"
+                                        },
+                                        {
+                                            "name": "acknowledged",
+                                            "type": "boolean"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "id"
+                            ],
+                            "to": [
+                                "input",
+                                "id"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "itemName"
+                            ],
+                            "to": [
+                                "input",
+                                "itemName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check if the delete count is equal to 1. This means that the delete query was successful.",
+                    "expression": "result.deleteCount == 1",
+                    "children": [
+                        {
+                            "label": "true",
+                            "comments": "Map a successful response",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "result",
+                                        "deleteCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "deleteCount"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "label": "$else",
+                            "declare": [
+                                {
+                                    "path": [
+                                        "output"
+                                    ],
+                                    "variables": [
+                                        {
+                                            "name": "message"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Query did not match any document from the collection, delete failed",
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

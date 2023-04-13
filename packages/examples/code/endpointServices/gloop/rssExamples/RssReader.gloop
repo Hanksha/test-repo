@@ -1,0 +1,48 @@
+{
+    "comments": "This service iterates over provided RSS feed entries and logs them to the Martini console.\n\nIt is not meant to be invoked alone; it is intended to be used with the [`RSSExample` endpoint](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/martini-endpoints/#rss-endpoint) which will provide the input properties of this service.\n\n",
+    "input": [
+        {
+            "name": "feed",
+            "type": "model",
+            "reference": "io.toro.martini.rss.Feed"
+        },
+        {
+            "name": "entries",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.rss.Entry"
+        }
+    ],
+    "steps": [
+        {
+            "type": "iterate",
+            "comments": "Iterate over entries",
+            "input": {
+                "path": [
+                    "entries"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Found a new RSS item with title ${entries.title}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

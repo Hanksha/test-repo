@@ -1,0 +1,65 @@
+{
+    "info": {
+        "title": "Hello API",
+        "description": "# [Exposing Services via Gloop REST APIs](https://docs.torocloud.com/martini/quick-start/resources/examples-package/gloop-api)\n\nA [Gloop REST API](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating) is a collection of [Gloop services](https://docs.torocloud.com/martini/latest/developing/gloop/service/) configured to send and receive data from RESTful HTTP requests.\n\nThis [example](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/) in particular exposes a RESTful HTTP service that returns a greeting for a given name. The response can either be in JSON or XML format, depending on the content type specified in the request.\n\n## Invoking the RESTful Service\n\nThe service is accessed by sending a `GET` request to the path `<http|https>://<host>/<api.rest.base-path>/sample/hello/{name}`. As you might have already guessed, the name of the entity to be greeted is specified via the path parameter `{name}`.\n\nTo send a request, you can use [Martini Desktop's HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-httprequest/generating/#invoking-a-gloop-rest-api), or any API testing tool of your choosing.\n\n## Expected Output\n\nAfter sending your request, you should expect a response with an XML or JSON payload containing the _hello message_.\n\n### XML\n\n```\n<?xml version=\"1.0\"?>\n<output>\n    <message>Hello John Doe</message>\n</output>\n```\n\n### JSON\n\n```\n{\n    \"message\": \"Hello John Doe\"\n}\n```\n\n\n",
+        "contact": {
+            "url": "http://www.torocloud.com"
+        },
+        "license": {
+            "name": "W3C"
+        },
+        "version": "1.0-SNAPSHOT"
+    },
+    "basePath": "/sample",
+    "paths": {
+        "/hello/{name}": {
+            "summary": "This is where the summary of the path should be. In this instance it might be something like:\n\nOperations related to saying hello",
+            "description": "This path contains operations related to having Martini saying hello!",
+            "get": {
+                "tags": [
+                    "Hello You"
+                ],
+                "summary": "A summary of the GET operation for the given path normally is entered in this field. ",
+                "description": "A markdown-enabled description of the operation would be here. If this is empty, then the comments of the corresponding Gloop Service would appear instead.",
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "externalDocumentation": {
+                    "url": "https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/editor/",
+                    "description": "Visit the link in the Url field to learn more about the Gloop REST API Editor"
+                },
+                "parameters": [
+                    {
+                        "name": "name",
+                        "type": "PATH",
+                        "description": "This is the name that you want Martini to say hello to"
+                    }
+                ],
+                "responses": {
+                    "-1": {
+                        "body": "output",
+                        "description": "Returns a response, containing a hello message to the given name"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "apis.service.HelloYouService",
+                "responseCodeField": "responseCode"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Hello You",
+            "description": "A service that says hello to you",
+            "externalDocumentation": {
+                "url": "http://example.com",
+                "description": "A sample description"
+            }
+        }
+    ],
+    "externalDocumentation": {
+        "url": "https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/",
+        "description": "See external documentation link for more information on how to create RESTful web services using Gloop."
+    }
+}

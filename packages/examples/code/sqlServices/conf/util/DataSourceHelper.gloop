@@ -1,0 +1,23 @@
+{
+    "comments": "This Gloop service returns the data sources required by the services under the `sqlServices`directory.",
+    "output": [
+        {
+            "name": "datasources",
+            "array": true
+        }
+    ],
+    "steps": [
+        {
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "[ 'example_db', 'example_xa_db_migrated', 'conversion_sample' ]",
+                    "evaluate": true,
+                    "to": [
+                        "datasources"
+                    ]
+                }
+            ]
+        }
+    ]
+}

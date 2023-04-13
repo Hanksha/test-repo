@@ -1,0 +1,29 @@
+{
+    "name": "MovieDocument",
+    "type": "model",
+    "gloopProperties": [
+        {
+            "name": "cast",
+            "array": true,
+            "defaultValue": [
+                "Harry Potter",
+                "Hermoine Granger",
+                "Ron Weasley",
+                "Ginny Weasley",
+                "Draco Malfoy"
+            ]
+        },
+        {
+            "name": "director",
+            "defaultValue": "Chris Columbus"
+        },
+        {
+            "name": "id",
+            "defaultValue": "1"
+        },
+        {
+            "name": "movieTitle",
+            "defaultValue": "Harry Potter and the Chamber of Secrets"
+        }
+    ]
+}

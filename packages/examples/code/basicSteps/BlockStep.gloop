@@ -1,0 +1,197 @@
+{
+    "comments": "# [Using the Gloop Block Step](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps)\n\nThis service shows the different ways [block steps](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/block/) can be used in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service).\n\nGiven a string `message`, the service will try to transform said string to uppercase or lowercase. This all depends on whether or not `upperCase` is set to `true` or `false`, respectively. If `upperCase`'s value is `null`, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, Martini will prompt you to provide the `message` and `upperCase` input properties. A default value is already set for `message`. If `upperCase` is set to `false`, the service will log `message` in lowercase; consequently, uppercase if `true`.\n\nIf `upperCase` is set to `null`, which is its value upon the initial run of the service, the service will treat `upperCase` as if it was set to `true`.\n\n## Expected Output\n\nIf `upperCase` is set to `true` or `null`, the service will return an `output` model whose `message` property is the uppercased version of the `message` input property. If `false`, then `output.message` will be the lowercased version instead.\n\nAside from setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will also be logging messages to the console. First, it will log the transformed string. Then, it will log the exception. And finally, it will log the message inside the `finally` block.\n\nThis means your logs would look roughly something like this:\n\n```\nINFO  [Martini] Transforming message to uppercase. See the message property of the output model of this service transformed into uppercase.\nERROR [Martini] We caught the exception: java.lang.Exception: Expected Exception\nINFO  [Martini] This warn message is from the finally Block.\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "message",
+            "defaultValue": "This Is A Sample Message."
+        },
+        {
+            "name": "upperCase",
+            "type": "boolean",
+            "defaultValue": true
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "This step will check if upperCase value is true or false",
+            "expression": "upperCase",
+            "children": [
+                {
+                    "type": "block",
+                    "label": "true",
+                    "comments": "If upperCase is true, steps beneath this block step will execute",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "log \"Transforming message to uppercase. See the message property of the output model of this service transformed into uppercase.\"",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "Transforming message to uppercase. See the message property of the output model of this service transformed into uppercase.",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "comments": "This step will set the message property to upper case by using set expression",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "message.toUpperCase()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "block",
+                    "label": "false",
+                    "comments": "If upperCase is false, steps beneath this block step will execute",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "log \"Transforming message to lowercase. See the message property of the output model of this service transformed into lowercase.\"",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "Transforming message to lowercase. See the message property of the output model of this service transformed into lowercase.",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "comments": "This step will set the message property to lower case by using set expression",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "message.toLowerCase()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "block",
+            "comments": "The steps below will demonstrate how we could use try/catch/finally block to catch exceptions.",
+            "blockType": "TRY_CATCH_FINALLY",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Throw an exception to demonstrate the catch block being executed",
+                    "className": "io.toro.martini.GloopMethods",
+                    "methodName": "throwException",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Expected Exception",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will send a message to the underlying log engine to demonstrate the exception being caught.",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"We caught the exception: ${$gloopException.message}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "finally": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will send a message to the underlying log engine, showing that the finally step has been executed",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "This warn message is from the finally Block.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

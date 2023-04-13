@@ -1,0 +1,145 @@
+{
+    "comments": "# [Using a Gloop Cassandra Service to insert a new record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) inserts a new row to the `RESTAURANTS` column family in the `restaurants` keyspace in Cassandra, using values provided through input properties. \n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite\n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nA [gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) is required as an input, the gloop model is located in `bigData/cassandra/model/Restaurant.model`.\n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Inserting restaurant Highway Bagels to restaurants column family\n```\n",
+    "input": [
+        {
+            "name": "restaurant",
+            "type": "model",
+            "reference": "bigData.model.Restaurant"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Inserting restaurant $restaurant.name to restaurants column family\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Inserts a restaurant from the restaurant input property of this service",
+            "name": "bigData.cassandra.cql.single.InsertSingleRestaurant",
+            "inputs": [
+                {
+                    "from": [
+                        "restaurant",
+                        "name"
+                    ],
+                    "to": [
+                        "input",
+                        "name"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "restaurant_id"
+                    ],
+                    "to": [
+                        "input",
+                        "restaurantid"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "address",
+                        "building"
+                    ],
+                    "to": [
+                        "input",
+                        "address",
+                        "building"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "address",
+                        "street"
+                    ],
+                    "to": [
+                        "input",
+                        "address",
+                        "street"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "address",
+                        "zipcode"
+                    ],
+                    "to": [
+                        "input",
+                        "address",
+                        "zipcode"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "borough"
+                    ],
+                    "to": [
+                        "input",
+                        "borough"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "cuisine"
+                    ],
+                    "to": [
+                        "input",
+                        "cuisine"
+                    ]
+                },
+                {
+                    "from": [
+                        "restaurant",
+                        "grades"
+                    ],
+                    "to": [
+                        "input",
+                        "grades"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "restaurant.address.coord[0]",
+                    "evaluate": true,
+                    "to": [
+                        "input",
+                        "address",
+                        "coord",
+                        "tupleEntry0"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "restaurant.address.coord[1]",
+                    "evaluate": true,
+                    "to": [
+                        "input",
+                        "address",
+                        "coord",
+                        "tupleEntry1"
+                    ]
+                }
+            ]
+        }
+    ]
+}

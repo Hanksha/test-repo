@@ -1,0 +1,66 @@
+{
+    "comments": "This Gloop service will make the current thread sleep for five seconds.\n\nThis service is intended for use by `AsyncStepDemo.gloop`, which demonstrates the use of asynchronous Gloop steps.",
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "log \"<thread name> asyncStepDemo: This step is going to make the current thread sleep for 2 seconds\"",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} asyncStepDemo: This step is going to make the current thread sleep for 2 seconds\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} asyncStepDemo: Going to sleep now...\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "gloovy",
+            "comments": "This step will make the current thread sleep for 2 seconds",
+            "gloovyScript": "Thread.sleep( 2000 )"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a message saying the sleep has ended",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} asyncStepDemo: The thread has now woken. If the service was executed correctly over HTTP, the rest of the service would have run while this thread was asleep.\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

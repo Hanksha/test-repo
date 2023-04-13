@@ -1,0 +1,54 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which retrieves an entry from the `ADDITIONAL_DATA` table matching the given ID.",
+    "input": [
+        {
+            "name": "selectSingleAdditionalDataInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "selectSingleAdditionalDataOutput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "ID",
+                    "type": "integer",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "IMAGE",
+                    "type": "object",
+                    "required": true,
+                    "objectClassName": "java.sql.Blob"
+                },
+                {
+                    "name": "INFORMATION",
+                    "type": "object",
+                    "required": true,
+                    "objectClassName": "java.sql.Clob"
+                },
+                {
+                    "name": "NAME_ID",
+                    "type": "integer",
+                    "required": true,
+                    "allowNull": false
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "SELECT_SINGLE",
+    "query": "SELECT *\nFROM\n    ADDITIONAL_DATA\nWHERE (\n    ID = :id\n) "
+}

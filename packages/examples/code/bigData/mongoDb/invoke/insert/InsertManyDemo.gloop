@@ -1,0 +1,195 @@
+{
+    "comments": "## Inserting Multiple Documents Using `insertMany`\n\nThis Gloop service demonstrates how to query `insertMany` to insert multiple documents to a MongoDB collection. The MongoDB service (line 6) used in this Gloop service holds the query to insert a single document in the `inventory` collection.\n\nThe service in line 3 of this service will generate a [Gloop Cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that will serve as the input of that service, and then `inventoryItems` will be mapped to the generated [Gloop Cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) using [Iterate Step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/)\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to populate the `inventoryItems` model array to be sent as an input to the query to be performed. The input model will be populated with values should you choose to run the service without providing an input.\n\n## Expected Output\n\nIf the insert query is successfully executed, you should be able to see the inserted documents in the `inventory` collection from your MongoDB instance.",
+    "input": [
+        {
+            "name": "inventoryItems",
+            "type": "model",
+            "array": true,
+            "comments": "The inventory model for the inventory collection",
+            "gloopProperties": [
+                {
+                    "name": "item",
+                    "defaultValue": "Item A",
+                    "comments": "The name of the item"
+                },
+                {
+                    "name": "qty",
+                    "type": "integer",
+                    "defaultValue": 10,
+                    "comments": "The quantity of the item"
+                },
+                {
+                    "name": "status",
+                    "defaultValue": "available",
+                    "comments": "Two valid choices: available, not available",
+                    "choices": [
+                        "available",
+                        "not available"
+                    ]
+                },
+                {
+                    "name": "size",
+                    "type": "model",
+                    "comments": "Characteristics of the item",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "h",
+                            "type": "double",
+                            "defaultValue": 8.0,
+                            "comments": "The height"
+                        },
+                        {
+                            "name": "w",
+                            "type": "double",
+                            "defaultValue": 11.0,
+                            "comments": "The width"
+                        },
+                        {
+                            "name": "uom",
+                            "defaultValue": "in",
+                            "comments": "The unit of measurement"
+                        }
+                    ]
+                },
+                {
+                    "name": "tags",
+                    "array": true,
+                    "defaultValue": [
+                        "black",
+                        "small"
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check if the inventoryItem array input is not populated, if not, populate the array, else use the input provided",
+                    "expression": "inventoryItems?.size() == null || inventoryItems?.size() == 0",
+                    "children": [
+                        {
+                            "label": "true",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "\tinventoryItems {\n\t\titem 'Item A'\n\t\tqty 10\n\t\tstatus 'available'\n\t\tsize {\n\t\t\th 8\n\t\t\tw 11\n\t\t\tuom 'inches'\n\t\t}\n\t\ttags {\n\t\t\t\"black\"\n\t\t}\n\t\ttags {\n\t\t\t\"small\"\n\t\t}\n\t}\n\tinventoryItems {\n\t\titem 'Item B'\n\t\tqty 10\n\t\tstatus 'available'\n\t\tsize {\n\t\t\th 8\n\t\t\tw 11\n\t\t\tuom 'inches'\n\t\t}\n\t\ttags {\n\t\t\t\"black\"\n\t\t}\n\t\ttags {\n\t\t\t\"medium\"\n\t\t}\n\t}\n\tinventoryItems {\n\t\titem 'Item C'\n\t\tqty 10\n\t\tstatus 'not available'\n\t\tsize {\n\t\t\th 8\n\t\t\tw 11\n\t\t\tuom 'inches'\n\t\t}\n\t\ttags {\n\t\t\t\"black\"\n\t\t}\n\t\ttags {\n\t\t\t\"large\"\n\t\t}\n\t}\n",
+                                    "evaluate": true,
+                                    "to": [
+                                        "inventoryItems"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Map the output cursor as the input of the next step. In the iterate step that comes after this, the outputCursor is mapped with values from the inventory items to be inserted in MongoDB",
+                    "name": "bigData.mongoDb.services.insert.InsertMany",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "outputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "outputCursor"
+                            ],
+                            "to": [
+                                "outputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterate over the inventoryItems array and map it to the outputCursor. Doing so will insert the records to the Mongo database.",
+                    "input": {
+                        "path": [
+                            "inventoryItems"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "outputCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "comments": "Map inventoryItem to outputCursor",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "inventoryItems"
+                                    ],
+                                    "to": [
+                                        "outputCursor"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

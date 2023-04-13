@@ -1,0 +1,144 @@
+{
+    "comments": "# [Listening and Responding to WebSocket Messages](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/websocket/)\n\nThis service is used by the [JMS listener endpoint](https://docs.torocloud.com/martini/latest/developing/endpoints/types/jms-listener/) `WebsocketListener`. It gets called when a message is received in `topic://web-socket`.\n\nWhen invoked, the endpoint feeds this service the received message as its input. It then extracts data from the message, and executes `GuessingGame.gloop` with that data. Afterwards, it will call `WebsocketPublisher.gloop` to send back `GuessingGame.gloop`'s return value.\n\nThis service is not meant to be invoked alone; it is used in conjunction with other services under the `websocket` directory to demonstrate WebSocket usage.\n\n## Setup\n\nThe JMS listener endpoint `WebsocketListener` must be enabled and started. This is an endpoint comes with the `examples` package out-of-the-box.\n\n## Invoking the Service\n\nThe most convenient way to run this service (albeit indirectly) is by accessing `<host>:<port>/examples/websocket` in your browser.\n\nProvide a name, and play the game when asked in the chat interface. Every time you enter a message in the chat, that message gets sent over WebSocket, hence triggering this service.\n",
+    "input": [
+        {
+            "name": "message",
+            "type": "model",
+            "reference": "io.toro.martini.jms.Message",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we declared new property and set a value to the property `contentString`.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "contentString"
+                        },
+                        {
+                            "name": "user",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "username"
+                                },
+                                {
+                                    "name": "message"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "def data = message.messageObject.content.data\nnew String(data, 0, (int) message.bodyLength)",
+                    "evaluate": true,
+                    "to": [
+                        "contentString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we convert a json string to a Gloop object.",
+            "className": "io.toro.martini.JsonMethods",
+            "methodName": "jsonStringToGloopObject",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "contentString"
+                    ],
+                    "to": [
+                        "jsonString"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "user"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we are using the Gloop service `GuessingGame`. For more details regarding what the service does, please check the service  documentation.",
+            "name": "websocket.guessingGame.GuessingGame",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "replyMessage"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "user",
+                        "username"
+                    ],
+                    "to": [
+                        "from"
+                    ]
+                },
+                {
+                    "from": [
+                        "user",
+                        "message"
+                    ],
+                    "to": [
+                        "content"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "prefix"
+                    ],
+                    "to": [
+                        "replyMessage"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we are using the service `WebsocketPublisher` that publishes the string to the jms topic.",
+            "name": "websocket.publisher.WebsocketPublisher",
+            "inputs": [
+                {
+                    "from": [
+                        "user",
+                        "username"
+                    ],
+                    "to": [
+                        "username"
+                    ]
+                },
+                {
+                    "from": [
+                        "replyMessage"
+                    ],
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

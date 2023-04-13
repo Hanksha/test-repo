@@ -1,0 +1,138 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Insert a New Record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) inserts a new row to the `ADDITIONAL_DATA` table, using values provided through input properties. Upon successful execution, it returns and logs the auto-generated ID of the record.\n\nIt invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database. The SQL service that it invokes accepts a byte array and a string, but it gets automatically converted into a BLOB and a CLOB respectively.\n\n## Invoking the Service\n\nThis service must be [invoked via browser](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http) or [HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-httprequest/generating/#invoking-a-gloop-service) in order to conveniently set the `image` input property's value.\n\nWhen invoking via HTTP Client, you must send a `POST` request and populate the fields in the Body tab.\n\nIMPORTANT: `nameId` must be an existing record ID from the `NAMES` table. Upon package startup, records with IDs ranging from `1` to `4` are created. You may use any of these IDs for `nameId`. \n\n## Expected Output\n\n### Payload\n\nIf the request is successful, you will be given a response similar to the one below:\n\n\n```\n{\n    \"generatedKeys\": {\n        \"ID\": 3\n    }\n}\n```\n\n### Logs\n\nA [console message](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following is expected when executing this service:\n\n```\nINFO  [Martini] Inserting additional data for name id: 1\nINFO  [Martini] 1 row/s affected.\n```\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "image",
+            "type": "object",
+            "objectClassName": "org.springframework.web.multipart.MultipartFile"
+        },
+        {
+            "name": "information"
+        },
+        {
+            "name": "nameId",
+            "type": "integer"
+        }
+    ],
+    "output": [
+        {
+            "name": "generatedKeys",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Checks if the required dependency this service requires is already initialized.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Inserting additional data for name id: ${nameId}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "To insert the file the database as a BLOB, we need to pass the file as a byte array",
+            "name": "sqlServices.sql.single.InsertSingleAdditionalData",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "updateCount",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "information"
+                    ],
+                    "to": [
+                        "insertSingleAdditionalDataInput",
+                        "information"
+                    ]
+                },
+                {
+                    "from": [
+                        "nameId"
+                    ],
+                    "to": [
+                        "insertSingleAdditionalDataInput",
+                        "nameId"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "image.getBytes()",
+                    "evaluate": true,
+                    "to": [
+                        "insertSingleAdditionalDataInput",
+                        "image"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "true",
+                    "to": [
+                        "insertSingleAdditionalDataInput",
+                        "$getGeneratedKeys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "updateCount"
+                    ],
+                    "to": [
+                        "updateCount"
+                    ]
+                },
+                {
+                    "from": [
+                        "generatedKeys"
+                    ],
+                    "to": [
+                        "generatedKeys"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log affected row",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${updateCount} row/s affected.\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

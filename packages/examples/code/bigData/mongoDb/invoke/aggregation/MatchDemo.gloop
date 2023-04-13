@@ -1,0 +1,152 @@
+{
+    "comments": "## Looking for Document Matches using `$match`\n\nThis Gloop service demonstrates a simple use case of `$match` operator to get a count of matching documents from a restaurant collection. The MongoDB service (line4) holds the query to execute a simple aggregation query using `$match`.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a `borough` to be sent as an input to the query to be performed. For your convenience, the `borough` is already populated with a value; changing this value is optional but possible.\n\n## Expected Output\n\nWhile the `$match` operator returns a list of document that matches the filter provided in the query, the way it is used in this service is that it counts the matches found for the value provided in the `borough` property when running this service. An `output` model will be returned by this service, and an `INFO` log will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\n INFO  [Martini] Match count: 309\n```",
+    "input": [
+        {
+            "name": "borough",
+            "defaultValue": "Brooklyn"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "matchCount",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.aggregation.Match",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "borough"
+                            ],
+                            "to": [
+                                "input",
+                                "borough"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "from": [
+                                        "$gloopCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "matchCount"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Match count: ${output.matchCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

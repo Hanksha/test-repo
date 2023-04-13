@@ -1,0 +1,32 @@
+{
+    "comments": "This Gloop service is used to invoke the `template.form.sql.InsertCustomer` Gloop SQL service while making sure that the database is setup before to do so.",
+    "input": [
+        {
+            "name": "customer",
+            "type": "model",
+            "reference": "template.form.Customer"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "make sure the database is setup",
+            "name": "template.form.sql.SetupCustomerDatabase"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "insert the given customer",
+            "name": "template.form.sql.InsertCustomer",
+            "inputs": [
+                {
+                    "from": [
+                        "customer"
+                    ],
+                    "to": [
+                        "insertCustomerInput"
+                    ]
+                }
+            ]
+        }
+    ]
+}

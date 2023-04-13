@@ -1,0 +1,57 @@
+{
+    "info": {
+        "title": "Cached Mock Weather API",
+        "description": "# [Caching](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/caching)\n\nThis [Gloop REST API](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating) exposes the service `CachedWeatherResponseDemo` as a REST endpoint to demonstrate how caching in Martini works.\n\n## Invoking the RESTful Service\n\nThe service is accessed by sending a `GET` request to the path `<http|https>://<host>/<api.rest.base-path>/cached/mock-api/getCurrentWeather/{city}/{country}`. The path parameters `{city}` and `{country}` should be substituted with desired values.\n\nTo send a request, you can use [Martini Desktop's HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-httprequest/generating/#invoking-a-gloop-rest-api), [API Explorer](https://docs.torocloud.com/martini/latest/developing/api-explorer/#rest-endpoint-details), or any API testing tool of your choosing.\n\n## Expected Output\n\nThe API's response in JSON will look something like this:\n\n```\n{\n    \"location\": {\n        \"city\": \"Manila\",\n        \"country\": \"PH\"\n    },\n    \"weather\": \"thunderstorm\",\n    \"temperature\": 43.62994690538496\n}\n```\n\nThe response can also be written in XML format, if specified in the request.",
+        "license": {
+            "name": "GPL 2.0"
+        },
+        "version": "1.0-SNAPSHOT"
+    },
+    "basePath": "/cached/mock-api",
+    "paths": {
+        "/getCurrentWeather/{city}/{country}": {
+            "get": {
+                "tags": [
+                    "Caching"
+                ],
+                "summary": "Get Current Weather",
+                "description": "Returns a weather forecast that gets cached for 10 seconds",
+                "produces": [
+                    "application/json",
+                    "application/xml"
+                ],
+                "parameters": [
+                    {
+                        "name": "city",
+                        "type": "PATH"
+                    },
+                    {
+                        "name": "country",
+                        "type": "PATH"
+                    }
+                ],
+                "responses": {
+                    "-1": {
+                        "body": "getCurrentWeatherOutput",
+                        "description": "A random forecast of today's weather. Note that the response is cached for X unit of time, whatever is defined in the caches.conf in the conf folder of examples package.\n\nThis means that it will return the same response over and over depends how long you want the response to be cached."
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "cachingDemo.CachedWeatherResponseDemo",
+                "responseCodeField": "responseCode"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Caching",
+            "externalDocumentation": {
+                "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/caching/"
+            }
+        }
+    ],
+    "externalDocumentation": {
+        "url": "https://docs.torocloud.com/martini/latest/developing/services/one-liners/cache-methods/",
+        "description": "See external documentation link for more information on how caching can be done in Martini."
+    }
+}

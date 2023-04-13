@@ -1,0 +1,110 @@
+{
+    "comments": "# [Using Custom Date Formats](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/date-manipulation/)\n\nIn this Gloop service, we'll be demonstrating how you can parse a date string that uses a custom format. \n\nIn line 1, the date string is created by concatenating the `year`, `month`, and `day` properties in order. We then map the string to a date property whose `Date Formats` property contains the following entries:\n\n- `yyyyMd`\n- `yyMMdd`\n- `yyMMMdd`\n- `yyMMMMdd`\n- `yyyyMMdd`\n- `yyyyMMMdd`\n- `yyyyMMMMdd`\n\nThe `Date Formats` property specifies which formats can be parsed by the date property.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Before execution, you will be asked to provide values for the `day`, `month`, and `year` properties. You can use their default values for your convenience.\n\n## Expected Output\n\n### Properties\n\nThe values of the service's output properties will depend on the values of the input properties. If the input properties were left to use their default values, then `output.date`'s value is expected to be `1998-03-28T16:00:00 0000`. (This value is a string representation of the date property only.)\n\n### Logs\n\nIn the [Console view](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view), you will see messages similar to the following:\n\n```\nINFO  [Martini] 1998March29 is Sun Mar 29 00:00:00 PHT 1998 in Gloop Date\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "day",
+            "type": "integer",
+            "defaultValue": 29
+        },
+        {
+            "name": "month",
+            "defaultValue": "March"
+        },
+        {
+            "name": "year",
+            "type": "integer",
+            "defaultValue": 1998
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "date",
+                    "type": "date",
+                    "dateFormats": [
+                        "yyyyMd",
+                        "yyMMdd",
+                        "yyMMMdd",
+                        "yyMMMMdd",
+                        "yyyyMMdd",
+                        "yyyyMMMdd",
+                        "yyyyMMMMdd"
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we’ll format the day, month, year input to our custom format “{year}{month}{day}” then set it to the Gloop\nDate object through set expression.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "customDateFormat"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "\"$year$month$day\"",
+                    "evaluate": true,
+                    "to": [
+                        "customDateFormat"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "customDateFormat",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "date"
+                    ],
+                    "priority": 1
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log customDateFormat and the Gloop Date object dateOutput.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${customDateFormat} is ${output.date} in Gloop Date\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

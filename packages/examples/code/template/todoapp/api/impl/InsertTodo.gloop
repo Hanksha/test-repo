@@ -1,0 +1,37 @@
+{
+    "type": "customSql",
+    "comments": "Gloop SQL service that inserts a todo in the database.",
+    "input": [
+        {
+            "name": "insertTodoInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$getGeneratedKeys",
+                    "type": "boolean",
+                    "defaultValue": false
+                },
+                {
+                    "name": "name"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        },
+        {
+            "name": "generatedKeys",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "todo",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO todos (name, completed) \nVALUES (:name, false)"
+}

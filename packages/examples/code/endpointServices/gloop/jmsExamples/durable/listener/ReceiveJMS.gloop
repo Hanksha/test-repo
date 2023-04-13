@@ -1,0 +1,89 @@
+{
+
+    "comments": "A Gloop service that logs the input JMS message and sends a reply to said message.\n\nBelow is an example log message that will be produced by this service once invoked:\n\n```\nINFO  [Martini] Queue exampleJMSListener received a JMS Message, the message is Martini Desktop.\n```\n\nThis service is not intended to be used alone. It's for the [`JMSListenerDurableExample` endpoint to use for example purposes](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/martini-endpoints/#jms-listener-endpoint).",
+    "input": [
+        {
+            "name": "message",
+            "type": "model",
+            "reference": "io.toro.martini.jms.Message",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Queue exampleJMSListenerDurable received a JMS Message, the message is ${message.text}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.JmsMethods",
+                    "methodName": "replyWith",
+                    "parameters": [
+                        "javax.jms.Message",
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "message",
+                                "messageObject"
+                            ],
+                            "to": [
+                                "requestMessage"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"Received message with id: ${message.messageId}. Message acknowledged\"",
+                            "evaluate": true,
+                            "to": [
+                                "string"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<trackers
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.torocloud.com/toro-martini/schema/trackers"
+        xsi:schemaLocation="http://www.torocloud.com/toro-martini/schema/trackers trackers.xsd">
+
+    <!--
+        Each <tracker> supports the following attributes:
+        - pattern       : (required) the url pattern, or the exact url to match
+        - method        : a comma-separated value of the request methods to match. Defaults to all
+        - scope         : one of 'all', 'request', 'response', 'none'. Defaults to 'all'
+        - internal-id   : a custom internal id to be used in the tracker document. Defaults to a UUID
+        - sender-id     : a custom sender id to be used in the tracker document. Defaults to the client addr
+        - receiver-id   : a custom receiver id to be used in the tracker document. Defaults to the path info
+        - document-type : a custom document type to be used in the tracker document. Defaults to 'HTTP'
+
+        For more documentation, see https://docs.torocloud.com/martini/latest/tracker/indexing/
+    -->
+
+    <!-- Examples -->
+    <!--
+        # This tracker matches all requests prefixed with '/api/':
+
+            <tracker pattern="/api/**"/>
+     -->
+
+    <!--
+        # This tracker matches exactly the url '/api/books':
+
+            <tracker pattern="/api/books"/>
+    -->
+
+    <!--
+        # You can also filter only specific request methods on a given pattern:
+
+            <tracker pattern="/api/books" method="GET"/>
+            <tracker pattern="/api/books/**" method="POST,PUT"/>
+
+        # Not specifying the 'method' attribute is equivalent to:
+
+            method="GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS,TRACE"
+    -->
+
+    <!--
+        # By default, both the request and response is tracked. This may be
+        # configured by providing the 'scope' attribute:
+
+            <tracker pattern="/api/books" scope="request"/>
+            <tracker pattern="/api/books" scope="response"/>
+
+        # Not specifying the 'scope' is analogous to:
+
+            <tracker pattern="/api/books" scope="all"/>
+
+        # The tracker may also be disabled by setting the 'scope' to 'none:
+
+            <tracker pattern="/api/books" scope="none"/>
+    -->
+
+    <!--
+        # The document created in the tracker is also configurable, by
+        # providing 'sender-id', 'receiver-id', 'document-type', if desired:
+
+            <tracker pattern="/api/books"
+                    sender-id="8888"
+                    receiver-id="09158765432"
+                    document-type="Globe"
+            />
+
+        # The custom values are completely arbitrary to your organization.
+    -->
+
+    <!--
+        # By default, a new tracker document is created for every request.
+        # For cases where you only intend to store all request details to
+        # a single tracker document, you can specify the 'internal-id':
+
+            <tracker pattern="/api/books/isbn-0321200683"
+                    internal-id="just-eip-requests" />
+
+        # In this example, all requests made to '/api/books/isbn-0321200683'
+        # is logged under the tracker document id 'just-eip-requests'.
+    -->
+
+    <!--
+        # Caveat: The order of trackers is important
+        # More specific trackers should be declared first, before the general ones.
+
+            <tracker pattern="/api/books/**/>
+            <tracker pattern="/api/books/isbn-0321200683"
+                    internal-id="just-eip-requests" />
+
+        # In this example, the tracker for 'just-eip-request` will NEVER get matched,
+        # because the preceding tracker captures the request. The correct declaration
+        # in this case should be:
+
+            <tracker pattern="/api/books/isbn-0321200683"
+                    internal-id="just-eip-requests" />
+            <tracker pattern="/api/books/**/>
+    -->
+
+</trackers>

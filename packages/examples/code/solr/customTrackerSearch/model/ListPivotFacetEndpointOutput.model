@@ -1,0 +1,62 @@
+{
+    "name": "ListPivotFacetEndpointOutput",
+    "type": "model",
+    "comments": "A model representing the output of the `ListPivotFacetEndpoint.gloop` service.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "facet_pivot",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "stateName_documentTypeName",
+                    "alias": "stateName,documentTypeName",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "field_name"
+                        },
+                        {
+                            "name": "pivot",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "value"
+                                },
+                                {
+                                    "name": "field"
+                                },
+                                {
+                                    "name": "pivot",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "value"
+                                        },
+                                        {
+                                            "name": "field"
+                                        },
+                                        {
+                                            "name": "count",
+                                            "type": "integer"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "count",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

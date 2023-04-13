@@ -1,0 +1,210 @@
+{
+    "comments": "# [Using the Gloop Map Step](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps)\n\nThis service will demonstrate the different ways a [map step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/) can be used in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nIt will also show the use of the [`Priority` property](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#map-line-and-set-expression-priority) in map lines and set expressions (see line 5). The `Priority` property ensures map lines and set expressions are executed in the correct order.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked to set the values for the `message1` and `message2` input properties. For your convenience, default values are provided for both.\n\n## Expected Output\n\n### Properties\n\nThis service returns an `output` model with the following properties:\n\n- `message`\n- `anotherMessage`\n- `thirdMessage`\n- `originalMessage`\n- `originalAnotherMessage`\n\nIf all input properties were left to their default values, the resulting values of the above output properties are:\n\n- `message` with the value of `TORO`\n- `anotherMessage` with the value of `MARTINI DESKTOP`\n- `thirdMessage` with the value of `It's awesome!`\n- `originalMessage` with the value of `toro`\n- `originalAnotherMessage` with the value of `martini Desktop`\n\n### Logs\n\nBy running this service, you'll get to [see logs in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like:\n\n```\nINFO  [Martini] Output for direct mapping:\n\n{\n    \"output\": {\n        \"message\": \"toro\",\n        \"anotherMessage\": \"martini Desktop\"\n    }\n}\nINFO  [Martini] Output for declaring property setting value to the declared property:\n\n{\n    \"output\": {\n        \"message\": \"toro\",\n        \"anotherMessage\": \"martini Desktop\",\n        \"thirdMessage\": \"It's awesome!\"\n    }\n}\nINFO  [Martini] Output for Map Line and Set Expression priorities. The mapping priority is demonstrated in a way that the original values are mapped to a different property before finally transforming the original value. Learn more about mapping priorities at https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#map-line-and-set-expression-priority\n\n{\n    \"output\": {\n        \"message\": \"TORO\",\n        \"anotherMessage\": \"MARTINI DESKTOP\",\n        \"thirdMessage\": \"It's awesome!\",\n        \"originalMessage\": \"toro\",\n        \"originalAnotherMessage\": \"martini Desktop\"\n    }\n}\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "message1",
+            "defaultValue": "toro"
+        },
+        {
+            "name": "message2",
+            "defaultValue": "martini Desktop"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "message"
+                },
+                {
+                    "name": "anotherMessage"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Direct Mapping. The simplest way of mapping is by connecting the input variable to the output variable.",
+            "lines": [
+                {
+                    "from": [
+                        "message2"
+                    ],
+                    "to": [
+                        "output",
+                        "anotherMessage"
+                    ]
+                },
+                {
+                    "from": [
+                        "message1"
+                    ],
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Output for direct mapping:\\n\\n ${output.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Declaring Variables. We could also declare variables using Map steps.",
+            "declare": [
+                {
+                    "path": [
+                        "output"
+                    ],
+                    "variables": [
+                        {
+                            "name": "thirdMessage"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "It's awesome!",
+                    "to": [
+                        "output",
+                        "thirdMessage"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log output as JSON, including the declared variable",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Output for declaring property setting value to the declared property:\\n\\n ${output.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Map line and Set Expression priorities. This step demonstrates Map Lines and Set Expression Priorities (https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#map-line-and-set-expression-priority).",
+            "declare": [
+                {
+                    "path": [
+                        "output"
+                    ],
+                    "variables": [
+                        {
+                            "name": "originalMessage"
+                        },
+                        {
+                            "name": "originalAnotherMessage"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "from": [
+                        "message1"
+                    ],
+                    "to": [
+                        "output",
+                        "originalMessage"
+                    ]
+                },
+                {
+                    "from": [
+                        "message2"
+                    ],
+                    "to": [
+                        "output",
+                        "originalAnotherMessage"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "output.originalMessage.toUpperCase()",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "message"
+                    ],
+                    "priority": 1
+                },
+                {
+                    "type": "set",
+                    "expression": "output.originalAnotherMessage.toUpperCase()",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "anotherMessage"
+                    ],
+                    "priority": 1
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log output model as JSON again",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Output for Map Line and Set Expression priorities. The mapping priority is demonstrated in a way that the original values are mapped to a different property before finally transforming the original value. Learn more about mapping priorities at https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#map-line-and-set-expression-priority\\n\\n ${output.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

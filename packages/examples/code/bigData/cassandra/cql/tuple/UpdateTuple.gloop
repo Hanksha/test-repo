@@ -1,0 +1,66 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which updates an existing row in the `tuple_example` column family. Row data is specified through input parameters.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                },
+                {
+                    "name": "tuple",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "tupleEntry0",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "tupleEntry1"
+                        }
+                    ]
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "UPDATE",
+    "query": "UPDATE tuple_example\nSET\n    tuple = :tuple\nWHERE\n    id = :id",
+    "keyspace": "cassandra_examples"
+}

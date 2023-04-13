@@ -1,0 +1,182 @@
+{
+    "comments": "# Getting the List Key Range\n\nThis service shows on how to get all members in the Redis List key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection` and `key`, the service will get all members in the list key using the `RedisListMethods.lrange` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` and `key` input properties. The default values are already set for `connection` and `key`.\n\nThe `RedisListMethods.lrange` has an output property `redisLrangeOutput` which has all the members of the list key.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `redisLrangeOutput`'s value is not equal to `null`, then `output.message` will be set to `\"Success\"`\n- else, `output.message` will be set to `\"Failed\"`\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Chopstix Restaurant\nINFO  [Martini] Europa Cafe\nINFO  [Martini] Sushi Zen\nINFO  [Martini] Andy'S Cafeteria\nINFO  [Martini] Starbucks Coffee\nand so on.....\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "listKey"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "bigData.redis.list.PopulateListKey",
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connection"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will get the members of the list according to the range",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisLrangeOutput",
+                            "type": "object",
+                            "array": true,
+                            "comments": "List&lt;V&gt; array-reply list of elements in the specified range."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisListMethods",
+            "methodName": "lrange",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "long",
+                "long",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "0",
+                    "evaluate": true,
+                    "to": [
+                        "start"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "-1",
+                    "evaluate": true,
+                    "to": [
+                        "stop"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisLrangeOutput"
+                    ],
+                    "to": [
+                        "redisLrangeOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "This will Iterate the members of the list key",
+            "input": {
+                "path": [
+                    "redisLrangeOutput"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will log each members in the list",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "redisLrangeOutput"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This will determine if the returned list is null or not",
+            "expression": "redisLrangeOutput != null",
+            "children": [
+                {
+                    "label": "true",
+                    "comments": "Map output model to success if the list is not null",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Success",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "false",
+                    "comments": "Map output model to failed if the list is null",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Failed",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

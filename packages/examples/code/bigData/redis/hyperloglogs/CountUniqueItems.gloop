@@ -1,0 +1,129 @@
+{
+    "comments": "# Counting Hyperloglogs Members\n\nThis service shows on how to get the count of unique items in Redis hyperloglogs key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection` and `key`, the service will count the unique items entered in the hyperloglogs key using `RedisHLLMethods.pfcount` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` and `key` input properties. The default values are already set for `connection` and `key`.\n\nThe `RedisHLLMethods.pfcount` has an output property `redisPfCountOutput` which return the count of unique items in the hyperloglogs key.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- The `output.message` was set to the value of the `redisPfCountOutput`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Getting Data from restaurants.json\nINFO  [Martini] Successfully Populate Hyperloglogs Key\nINFO  [Martini] 70\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "hyperloglogsKey"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will populate the hyperloglogs key in Redis",
+            "name": "bigData.redis.hyperloglogs.PopulateHyperloglogsKey",
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connection"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This will return the count of unique members in the hyperloglogs key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisPfcountOutput",
+                            "type": "long",
+                            "comments": "Long integer-reply specifically:          The approximated number of unique elements observed via {@code\nPFADD}."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisHLLMethods",
+            "methodName": "pfcount",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext",
+                "java.lang.Object[]"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "keys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisPfcountOutput"
+                    ],
+                    "to": [
+                        "redisPfcountOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This will log the returned count of the hyperloglogs and map it to the output model",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "redisPfcountOutput"
+                    ],
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

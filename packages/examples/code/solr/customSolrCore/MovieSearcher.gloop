@@ -1,0 +1,112 @@
+{
+    "comments": "# [Searching Documents](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/search-indices)\n\nThis Gloop service will [query](https://docs.torocloud.com/martini/custom-search-index/crud/#searching-for-documents) the [custom Solr core](https://docs.torocloud.com/martini/custom-search-index) `movie-core` for documents matching provided query parameters defined in `queryParameters`.\n\n## Invoking the Service\n\nBefore using this service, you should run `MovieIndexer.gloop` first to ensure `movie-core` contains at least one document we can query.\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n[Queries](https://wiki.apache.org/solr/SolrQuerySyntax) would have to be supplied through the `queryParameters` input property. It is necessary to add at least one element to this array. Leaving it empty will not yield results.\n\nTo search for all documents, add one element under `queryParameters` with a key of `q` and a value of `*:*`. \n\n## Expected Output\n\n### Properties\n\nThis service returns an `output` model consisting two other models: `queryResponse` and `movieDocuments`.\n\nThe latter is an array consisting of `MovieDocument`s found which match the query(ies) we sent.\n\nUsing the Console view is the most convenient way to [check service outputs](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Outputs can be displayed in a property tree, XML, or JSON like below:\n\n```\n{\n    \"output\": {\n        \"queryResponse\": {\n            \"responseHeader\": {\n                \"status\": 0,\n                \"QTime\": \"1\",\n                \"params\": \"{q=*:*,wt=javabin,version=2}\"\n            },\n            \"response\": {\n                \"numFound\": 1,\n                \"start\": 0,\n                \"documents\": [\n                    {\n                        \"cast\": [\n                            \"Harry Potter\",\n                            \"Hermoine Granger\",\n                            \"Ron Weasley\",\n                            \"Ginny Weasley\",\n                            \"Draco Malfoy\"\n                        ],\n                        \"director\": \"Chris Columbus\",\n                        \"id\": \"1\",\n                        \"movieTitle\": \"Harry Potter and the Chamber of Secrets\",\n                        \"_version_\": 1633035707794587648\n                    }\n                ]\n            },\n            \"facetPivots\": [],\n            \"facetFields\": [],\n            \"fieldStatsInfos\": [],\n            \"facetRanges\": []\n        },\n        \"movieDocuments\": [\n            {\n                \"cast\": [\n                    \"Harry Potter\",\n                    \"Hermoine Granger\",\n                    \"Ron Weasley\",\n                    \"Ginny Weasley\",\n                    \"Draco Malfoy\"\n                ],\n                \"director\": \"Chris Columbus\",\n                \"id\": \"1\",\n                \"movieTitle\": \"Harry Potter and the Chamber of Secrets\",\n                \"_version_\": 1633035707794587648\n            }\n        ]\n    }\n}\n```\n### Logs\n\nWhen this service runs, you may also notice [log messages in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) similar to the following:\n\n```\nINFO  [Martini] Below is the result returned by query:\n\n {\n    \"movieDocuments\": [\n        {\n            \"cast\": [\n                \"Harry Potter\",\n                \"Hermoine Granger\",\n                \"Ron Weasley\",\n                \"Ginny Weasley\",\n                \"Draco Malfoy\"\n            ],\n            \"director\": \"Chris Columbus\",\n            \"id\": \"1\",\n            \"movieTitle\": \"Harry Potter and the Chamber of Secrets\",\n            \"_version_\": 1633680357218844672\n        }\n    ]\n}\n```",
+    "input": [
+        {
+            "name": "queryParameters",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "paramKey",
+                    "defaultValue": "q",
+                    "comments": "param key \"q\""
+                },
+                {
+                    "name": "paramValue",
+                    "defaultValue": "*:*",
+                    "comments": "param value, ex. \"id:1\""
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "queryResponse",
+                    "type": "model",
+                    "reference": "io.toro.martini.solr.QueryResponse"
+                },
+                {
+                    "name": "movieDocuments",
+                    "type": "model",
+                    "array": true,
+                    "reference": "solr.customSolrCore.model.MovieDocument",
+                    "allowExtraProperties": true
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.SolrMethods",
+            "methodName": "query",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.util.List"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "queryParameters"
+                    ],
+                    "to": [
+                        "solrParams"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "movie-core",
+                    "to": [
+                        "coreName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "queryResponse",
+                        "response",
+                        "documents"
+                    ],
+                    "to": [
+                        "output",
+                        "movieDocuments"
+                    ]
+                },
+                {
+                    "from": [
+                        "queryResponse"
+                    ],
+                    "to": [
+                        "output",
+                        "queryResponse"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the search result",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Below is the result returned by query:\\n\\n ${output.movieDocuments.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

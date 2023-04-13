@@ -1,0 +1,211 @@
+{
+    "comments": "## Performing a Global Text Search using `$text`\n\nThis Gloop service demonstrates how to create a wildcard index (`$**`) for `restaurants` collection and perform a `$text` search against it. The MongoDB service (line 5) holds the query to perform a text search on the fields that was indexed.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide values to `searchText` and `caseSensitive` to be sent as inputs to the query to be performed. For your convenience, the `city` is already populated with a value; changing this value is optional but possible.\n\n## Expected Output\n\nIf the text search found documents that matches the `searchText` input, you will see a similar `INFO` log that  [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Found 11 documents for text: asian. Check the output view to see the documents returned.\n```\n\nThis service will also return an `output` model that contains the number of documents found, and a `result` Gloop model array containing the restaurant documents found.",
+    "input": [
+        {
+            "name": "searchText",
+            "defaultValue": "asian"
+        },
+        {
+            "name": "caseSensitive",
+            "type": "boolean",
+            "defaultValue": false
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "resultCount",
+                    "type": "integer"
+                },
+                {
+                    "name": "results",
+                    "type": "model",
+                    "array": true,
+                    "allowExtraProperties": true
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection, as well as the documents required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the required index for this service",
+                    "name": "bigData.mongoDb.conf.InitializeIndexes",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "text",
+                            "to": [
+                                "indexType"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "$**_text",
+                            "to": [
+                                "indexName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "The MongoDB service that uses $text operator to perform a text search against all the string fields in the the restaurant collection. This service generates a Gloop cursor the contains all the matching results",
+                    "name": "bigData.mongoDb.services.textSearch.TextSearch",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "searchText"
+                            ],
+                            "to": [
+                                "input",
+                                "searchTerm"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "caseSensitive"
+                            ],
+                            "to": [
+                                "input",
+                                "isCaseSensitive"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterate from the Gloop cursor from the TextSearch service, and map it to the output model",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "output",
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "from": [
+                                        "results"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "results"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "$gloopCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "resultCount"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Print the search results in the console",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Found ${output.resultCount} documents for text: ${searchText}. Check the output view to see the documents returned.\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

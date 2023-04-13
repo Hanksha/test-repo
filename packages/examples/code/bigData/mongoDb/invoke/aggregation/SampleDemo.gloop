@@ -1,0 +1,171 @@
+{
+    "comments": "## Pulling Random Documents Using `$sample`\n\nThis Gloop service demonstrates a simple use case of selecting N documents from a MongoDB collection using `$sample` operator. The MongoDB service (line 4) executes an aggregation query and uses `$sample` to randomly select documents, and will return a number of documents based on the `size` provided.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide an integer value for `sampleSize` property. For your convenience, `sampleSize` has been assigned a n default value; changing this value is optional, but possible.\n\n#Expected Output\n\nDepending on the `sampleSize` set in the input when this service was invoked, it will display all the N documents returned by the MongoDB service. This service will also return an `output` model that contains all the sample documents. A similar `INFO` log will also be  [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Displaying the documents returned by $sample aggregation pipeline stage.\nINFO  [Martini] {\n    \"samples\": {\n        \"_id\": \"5d27fda3c1461d6541a36e70\",\n        \"address\": {\n            \"building\": \"8616\",\n            \"coord\": [\n                -74.028843,\n                40.622419\n            ],\n            \"street\": \"4 Avenue\",\n            \"zipcode\": \"11209\"\n        },\n        \"borough\": \"Brooklyn\",\n        \"cuisine\": \"Asian\",\n        \"grades\": [\n            {\n                \"date\": \"2014-08-19T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 9\n            },\n            {\n                \"date\": \"2014-01-27T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 16\n            },\n            {\n                \"date\": \"2013-05-30T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 18\n            },\n            {\n                \"date\": \"2012-10-16T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 13\n            },\n            {\n                \"date\": \"2012-03-20T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 26\n            }\n        ],\n        \"name\": \"Pho Hoai Bay Ridge\",\n        \"restaurant_id\": \"40671249\"\n    }\n}\n```",
+    "input": [
+        {
+            "name": "sampleSize",
+            "type": "integer",
+            "defaultValue": 1,
+            "comments": "The number of documents to be returned by $sample",
+            "min": 1
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.aggregation.Sample",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "samples",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "sampleSize"
+                            ],
+                            "to": [
+                                "input",
+                                "sampleSize"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "samples"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Displaying the documents returned by $sample aggregation pipeline stage.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "samples"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "output"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "from": [
+                                        "samples"
+                                    ],
+                                    "to": [
+                                        "output"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "samples.asJson()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

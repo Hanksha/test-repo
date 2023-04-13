@@ -1,0 +1,45 @@
+{
+    "comments": "# [Using a Gloop Cassandra Service to delete a record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) deletes an entry whose name matches the value in the `RESTAURANTS` column family in the `restaurants` keyspace in Cassandra. \n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite\n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nOnly the `name` is required by the service as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). To ensure successful deletion, use the name `Highway Bagels`. The record with that name is created when running `bigData/cassandra/services/batch/InsertBatchRestaurants.gloop` or `bigData/cassandra/services/batch/UpdateBatchRestaurants.gloop`.\n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Deleting restaurant with name Highway Bagels\n```\n",
+    "input": [
+        {
+            "name": "name",
+            "defaultValue": "Highway Bagels"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Deleting restaurant with name $name\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Deletes a restaurant by name",
+            "name": "bigData.cassandra.cql.single.DeleteSingleRestaurant",
+            "inputs": [
+                {
+                    "from": [
+                        "name"
+                    ],
+                    "to": [
+                        "input",
+                        "name"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,148 @@
+{
+    "comments": "# [Using `StreamMethods.distinct(Stream, Collection)`](https://docs.torocloud.com/martini/developing/services/one-liners/stream-methods/)\n\nThis service counts the number of unique words from a given array of words using [`StreamMethods`](https://docs.torocloud.com/martini/developing/services/one-liners/stream-methods/)`.distinct(Stream, Collection)`. \n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). An array of words must be provided through the `words` [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/).\n\t\n## Expected Output\n\n### Properties\n\nThis service returns a `count` property which contains the number of unique words found in the given word array. This property's value depends on the provided inputs for the service.\n\nIf the words provided were:\n\n```\nHello\nWorld\nHello\n```\n\n... then this service will return a `count` property with the value of `2`.\n\n### Logs\n\nUpon running this service, you should see log messages like below in [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Counting distinct words from the String array: [Hello, World, Hello]\nINFO  [Martini] Counted unique words: 2\n...\n```",
+    "input": [
+        {
+            "name": "words",
+            "array": true,
+            "defaultValue": [
+                "Hello",
+                "World",
+                "Hello"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "count",
+            "type": "long"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "log the words to be counted by StreamMethods.count",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Counting distinct words from the String array: ${words}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Filters out duplicates from the words array",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "stream",
+                            "type": "object",
+                            "comments": "output Stream",
+                            "objectClassName": "java.util.stream.Stream"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "distinct",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "words"
+                    ],
+                    "to": [
+                        "collection"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "count",
+            "parameters": [
+                "java.util.stream.Stream"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stream"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "count"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the counted unique words from StreamMethods.count",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Counted unique words: ${count}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "borough"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurants",
+    "queryType": "AGGREGATE",
+    "filter": "{\n\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\t{\n\t\t$addFields: {\n\t\t\taverageScore: {\n\t\t\t\t$avg: \"$grades.score\"\n\t\t\t}\n\t\t}\n\t},\n\t{\n\t\t$match: {\n\t\t\tborough: {\n\t\t\t\t$regex: {{borough:string}},\n\t\t\t\t$options: 'i'\n\t\t\t}\n\t\t}\n\t},\n\t{\n\t\t$project: {\n\t\t\tname: 1,\n\t\t\taverageScore: 1\n\t\t}\n\t},\n\t{\n\t\t$limit: 5\n\t}\n]"
+}

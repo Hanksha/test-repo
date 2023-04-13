@@ -1,0 +1,45 @@
+{
+    "comments": "This Gloop service is used to add a todo to the database by invoking the Gloop SQL service `template.todoapp.api.impl.InsertTodo` while making sure that the todo database is setup.\n\nThis service is also exposed at `/todo/add` so it can be requested by the Gloop template when adding a todo. The output of the service also has a `$gloopView` property whose default value is `redirect:/app/todo`. That property can be used to redirect the user to the given path after it has been requested.",
+    "input": [
+        {
+            "name": "name"
+        }
+    ],
+    "output": [
+        {
+            "name": "$gloopView",
+            "defaultValue": "redirect:/app/todo",
+            "comments": "use redirect:/app/todo as default value to redirect the user to the todo page"
+        }
+    ],
+    "bodyParameter": "name",
+    "paths": [
+        "/todo/add"
+    ],
+    "methods": [
+        "POST"
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "make sure the database is setup",
+            "name": "template.todoapp.api.impl.SetupTodoDatabase"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "add the todo to the database",
+            "name": "template.todoapp.api.impl.InsertTodo",
+            "inputs": [
+                {
+                    "from": [
+                        "name"
+                    ],
+                    "to": [
+                        "insertTodoInput",
+                        "name"
+                    ]
+                }
+            ]
+        }
+    ]
+}

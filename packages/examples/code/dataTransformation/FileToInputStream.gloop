@@ -1,0 +1,184 @@
+{
+    "comments": "# [Creating an `InputStream` from a `File`](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation)\n\nIn this service, we will be demonstrating how [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service) can automatically convert a \t`java.io.File` to a `java.io.InputStream` object through a [map line](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#map-lines).\n\nAs proof that the transformation was successful, the service will be calling methods from the `InputStream` instance created.\n\n## Invoking the Service\n\nUpon [running the Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked by Martini to provide a value for the `skip` property. You can use the default value for your convenience.\n\nThe `skip` property is a `long` value that specifies how many characters will be skipped in the `InputStream` for demonstration purposes.\n\n## Expected Output\n\nLogs like below would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) upon running the service:\n\n```\nINFO  [Martini] InputStream available bytes: 461\nINFO  [Martini] Skipping 5 characters...\nINFO  [Martini] InputStream available bytes after skipping: 456\nINFO  [Martini] File content:  ipsum dolor sit amet, consectetur adipiscing elit. Proin et dolor metus. Aenean ac ante facilisis felis finibus suscipit vel vel velit. Morbi vulputate eu dolor non vestibulum. In dignissim faucibus felis, sed pharetra odio. Ut sodales interdum sapien, a fringilla orci ultricies eget. Cras elit magna, laoreet ultrices dapibus nec, fringilla consequat magna. Curabitur in tempus neque. Donec ipsum lorem, eleifend sit amet arcu at, viverra posuere magna.\n```",
+    "input": [
+        {
+            "name": "skip",
+            "type": "long",
+            "defaultValue": 5
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop service completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "This step will get the `sample.txt` file from the resources folder of this Martini Package.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "file",
+                            "type": "object",
+                            "objectClassName": "File"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "new File( 'resources/sample.txt'.resource( 'examples' ).toString() )",
+                    "evaluate": true,
+                    "to": [
+                        "file"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Map the File object to the InputStream object.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputStream",
+                            "type": "object",
+                            "objectClassName": "InputStream"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "from": [
+                        "file"
+                    ],
+                    "to": [
+                        "inputStream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the available bytes of the InputStream in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"InputStream available bytes: ${inputStream.available()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log and skip characters from the InputStream in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Skipping ${inputStream.skip( skip )} characters...\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the available bytes of the InputStream in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"InputStream available bytes after skipping: ${inputStream.available()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the contents of the InputStream by using a GString in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"File content: ${inputStream}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This last step is not required since Gloop can close streams once the service is terminated but for best practice, we'll close the stream quietly.",
+            "className": "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+            "methodName": "closeQuietly",
+            "parameters": [
+                "java.io.Closeable"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "inputStream"
+                    ],
+                    "to": [
+                        "c"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

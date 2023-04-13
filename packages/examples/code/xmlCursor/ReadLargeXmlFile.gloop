@@ -1,0 +1,333 @@
+{
+    "comments": "# [Using an XML Cursor to Read a Large XML File](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/xml-cursors/)\n\nThrough this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we will demonstrate how to read a fairly large XML file using a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/).\n\nFirst, we will obtain an `InputStream` for the file, which in particular is `resources/dataset.xml`. We will use the `InputStream` when creating an XML cursor. Afterwards, we will [iterate](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/) over the cursor and print each node that is a `header`, `record`, or `trailer`  in the document.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n### Expected Output\n\nUpon running this service, you should see log messages like below in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Header details is: This is the header for 1000 random people records\nINFO  [Martini] The name in record 1 is Wald Seys\nINFO  [Martini] The name in record 2 is Rolland Matthieson\n...\nINFO  [Martini] The trailer description is The trailer description goes here\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.\n```\n\nSome lines are omitted for brevity.",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we open a resource from the resources folder and returning an input stream  to read from the resource.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "inputStream",
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "resourceStream",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/dataset.xml",
+                            "to": [
+                                "resource"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we open a cursor that reads from a large XML file, giving it the names of the nodes we want to read from the file.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "gloopXmlCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "nodeName"
+                                        },
+                                        {
+                                            "name": "cursorRecord",
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.XmlMethods",
+                    "methodName": "getInputCursorFromInputStream",
+                    "parameters": [
+                        "java.io.InputStream",
+                        "java.lang.String",
+                        "java.util.List",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "inputStream"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "['header','record','trailer']",
+                            "evaluate": true,
+                            "to": [
+                                "_xmlNodeNames"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "gloopXmlCursor"
+                            ],
+                            "to": [
+                                "gloopXmlCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "now we will iterate over all the records found in the file",
+                    "input": {
+                        "path": [
+                            "gloopXmlCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "fork",
+                            "comments": "In this step, we check the node name, so we can process all the nodes differently",
+                            "expression": "gloopXmlCursor.nodeName",
+                            "children": [
+                                {
+                                    "type": "block",
+                                    "label": "header",
+                                    "comments": "We process this block if the node name is `header`.",
+                                    "children": [
+                                        {
+                                            "comments": "In this step, we declare the `header` model and map the `cursorRecord`.",
+                                            "declare": [
+                                                {
+                                                    "variables": [
+                                                        {
+                                                            "name": "header",
+                                                            "type": "model",
+                                                            "reference": "xmlCursor.models.Header"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "gloopXmlCursor",
+                                                        "cursorRecord"
+                                                    ],
+                                                    "to": [
+                                                        "header"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "log the value of header.details",
+                                            "className": "io.toro.martini.LoggerMethods",
+                                            "methodName": "info",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "type": "set",
+                                                    "expression": "\"Header details is: ${header.details}\"",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "message"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "block",
+                                    "label": "record",
+                                    "comments": "We process this block if the node name is `record`.",
+                                    "children": [
+                                        {
+                                            "comments": "In this step, we declare the `record` model and map the `cursorRecord`.",
+                                            "declare": [
+                                                {
+                                                    "variables": [
+                                                        {
+                                                            "name": "record",
+                                                            "type": "model",
+                                                            "reference": "xmlCursor.models.Record"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "gloopXmlCursor",
+                                                        "cursorRecord"
+                                                    ],
+                                                    "to": [
+                                                        "record"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "Send an info message to the underlying log engine",
+                                            "className": "io.toro.martini.LoggerMethods",
+                                            "methodName": "info",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "type": "set",
+                                                    "expression": "\"The name in record ${$gloopIndex} is ${record.first_name} ${record.last_name}\"",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "message"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "block",
+                                    "label": "trailer",
+                                    "comments": "We process this block if the node name is `trailer`.",
+                                    "children": [
+                                        {
+                                            "comments": "In this step, we declare the `trailer` model and map the `cursorRecord`.",
+                                            "declare": [
+                                                {
+                                                    "variables": [
+                                                        {
+                                                            "name": "trailer",
+                                                            "type": "model",
+                                                            "reference": "xmlCursor.models.Footer"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "lines": [
+                                                {
+                                                    "from": [
+                                                        "gloopXmlCursor",
+                                                        "cursorRecord"
+                                                    ],
+                                                    "to": [
+                                                        "trailer"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "log the value of trailer.trailer_description",
+                                            "className": "io.toro.martini.LoggerMethods",
+                                            "methodName": "info",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "type": "set",
+                                                    "expression": "\"The trailer description is: ${trailer.trailer_description}\"",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "message"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "log finished message",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

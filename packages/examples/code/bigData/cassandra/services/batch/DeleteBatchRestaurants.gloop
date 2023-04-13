@@ -1,0 +1,123 @@
+{
+    "comments": "# [Using a Gloop Cassandra Service to perform a batch delete](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) can delete multiple records to the `RESTAURANTS` column family in the `restaurants` keyspace in Cassandra.\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database. This Gloop Cassandra service returns a [Gloop Cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) which the service iteratively maps entries to, to specify which records to delete.\n\n## Prerequisite\n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nAn array of record names is required by the service as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). These names indicate which records would be deleted. Ideally, these records should exist in the table.\n\nThere are default values initialized in `restaurantsToDelete` input property with `[Smoke,Cafe Madison,Cafe Edison]` as its value. \n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\n[Console Messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Starting to delete [Smoke, Cafe Madison, Cafe Edison]\nINFO  [Martini] Smoke has been deleted\nINFO  [Martini] Cafe Madison has been deleted\nINFO  [Martini] Cafe Edison has been deleted\n```",
+    "input": [
+        {
+            "name": "restaurantsToDelete",
+            "array": true,
+            "defaultValue": [
+                "Smoke",
+                "Cafe Madison",
+                "Cafe Edison"
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "The CQL query to delete restaurants based on name",
+            "name": "bigData.cassandra.cql.batch.DeleteBatchRestaurants",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "outputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "name"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "2",
+                    "to": [
+                        "input",
+                        "$batchSize"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "outputCursor"
+                    ],
+                    "to": [
+                        "outputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Starting to delete ${restaurantsToDelete}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterate over the `restaurantsToDelete` and the deleteCursor ",
+            "input": {
+                "path": [
+                    "restaurantsToDelete"
+                ]
+            },
+            "output": {
+                "path": [
+                    "outputCursor"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Maps each data from `restaurantsToDelete` to the outputCursor so that it would get deleted",
+                    "lines": [
+                        {
+                            "from": [
+                                "restaurantsToDelete"
+                            ],
+                            "to": [
+                                "outputCursor",
+                                "name"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${outputCursor.name} has been deleted\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,62 @@
+{
+    "name": "PostHelloWorldOutput",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) [generated using the HTTP Client Service wizard](https://docs.torocloud.com/martini/latest/developing/gloop/service/generating/#from-an-http-request).\n\nThis model was generated for `httpClient.services.PostHelloWorld.gloop`. It represents the aforementioned service's output.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "data"
+        },
+        {
+            "name": "form",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        },
+        {
+            "name": "headers",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "Accept"
+                },
+                {
+                    "name": "Accept_Encoding",
+                    "alias": "Accept-Encoding"
+                },
+                {
+                    "name": "Connection"
+                },
+                {
+                    "name": "Content_Length",
+                    "alias": "Content-Length"
+                },
+                {
+                    "name": "Content_Type",
+                    "alias": "Content-Type"
+                },
+                {
+                    "name": "Host"
+                },
+                {
+                    "name": "User_Agent",
+                    "alias": "User-Agent"
+                }
+            ]
+        },
+        {
+            "name": "origin"
+        },
+        {
+            "name": "url"
+        },
+        {
+            "name": "message"
+        }
+    ]
+}

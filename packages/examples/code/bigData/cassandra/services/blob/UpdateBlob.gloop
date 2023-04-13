@@ -1,0 +1,118 @@
+{
+    "comments": "# [Updating Blobs in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) updates a record in the `blob_example` column family in the `cassandra_examples` keyspace. It uses the data provided through input properties for the update.\n\nThis service showcases how to handle [blobs](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/blob_r.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nFive [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required: `id`, `blob`, `blob2`, `blob3`, `blob4`.\n\n`blob` is a regular blob data type, `blob2` is a `list<blob>`, `blob3` is a `map<int,blob`, and `blob4` is a `set<blob>` in Cassandra. \n\nTo learn more about list, maps, and sets in Cassandra, check out its [collections](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/collection_type_r.html). \n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Updating blob with id 1, blob0, [blob1, blob2], {\n    \"blob3\": [\n        {\n            \"name\": 1,\n            \"value\": \"blob3\"\n        }\n    ]\n}, and [blob4, blob5]\n```\n",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "defaultValue": 1
+        },
+        {
+            "name": "blob",
+            "defaultValue": "blob0"
+        },
+        {
+            "name": "blob2",
+            "array": true,
+            "defaultValue": [
+                "blob1",
+                "blob2"
+            ]
+        },
+        {
+            "name": "blob3",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "name",
+                    "type": "integer",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "value",
+                    "defaultValue": "blob3"
+                }
+            ]
+        },
+        {
+            "name": "blob4",
+            "array": true,
+            "defaultValue": [
+                "blob4",
+                "blob5"
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Updating blob with id $id, $blob, $blob2, ${blob3.asJson()}, and $blob4\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Updates the blob in the blob_example columnfamily in the cassandra_examples keyspace",
+            "name": "bigData.cassandra.cql.blob.UpdateBlob",
+            "inputs": [
+                {
+                    "from": [
+                        "blob"
+                    ],
+                    "to": [
+                        "input",
+                        "blob"
+                    ]
+                },
+                {
+                    "from": [
+                        "blob2"
+                    ],
+                    "to": [
+                        "input",
+                        "blob2"
+                    ]
+                },
+                {
+                    "from": [
+                        "blob3"
+                    ],
+                    "to": [
+                        "input",
+                        "blob3"
+                    ]
+                },
+                {
+                    "from": [
+                        "blob4"
+                    ],
+                    "to": [
+                        "input",
+                        "blob4"
+                    ]
+                },
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "input",
+                        "id"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,226 @@
+{
+    "comments": "This Gloop service drops the tables that were created upon package startup, and deletes the associated connection pool.",
+    "input": [
+        {
+            "name": "poolName"
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "fork",
+                    "expression": "poolName.equalsIgnoreCase('example_db') || poolName.equalsIgnoreCase('example_xa_db_migrated')",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.SqlMethods",
+                                    "methodName": "executeSql",
+                                    "parameters": [
+                                        "java.lang.String",
+                                        "java.lang.String",
+                                        "io.toro.gloop.object.property.GloopModel",
+                                        "io.toro.gloop.engine.GloopExecutionContext"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "poolName"
+                                            ],
+                                            "to": [
+                                                "databaseConnectionName"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "DROP TABLE ADDITIONAL_DATA IF EXISTS",
+                                            "to": [
+                                                "sqlStatement"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.SqlMethods",
+                                    "methodName": "executeSql",
+                                    "parameters": [
+                                        "java.lang.String",
+                                        "java.lang.String",
+                                        "io.toro.gloop.object.property.GloopModel",
+                                        "io.toro.gloop.engine.GloopExecutionContext"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "poolName"
+                                            ],
+                                            "to": [
+                                                "databaseConnectionName"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "DROP TABLE NAMES IF EXISTS",
+                                            "to": [
+                                                "sqlStatement"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "label": "false",
+                            "className": "io.toro.martini.SqlMethods",
+                            "methodName": "executeSql",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.String",
+                                "io.toro.gloop.object.property.GloopModel",
+                                "io.toro.gloop.engine.GloopExecutionContext"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "poolName"
+                                    ],
+                                    "to": [
+                                        "databaseConnectionName"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "DROP TABLE TEXTS IF EXISTS",
+                                    "to": [
+                                        "sqlStatement"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                    "methodName": "stopPool",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "poolName"
+                            ],
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                    "methodName": "disablePool",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "poolName"
+                            ],
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                    "methodName": "deletePool",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "poolName"
+                            ],
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "enabled": false,
+                    "comments": "Send an error message to the underlying log engine, if info messages are enabled for loggerName",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "ExampleSqlServicesShutdown",
+                            "to": [
+                                "loggerName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"Error Occurred During Shutdown: ${$gloopException.message} : ${$gloopException.realException}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

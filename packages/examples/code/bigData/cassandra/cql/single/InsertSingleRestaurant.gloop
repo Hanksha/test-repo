@@ -1,0 +1,110 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which inserts a new row in the `restaurants` column family, with values specified through the provided parameters.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "restaurantid",
+                    "type": "integer"
+                },
+                {
+                    "name": "address",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "building"
+                        },
+                        {
+                            "name": "coord",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "tupleEntry0",
+                                    "type": "bigDecimal"
+                                },
+                                {
+                                    "name": "tupleEntry1",
+                                    "type": "bigDecimal"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "street"
+                        },
+                        {
+                            "name": "zipcode",
+                            "type": "integer"
+                        }
+                    ]
+                },
+                {
+                    "name": "borough"
+                },
+                {
+                    "name": "cuisine"
+                },
+                {
+                    "name": "grades",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "date",
+                            "type": "date"
+                        },
+                        {
+                            "name": "grade"
+                        },
+                        {
+                            "name": "score",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO restaurants (\n    name,\n    restaurant_id,\n    address,\n    borough,\n    cuisine,\n    grades\n)\nVALUES (\n    :name,\n    :restaurantId,\n    :address,\n    :borough,\n    :cuisine,\n    :grades\n)",
+    "keyspace": "restaurants"
+}

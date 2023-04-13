@@ -1,0 +1,108 @@
+{
+    "comments": "A [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) that logs email data to the console.\n\nIn particular, it logs the following information:\n\n- The sender of the email\n- The receiver of the email\n- The content of the email\n- The attachments sent along with the email\n- The number of attachments sent\n\nWhen run, the logs like the following will appear in the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Got an email from johndoe@example.com sent to mikejoe@example.com with body \nINFO  [Martini] Attachment  has content java.io.ByteArrayInputStream@4ed6f377\nINFO  [Martini] Received 1 attachment(s).\n```\n\nThis can be used as the service of an [Email endpoint](https://docs.torocloud.com/martini/latest/developing/endpoints/types/email/).",
+    "input": [
+        {
+            "name": "attachments",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.email.DataSource"
+        },
+        {
+            "name": "fromAddress"
+        },
+        {
+            "name": "body"
+        },
+        {
+            "name": "to",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.email.Address"
+        }
+    ],
+    "output": [
+        {
+            "name": "emailResponse"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Send an info message to the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Got an email from ${fromAddress} sent to ${to[0].address} with body ${body}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "We iterate through the ‘attachments’ model array.",
+            "input": {
+                "path": [
+                    "attachments"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we log the attachment name and attachment content in the underlying log engine.",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Attachment ${attachments.name} has content ${attachments.inputStream.text}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we log the attachment size in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Received ${attachments.size()} attachment(s).\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "emailResponse"
+                    ]
+                }
+            ]
+        }
+    ]
+}

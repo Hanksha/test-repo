@@ -1,0 +1,19 @@
+{
+    "comments": "This [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) will disable database XA transactions using the `DatabaseXAHelper` service.\n\nTo see how this Gloop service is usd , check out `databaseTransaction.DatabaseMigration`.",
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Disable database xa transactions",
+            "name": "databaseTransaction.util.DatabaseXAHelper",
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "false",
+                    "to": [
+                        "enableXA"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,119 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Delete a Record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis Gloop service deletes an entry from the `ADDITIONAL_DATA` table whose ID matches the value of the input property `id`.\n\nIt invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nOnly the `id` is required by the service as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/).\n\nTo ensure successful deletion, use any `ADDITIONAL_DATA` ID returned by the `sqlServices.invoke.multiple.InvokeMultipleAdditionalDataSelect` service. In case the `ADDITIONAL_DATA` table is empty, run `sqlServices.invoke.InsertNameWithAdditionalData` to populate it with entries.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Deleting entry from ADDITIONAL_DATA table with ID: 5\nINFO  [Martini] 1 row/s affected.\n...\n```\n\nThe second message shows how many rows were deleted. If the number was 0, then no entries were deleted at all.\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Checks if the required dependency this service requires is already initialized.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log that we are going to delete the entry from ADDITIONAL_TABLE with the id provided in the input",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Deleting entry from ADDITIONAL_DATA table with ID: ${id}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "name": "sqlServices.sql.single.DeleteSingleAdditionalData",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "updateCount",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "deleteSingleAdditionalDataInput",
+                        "id"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "updateCount"
+                    ],
+                    "to": [
+                        "updateCount"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log rows affected",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${updateCount} row/s affected.\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

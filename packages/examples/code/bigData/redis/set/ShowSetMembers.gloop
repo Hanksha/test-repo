@@ -1,0 +1,162 @@
+{
+    "comments": "# Show All Set Members\n\nThis service shows on how to show all members in Redis Set Key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection` and `key`, the service will get all members in a set key using `RedisSetMethods.smembers` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` and `key` input properties. The default values are already set for `connection` and `key`.\n\nThe `RedisSetMethods.smembers` has an output property `redisSmembersOutput` which return a list of all the members in the set key.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `redisSmembersOutput`'s value is not `null`, then `output.message` will be set to `\"Success\"`\n- else, `output.message` will be set to `\"Failed\"`\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Sapphire Indian Cuisine\nINFO  [Martini] Bella Luna\nINFO  [Martini] Kiddie Cakes\nINFO  [Martini] Tomoe Sushi\nINFO  [Martini] Dunkin' Donuts/Subway\nINFO  [Martini] Nelly'S Corner Pizzeria Restaurant\nand so on.......\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "setKey"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will add members to the set key in Redis",
+            "name": "bigData.redis.set.PopulateSetKey",
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connection"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will get all the members in the set key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisSmembersOutput",
+                            "type": "object",
+                            "array": true,
+                            "comments": "Set&lt;V&gt; array-reply all elements of the set."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisSetMethods",
+            "methodName": "smembers",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisSmembersOutput"
+                    ],
+                    "to": [
+                        "redisSmembersOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "This will iterate all the members in the set key",
+            "input": {
+                "path": [
+                    "redisSmembersOutput"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This will log each member in the list",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "redisSmembersOutput"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "redisSmembersOutput != null",
+                    "children": [
+                        {
+                            "label": "true",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Success",
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "label": "false",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Failed",
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

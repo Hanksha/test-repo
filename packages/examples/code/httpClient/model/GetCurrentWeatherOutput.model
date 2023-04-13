@@ -1,0 +1,34 @@
+{
+    "name": "GetCurrentWeatherOutput",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) [generated using the HTTP Client Service wizard](https://docs.torocloud.com/martini/latest/developing/gloop/service/generating/#from-an-http-request).\n\nThis model was generated for `httpClient.services.GetCurrentWeather.gloop`. It represents the aforementioned service's output.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "location",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "city"
+                },
+                {
+                    "name": "country"
+                }
+            ]
+        },
+        {
+            "name": "weather"
+        },
+        {
+            "name": "temperature",
+            "type": "double"
+        },
+        {
+            "name": "cod",
+            "type": "integer"
+        },
+        {
+            "name": "message"
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "comments": "Logs the name of the file to the console. Once invoked, you should see a log messages like this:\n\n```\nINFO  [Martini] Endpoint called for file <directories>/<filename>\n```\n\nThis can be used as the service of an [FTP client](https://docs.torocloud.com/martini/latest/developing/endpoints/types/ftp-client/) or [Directory watcher](https://docs.torocloud.com/martini/latest/developing/endpoints/types/directory-watcher/) endpoint.",
+    "input": [
+        {
+            "name": "file",
+            "type": "object",
+            "objectClassName": "java.nio.file.Path"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This step will log the file in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Endpoint called for file ${file}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,166 @@
+{
+    "comments": "This Gloop service will get the all the data from the `restaurants.json` file under `resources` directory.\n\nWhen this service is called, it will get the input stream of the file and will read it per line.\n\nWhile reading each line the service will convert the `JSON String` into an `Object` that will be added to the output property `restaurant`, which is a [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) Array.\n\nThis service is used by some services in the `bigData` package to prepare required resources like datasources, etc.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nUpon executing this service, you will see logs like the following [in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view): \n\n```\n10/07/19 16:43:11.355 INFO  [Martini] Getting Data from restaurants.json\n\n```",
+    "output": [
+        {
+            "name": "restaurant",
+            "type": "model",
+            "array": true,
+            "reference": "bigData.model.Restaurant"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Getting Data from restaurants.json",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputStream",
+                            "type": "object",
+                            "objectClassName": "java.io.InputStream"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.FileMethods",
+            "methodName": "resourceStream",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "resources/restaurants.json",
+                    "to": [
+                        "resource"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "inputStream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "gloopJsonCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "nodeName"
+                                },
+                                {
+                                    "name": "cursorRecord",
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.JsonMethods",
+            "methodName": "getInputCursorFromInputStream",
+            "parameters": [
+                "java.io.InputStream",
+                "java.lang.String",
+                "java.util.List",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "inputStream"
+                    ],
+                    "to": [
+                        "inputStream"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "['$jsonRoot']",
+                    "evaluate": true,
+                    "to": [
+                        "jsonNodeNames"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "gloopJsonCursor"
+                    ],
+                    "to": [
+                        "gloopJsonCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "input": {
+                "path": [
+                    "gloopJsonCursor"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.ArrayMethods",
+                    "methodName": "addToList",
+                    "parameters": [
+                        "java.lang.Object",
+                        "java.lang.Object"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "restaurant"
+                            ],
+                            "to": [
+                                "list"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "gloopJsonCursor.cursorRecord",
+                            "evaluate": true,
+                            "to": [
+                                "element"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

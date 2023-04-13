@@ -1,0 +1,161 @@
+{
+    "comments": "A [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) that accepts a (POST) request and returns it.\n\nThis service is [exposed as a RESTful web service by `httpClient.mockApis.HttpClientMockEndpoints.api`](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/).\n\n## Invoking the Service\n\nThis service is best [invoked via browser](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http) or [HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-httprequest/generating/#invoking-a-gloop-service).\n\nThe `$request` input property will automatically be populated by Martini when invoked this way.\n\n## Expected Output\n\nA response similar to below will be returned to you upon successfully sending your request:\n\n```\n{\n    \"responseCode\": 200,\n    \"postHelloWorldOutput\": {\n        \"data\": \"{\\n    \\\"message\\\": \\\"Hello world!\\\"\\n}\",\n        \"headers\": {\n            \"Accept\": \"*/*\",\n            \"Accept-Encoding\": \"gzip,deflate\",\n            \"Connection\": \"Keep-Alive\",\n            \"Content-Length\": \"33\",\n            \"Host\": \"127.0.0.1\",\n            \"User-Agent\": \"Martini/3.2.3-RC2 (build 2019-04-24T00:02:23) (Java/1.8.0_172)\"\n        },\n        \"origin\": \"127.0.0.1\",\n        \"url\": \"http://localhost:8080/api/sample/mock-api/post\"\n    },\n    \"output\": {\n        \"message\": \"Gloop Service Completed.\"\n    }\n}\n```",
+    "input": [
+        {
+            "name": "$request",
+            "type": "object",
+            "objectClassName": "javax.servlet.http.HttpServletRequest"
+        }
+    ],
+    "output": [
+        {
+            "name": "postHelloWorldOutput",
+            "type": "model",
+            "reference": "httpClient.model.PostHelloWorldOutput"
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we are using the set expression to set value to the model `postHelloWorldOutput`.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "$request.getContentType()",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "Content_Type"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getContentLength()",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "Content_Length"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getRemoteAddr()",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "Host"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getRequestURL()",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "url"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getRemoteHost()",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "origin"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getHeader( 'Accept' )",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "Accept"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getHeader( 'Accept-Encoding' )",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "Accept_Encoding"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getHeader( 'Connection' )",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "Connection"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "$request.getHeader( 'User-Agent' )",
+                    "evaluate": true,
+                    "to": [
+                        "postHelloWorldOutput",
+                        "headers",
+                        "User_Agent"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "expression": "postHelloWorldOutput.headers.Content_Type && postHelloWorldOutput.headers.Content_Type.contains('multipart')",
+            "children": [
+                {
+                    "label": "true",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "import com.fasterxml.jackson.databind.ObjectMapper\n\nObjectMapper mapper = new ObjectMapper()\n\nmapper.writeValueAsString($request.getParameterMap())",
+                            "evaluate": true,
+                            "to": [
+                                "postHelloWorldOutput",
+                                "data"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "false",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "import java.util.stream.Collectors;\n\n$request.getReader().lines().collect( Collectors.joining( System.lineSeparator() ) )",
+                            "evaluate": true,
+                            "to": [
+                                "postHelloWorldOutput",
+                                "data"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

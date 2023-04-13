@@ -1,0 +1,262 @@
+{
+    "comments": "# [Using Gloop Iterate Steps](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we are going to show different ways you could use an [iterate step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/).\n\nIn particular, we will cover how to iterate over an array and map values to a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/), which in this instance adds the array data to a SQL database.\n\n## Invoking the Service\n\nYou may execute this service by [running](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) it through the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/). Before execution, you will be prompted by Martini to provide values for the `name` input array.\n\n## Expected Output\n\n### Properties\n\nThis service will return an `output` model with the `lastNames` property. `output.lastNames` is an array. It should contain the last names of the names provided before the service was executed. If no inputs were provided, the service will use default values instead and display an output similar below:\n\n```\nDoe\nBaker\nSmith\n```\n\n### Logs\n\nBy running this service, you should expect to [see logs in the console like](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Hello John!\nINFO  [Martini] Hello Bob!\nINFO  [Martini] Hello Mike!\nINFO  [Martini] Doe set to lastNames array.\nINFO  [Martini] Baker set to lastNames array.\nINFO  [Martini] Smith set to lastNames array.\nINFO  [Martini] John Doe was inserted to the database.\nINFO  [Martini] Bob Baker was inserted to the database.\nINFO  [Martini] Mike Smith was inserted to the database.\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above of the actual service :\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nFrom the the logs above, it would appear that Martini was setting up the required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore. However, this line will still appear:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\n```\n\nThis is because it reinitializes `example_db` (HSQL database) so that it won't compromise other services that uses the data stored in it.",
+    "input": [
+        {
+            "name": "name",
+            "type": "model",
+            "array": true,
+            "reference": "sqlServices.model.Name"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "lastNames",
+                    "array": true
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "fork",
+            "comments": "This step will check if the name array property is null or empty",
+            "expression": "name == null || name.isEmpty()",
+            "children": [
+                {
+                    "label": "true",
+                    "comments": "Since the name property is empty, we\u2019re just going to do a quick setup of the data to be used in this example.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "name {\n    firstName \"Juan\"\n    lastName \"Dela Cruz\"\n}\nname {\n    firstName \"Billy\"\n    lastName \"Joe\"\n}\nname {\n\tfirstName \"Bambi\"\n    lastName \"Bambini\"\n}",
+                            "evaluate": true,
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "This step will iterate over the name array",
+            "input": {
+                "path": [
+                    "name"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will log the current first name in the iteration to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Hello ${name.firstName}!\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "This step will iterate over the name array and will populate another array `(output.lastName)` at the same time",
+            "input": {
+                "path": [
+                    "name"
+                ]
+            },
+            "output": {
+                "path": [
+                    "output",
+                    "lastNames"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Map the lastName to the new entry in the lastNames array.",
+                    "lines": [
+                        {
+                            "from": [
+                                "name",
+                                "lastName"
+                            ],
+                            "to": [
+                                "output",
+                                "lastNames"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${output.lastNames} set to lastNames array.\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "block",
+            "comments": "In this example usage, we do a batch insert by setting the values in a cursor array using the iterate step.",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will return an output cursor where we can insert multiple names at a time to a SQL database (batch insert)",
+                    "name": "sqlServices.sql.multiple.InsertMultipleNames",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "insertMultipleNamesOutputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "firstName"
+                                        },
+                                        {
+                                            "name": "lastName"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "name.size() + 1",
+                            "evaluate": true,
+                            "to": [
+                                "insertMultipleNamesInput",
+                                "$batchSize"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "insertMultipleNamesOutputCursor"
+                            ],
+                            "to": [
+                                "insertMultipleNamesOutputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "This step will iterate over the name array.",
+                    "input": {
+                        "path": [
+                            "name"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "insertMultipleNamesOutputCursor"
+                        ]
+                    },
+                    "append": true,
+                    "children": [
+                        {
+                            "comments": "Map the values to be inserted to the cursor.",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "name",
+                                        "firstName"
+                                    ],
+                                    "to": [
+                                        "insertMultipleNamesOutputCursor",
+                                        "firstName"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "name",
+                                        "lastName"
+                                    ],
+                                    "to": [
+                                        "insertMultipleNamesOutputCursor",
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "This step will log the names that were inserted to the database to the underlying log engine",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"${name.firstName} ${name.lastName} was inserted to the database.\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

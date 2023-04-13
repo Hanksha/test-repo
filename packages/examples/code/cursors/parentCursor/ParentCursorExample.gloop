@@ -1,0 +1,480 @@
+{
+    "comments": "# [Using Gloop Cursors](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cursors)\n\nThis Gloop service shows how [Gloop cursors](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) can be used to insert new rows on database tables. For this example, we will be inserting data entries in batches. Two database tables with a one-to-many relationship (constrained with a foreign key) would be on the receiving end.\n\nTo prevent any foreign key errors, the parent table will have to have its rows inserted first. This is possible in Gloop by mapping the parent table's cursor to the child's input parameter `$parentJDBCBatchCursor`. If the `$parentJDBCBatchCursor` property is mapped, then the child cursor will ensure that the parent cursor has executed any rows in the current batch before the child attempts to execute its batch.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nUpon successful execution, the `output` model will be populated with the following values (represented in JSON):\n\n```\n{\n    \"output\": {\n        \"insertedCountries\": 7,\n        \"insertedSubdivisions\": 97\n    }\n}\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "insertedCountries",
+                    "type": "integer"
+                },
+                {
+                    "name": "insertedSubdivisions",
+                    "type": "integer",
+                    "defaultValue": 0
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+                    "name": "util.CheckDependency",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "isExist",
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will delete the data entries in the database table subdivision.",
+                    "name": "cursors.parentCursor.sql.DeleteSubdivisions"
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will delete the data entries in the database table country.",
+                    "name": "cursors.parentCursor.sql.DeleteCountries"
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This service creates an output cursor, which will insert rows to the country table in batches",
+                    "name": "cursors.parentCursor.sql.BatchInsertCountry",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "batchInsertCountryOutputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "countryCode"
+                                        },
+                                        {
+                                            "name": "name"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "batchInsertCountryOutputCursor"
+                            ],
+                            "to": [
+                                "batchInsertCountryOutputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This service creates an output cursor, which will insert rows to the subdivision table in batches. Take note that the cursor `batchInsertCountryCursor`, is mapped to the input parameter `$parentJDCBCBatchCursor`. This is to make sure that when the child, which is the table subdivision, is about to execute the batch, it will execute the batch on its parent table first.",
+                    "name": "cursors.parentCursor.sql.BatchInsertSubdivision",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "batchInsertSubdivisionOutputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "subdivisionCode"
+                                        },
+                                        {
+                                            "name": "name"
+                                        },
+                                        {
+                                            "name": "level"
+                                        },
+                                        {
+                                            "name": "countryCode"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "batchInsertCountryOutputCursor"
+                            ],
+                            "to": [
+                                "batchInsertSubdivisionInput",
+                                "$parentJDBCBatchCursor"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "batchInsertSubdivisionOutputCursor"
+                            ],
+                            "to": [
+                                "batchInsertSubdivisionOutputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will open the resource `countries.xml`, returning an InputStream to read from the resource. This file is in the `resources` directory of the examples package.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "inputStream",
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "resourceStream",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/countries.xml",
+                            "to": [
+                                "resource"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will create an input cursor for the XML node `country` from the given InputStream which contains XML data.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "country",
+                                    "type": "model",
+                                    "reference": "cursors.parentCursor.model.Country"
+                                },
+                                {
+                                    "name": "gloopXmlCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "nodeName"
+                                        },
+                                        {
+                                            "name": "cursorRecord",
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.XmlMethods",
+                    "methodName": "getInputCursorFromInputStream",
+                    "parameters": [
+                        "java.io.InputStream",
+                        "java.lang.String",
+                        "java.util.List",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "inputStream"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "country",
+                            "to": [
+                                "_xmlNodeNames"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "gloopXmlCursor"
+                            ],
+                            "to": [
+                                "gloopXmlCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterates over the gloopXmlCursor which contains the node `country` and maps it to the batchInsertCountryOutputCursor.",
+                    "input": {
+                        "path": [
+                            "gloopXmlCursor"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "batchInsertCountryOutputCursor"
+                        ]
+                    },
+                    "closeOutputCursor": false,
+                    "children": [
+                        {
+                            "comments": "This step will map the values to be inserted to the cursor. Note the use of priorities on the map lines here to ensure everything is mapped in order",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "gloopXmlCursor",
+                                        "cursorRecord"
+                                    ],
+                                    "to": [
+                                        "country"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "$gloopCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "insertedCountries"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "country",
+                                        "code"
+                                    ],
+                                    "to": [
+                                        "batchInsertCountryOutputCursor",
+                                        "countryCode"
+                                    ],
+                                    "priority": 1
+                                },
+                                {
+                                    "from": [
+                                        "country",
+                                        "name"
+                                    ],
+                                    "to": [
+                                        "batchInsertCountryOutputCursor",
+                                        "name"
+                                    ],
+                                    "priority": 1
+                                }
+                            ]
+                        },
+                        {
+                            "type": "iterate",
+                            "comments": "Iterate over country.subdivisions.subdivision and maps it to batchInsertSubdivisionCursor. Since the batchInsertCountryOutputCursor is the parent of the batchInsertSubdivisionOutputCursor, the batch from it's parent will be executed first before the batch from the child.",
+                            "input": {
+                                "path": [
+                                    "country",
+                                    "subdivisions",
+                                    "subdivision"
+                                ]
+                            },
+                            "output": {
+                                "path": [
+                                    "batchInsertSubdivisionOutputCursor"
+                                ]
+                            },
+                            "closeOutputCursor": false,
+                            "children": [
+                                {
+                                    "comments": "This step will map the values to be inserted to the cursor and increment the `output.insertedSubdivisions` property",
+                                    "lines": [
+                                        {
+                                            "from": [
+                                                "country",
+                                                "subdivisions",
+                                                "subdivision",
+                                                "code"
+                                            ],
+                                            "to": [
+                                                "batchInsertSubdivisionOutputCursor",
+                                                "subdivisionCode"
+                                            ]
+                                        },
+                                        {
+                                            "from": [
+                                                "country",
+                                                "subdivisions",
+                                                "subdivision",
+                                                "name"
+                                            ],
+                                            "to": [
+                                                "batchInsertSubdivisionOutputCursor",
+                                                "name"
+                                            ]
+                                        },
+                                        {
+                                            "from": [
+                                                "country",
+                                                "subdivisions",
+                                                "subdivision",
+                                                "level"
+                                            ],
+                                            "to": [
+                                                "batchInsertSubdivisionOutputCursor",
+                                                "level"
+                                            ]
+                                        },
+                                        {
+                                            "from": [
+                                                "country",
+                                                "code"
+                                            ],
+                                            "to": [
+                                                "batchInsertSubdivisionOutputCursor",
+                                                "countryCode"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "output.insertedSubdivisions + 1",
+                                            "evaluate": true,
+                                            "to": [
+                                                "output",
+                                                "insertedSubdivisions"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will close `batchInsertSubdivisionOutputCursor`. Normally, Gloop will close this for you.",
+                    "className": "io.toro.martini.GloopMethods",
+                    "methodName": "cursorClose",
+                    "parameters": [
+                        "io.toro.gloop.object.cursor.GloopCursor"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "batchInsertSubdivisionOutputCursor"
+                            ],
+                            "to": [
+                                "cursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will close `batchInsertCountryOutputCursor`. Normally, Gloop will close this for you.",
+                    "className": "io.toro.martini.GloopMethods",
+                    "methodName": "cursorClose",
+                    "parameters": [
+                        "io.toro.gloop.object.cursor.GloopCursor"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "batchInsertCountryOutputCursor"
+                            ],
+                            "to": [
+                                "cursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "log a message saying how many countries and subdivisions were inserted",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Successfully inserted ${output.insertedCountries} countries and ${output.insertedSubdivisions} subdivisions\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log something that tells the user to check on the line/step comments of this service",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "The service has finished running. In order to fully understand how this works, please look at line comments of this service, or visit https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cursors/ for more information about this example.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Logs the exception.",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

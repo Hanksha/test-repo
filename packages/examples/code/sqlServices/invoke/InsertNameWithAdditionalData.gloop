@@ -1,0 +1,233 @@
+{
+    "comments": "# [Inserting Records with Foreign Keys](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis service invokes two other Gloop services to write to two database tables, `NAMES` and  `ADDITIONAL_DATA`.\n\nBefore adding a new row to the `ADDITIONAL_DATA` table, a record is first inserted in the `NAMES` table.\nThis is because `ADDITIONAL_DATA` references the `id` column of the `NAMES` table.\n\n## Invoking the Service\n\nThis service must be [invoked via browser](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http) or [HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-httprequest/generating/#invoking-a-gloop-service) in order to conveniently set the `image` property's value.\n\nWhen invoking via HTTP Client, you must send a `POST` request and populate the fields in the Body tab.\n\n## Expected Output\n\n### Payload\n\nIf the request is successful, you will be given a response similar to the one below:\n\n```\n{\n    \"nameID\": 6,\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"additionalData\": {\n        \"imageByteSize\": 32504,\n        \"informationByteSize\": 0\n    }\n}\n```\n\n### Logs\n\nA [console message](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following is expected when executing this service:\n\n```\nINFO  [Martini] Record inserted to NAMES table with id: 6\n1 rows affected.\n\n```",
+    "input": [
+        {
+            "name": "name",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "firstName"
+                },
+                {
+                    "name": "lastName"
+                }
+            ]
+        },
+        {
+            "name": "image",
+            "type": "object",
+            "comments": "BLOB",
+            "objectClassName": "org.springframework.web.multipart.MultipartFile"
+        },
+        {
+            "name": "information",
+            "comments": "CLOB"
+        }
+    ],
+    "output": [
+        {
+            "name": "nameWIthData",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "nameID",
+                    "type": "integer"
+                },
+                {
+                    "name": "firstName"
+                },
+                {
+                    "name": "lastName"
+                },
+                {
+                    "name": "additionalData",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "imageByteSize",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "informationByteSize",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "name": "util.CheckDependency"
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Writes the properties of the names model to the NAMES table in the database",
+                    "name": "sqlServices.invoke.single.InvokeSingleNameInsert",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "generatedKeys",
+                                    "type": "model",
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "name",
+                                "firstName"
+                            ],
+                            "to": [
+                                "firstName"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "name",
+                                "lastName"
+                            ],
+                            "to": [
+                                "lastName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "generatedKeys"
+                            ],
+                            "to": [
+                                "generatedKeys"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Writes the image variable as a BLOB and the information as a CLOB in the ADDITIONAL_DATA table in the database.\nPlease invoke this service using the browser to be able to pass a file into it.",
+                    "name": "sqlServices.invoke.single.InvokeSingleAdditionalDataInsert",
+                    "inputs": [
+                        {
+                            "from": [
+                                "image"
+                            ],
+                            "to": [
+                                "image"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "information"
+                            ],
+                            "to": [
+                                "information"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "generatedKeys.ID\n",
+                            "evaluate": true,
+                            "to": [
+                                "nameId"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comments": "In this step, we map the `name` child property to the `nameWithData` child property and set a value to the other property.",
+                    "lines": [
+                        {
+                            "from": [
+                                "name",
+                                "firstName"
+                            ],
+                            "to": [
+                                "nameWIthData",
+                                "firstName"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "name",
+                                "lastName"
+                            ],
+                            "to": [
+                                "nameWIthData",
+                                "lastName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "generatedKeys.ID",
+                            "evaluate": true,
+                            "to": [
+                                "nameWIthData",
+                                "nameID"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "image.getBytes().length",
+                            "evaluate": true,
+                            "to": [
+                                "nameWIthData",
+                                "additionalData",
+                                "imageByteSize"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "information.getBytes().length",
+                            "evaluate": true,
+                            "to": [
+                                "nameWIthData",
+                                "additionalData",
+                                "informationByteSize"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

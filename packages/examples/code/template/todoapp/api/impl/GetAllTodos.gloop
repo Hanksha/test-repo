@@ -1,0 +1,44 @@
+{
+    "type": "customSql",
+    "comments": "Gloop SQL service that retrieves all todos from the database.",
+    "input": [
+        {
+            "name": "getAllTodosInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$integrateConnectionPool"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "getAllTodosOutputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "ID",
+                    "type": "integer",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "NAME",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "COMPLETED",
+                    "type": "boolean",
+                    "required": true,
+                    "allowNull": false
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "todo",
+    "sqlType": "SELECT_MULTI",
+    "query": "SELECT * FROM todos"
+}

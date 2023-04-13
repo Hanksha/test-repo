@@ -1,0 +1,58 @@
+{
+    "name": "ListStatisticsEndpointOutput",
+    "type": "model",
+    "comments": "A model representing the output of the `ListStatisticsEndpoint.gloop` service.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "stats",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "termfreq__stateName___STARTED__",
+                    "alias": "termfreq('stateName','STARTED')",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name"
+                        },
+                        {
+                            "name": "min",
+                            "type": "bigDecimal"
+                        },
+                        {
+                            "name": "max",
+                            "type": "bigDecimal"
+                        },
+                        {
+                            "name": "sum",
+                            "type": "bigDecimal"
+                        },
+                        {
+                            "name": "count",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "missing",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "mean",
+                            "type": "bigDecimal"
+                        },
+                        {
+                            "name": "sumOfSquares",
+                            "type": "bigDecimal"
+                        },
+                        {
+                            "name": "stddev",
+                            "type": "bigDecimal"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

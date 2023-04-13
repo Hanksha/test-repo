@@ -1,0 +1,133 @@
+{
+    "comments": "# [Converting an Object to an Array](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation/)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we will be mapping an object to an array. When mapping a single object to an array, the array will be cleared and will be made to contain only the object mapped.\n\n## Invoking the Service\n\nUpon [running the Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked by Martini to provide a value for the `firstName` and `lastName` properties. For your convenience, they are already set with the default value of `John` and `Doe` respectively.\n\n## Expected Output\n\nThe output of this service depends on the value provided for the input properties. If they were left with their default values, then the expected [return value of the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), if in JSON format, is:\n\n```\n{\n    \"output\": [\n        {\n            \"firstName\": \"John\",\n            \"lastName\": \"Doe\"\n        }\n    ]\n}\n```\n\nAside from this, the following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO [Martini] Output model before mapping: \n {\n    \"output\": [\n        {\n            \"firstName\": \"Martini\",\n            \"lastName\": \"Desktop\"\n        },\n        {\n            \"firstName\": \"Martini\",\n            \"lastName\": \"Online\"\n        }\n    ]\n}\nINFO [Martini] Output model after mapping: \n {\n    \"output\": [\n        {\n            \"firstName\": \"John\",\n            \"lastName\": \"Doe\"\n        }\n    ]\n}\n```",
+    "input": [
+        {
+            "name": "name",
+            "type": "model",
+            "comments": "The name to be inserted to the Gloop Model array.",
+            "gloopProperties": [
+                {
+                    "name": "firstName",
+                    "defaultValue": "John"
+                },
+                {
+                    "name": "lastName",
+                    "defaultValue": "Doe"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "array": true,
+            "reference": "sqlServices.model.Name"
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "Just in case you didn\u2019t set any value to the Name Gloop Model, we\u2019ll set it for you.",
+            "expression": "!name.firstName && !name.lastName",
+            "children": [
+                {
+                    "label": "true",
+                    "comments": "if the names are empty, we'll use Gloop's model DSL to populate it",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "name {\n\tfirstName 'Bambi'\n\tlastName  'Bambini'\n}",
+                            "evaluate": true,
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "here we will populate the output array with 2 entries",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "[\n\tname {\n\t\tfirstName 'Martini'\n\t\tlastName  'Desktop'\n\t},\n\tname {\n\t\tfirstName 'Martini'\n\t\tlastName  'Online'\n\t}\n]",
+                    "evaluate": true,
+                    "to": [
+                        "output"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log what the object looks like prior to mapping to an array.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Output model before mapping: \\n ${output.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In this step, we\u2019ll map the non-array Gloop model to an array one with the same elements.\n\nYou can see in the output that the non-array Gloop model was set as the array\u2019s value at index 0.",
+            "lines": [
+                {
+                    "from": [
+                        "name"
+                    ],
+                    "to": [
+                        "output"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log what the new array looks like.\n\nAfter mapping the non-array Gloop model, as long as properties match, it will automatically add itself into the array. Properties that didn't get assigned will not be displayed during JSON or XML serialization.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Output model after mapping: \\n ${output.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

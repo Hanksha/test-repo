@@ -1,0 +1,130 @@
+{
+    "comments": "# Checking Redis Connection\n\nThis service shows on how to check Redis connection in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection`, the service will try to check the given `connection` using the `RedisConnectionMethods.isOpen` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` input properties. A default value is already set for `connection`.\n\n\nThe `RedisConnectionMethods.isOpen` one-liner has a boolean `output` property which will return either `true` or `false`. The `output` directly mapped to the declare `result` boolean.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- if `result`'s value is `true`, then `output.message` will be set to `\"Redis is Open\"`.\n- if `result`'s value is `false`, then `output.message` will be set to `\"Redis is Closed\"`. \n\n### Logs\n\nUpon setting  [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Redis is Open\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "In this step it will checks whether the connection to Redis is open or not.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "result",
+                            "type": "boolean",
+                            "comments": "true if the connection is open (connected and not closed)."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisConnectionMethods",
+            "methodName": "isOpen",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "result"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This step will check result whether it's true or false",
+            "expression": "result",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "true",
+                    "comments": "This step will log the message and map it to message under output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Redis is Open",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "false",
+                    "comments": "This step will log the message and map it to message under output model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Redis is Closed",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

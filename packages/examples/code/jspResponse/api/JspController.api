@@ -1,0 +1,79 @@
+{
+    "info": {
+        "title": "Martini Example - Gloop View ",
+        "description": "This is a very simple API that exposes a controller for serving web content. ",
+        "contact": {
+            "url": "http://www.torocloud.com"
+        },
+        "license": {
+            "name": "W3C"
+        },
+        "version": "1.0-SNAPSHOT"
+    },
+    "basePath": "/jspResponse",
+    "paths": {
+        "/page": {
+            "get": {
+                "tags": [
+                    "JSP"
+                ],
+                "summary": "Send JSP Page",
+                "description": "# [Using Gloop to Render JSP](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/rendering-jsp/)\n\nCalling this operation in browser renders the JSP web page specified by `jspResponse.SendJspPage.gloop`, which is the this operation's configured service.\n\n## Invoking the Endpoint\n\nUsing your preferred web browser, go to `<http|https>://<toro-martini-host>/<api.rest.base-path>/jspResponse/page`.\n\n## Expected Output\n\nUpon visiting this endpoint in browser, you should see a web page with a form where you can enter a first name and last name. Submitting the form re-renders the form fields with the submitted values.",
+                "produces": [
+                    "text/html"
+                ],
+                "externalDocumentation": {
+                    "url": "https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/editor/",
+                    "description": "Click the link below to learn more about Gloop REST API Editor"
+                },
+                "responses": {
+                    "-1": {
+                        "body": "$gloopView",
+                        "description": "Returns a webpage"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "jspResponse.SendJspPage",
+                "responseCodeField": "responseCode"
+            },
+            "post": {
+                "tags": [
+                    "JSP"
+                ],
+                "summary": "Send JSP Page",
+                "description": "# [Using Gloop to Render JSP](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/)\n\nThis endpoint receives `POST` requests that contain the new data to be displayed on the web page at `<http|https>://<toro-martini-host>/<api.rest.base-path>/jspResponse/page`.\n\n## Invoking the Endpoint\n\nUsing your preferred web browser, go to `<http|https>://<toro-martini-host>/<api.rest.base-path>/jspResponse/page` and then submit the form in order to send a `POST` request.\n\n## Expected Output\n\nUpon submitting the form in your browser, the web page should _reload_, displaying the most recent data provided.",
+                "produces": [
+                    "application/json"
+                ],
+                "externalDocumentation": {
+                    "url": "https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/editor/",
+                    "description": "Click the link below to learn more about Gloop REST API Editor"
+                },
+                "bodyParameter": {
+                    "name": "parameters",
+                    "description": "parameters"
+                },
+                "responses": {
+                    "-1": {
+                        "body": "$gloopView",
+                        "description": "Returns a webpage"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "jspResponse.SendJspPage",
+                "responseCodeField": "responseCode"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "JSP",
+            "externalDocumentation": {
+                "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/rendering-jsp/"
+            }
+        }
+    ],
+    "externalDocumentation": {
+        "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/rendering-jsp/"
+    }
+}

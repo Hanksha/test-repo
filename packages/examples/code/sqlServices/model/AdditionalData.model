@@ -1,0 +1,28 @@
+{
+    "name": "AdditionalData",
+    "type": "model",
+    "comments": "Model representing entries under the `ADDITIONAL_DATA` table of the `example_db` database.",
+    "gloopProperties": [
+        {
+            "name": "id",
+            "type": "integer"
+        },
+        {
+            "name": "image",
+            "type": "object",
+            "comments": "BLOB",
+            "objectClassName": "java.sql.Blob"
+        },
+        {
+            "name": "information",
+            "type": "object",
+            "comments": "CLOB",
+            "objectClassName": "java.sql.Clob"
+        },
+        {
+            "name": "nameID",
+            "type": "integer",
+            "comments": "The reference id from NAMES table"
+        }
+    ]
+}

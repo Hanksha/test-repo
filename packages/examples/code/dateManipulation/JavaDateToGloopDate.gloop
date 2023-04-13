@@ -1,0 +1,126 @@
+{
+    "comments": "# [Mapping a Java `Date` Object to a Gloop Date Property](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/date-manipulation)\n\nThis service shows how easy it is to set the value of a [Gloop date property](https://docs.torocloud.com/martini/latest/developing/gloop/model/object-type/#available-object-types) from a [Java `Date` object](https://docs.oracle.com/javase/8/docs/api/java/util/Date.html).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nLogs like below would be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) upon running the service:\n\n```\nINFO  [Martini] This service will set a Java Date of the current date: Thu May 09 19:31:09 PHT 2019. This date will be mapped to a Gloop Date on line 3 of this service.\nINFO  [Martini] Let's try adding 30 days to current date. Our Gloop Date is now Sat Jun 08 19:31:09 PHT 2019\n...\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "We’ll declare our Java Calendar object here that will be converted later.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "date",
+                            "type": "date"
+                        },
+                        {
+                            "name": "javaDate",
+                            "type": "object",
+                            "objectClassName": "Date"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "new GregorianCalendar()",
+                    "evaluate": true,
+                    "to": [
+                        "javaDate"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the value of the Java Date object in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"This service will set a Java Date of the current date: ${javaDate}. This date will be mapped to a Gloop Date on line 3 of this service.\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "To convert the Java Calendar object, we simply have to create a map line from the object to the Gloop Date object.",
+            "lines": [
+                {
+                    "from": [
+                        "javaDate"
+                    ],
+                    "to": [
+                        "date"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Add 30 days to the date by using Groovy's TimeCategory.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "use( groovy.time.TimeCategory ) { date += 30.days }",
+                    "evaluate": true,
+                    "to": [
+                        "date"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the final value of the date object in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Let's try adding 30 days to current date. Our Gloop Date is now ${date}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

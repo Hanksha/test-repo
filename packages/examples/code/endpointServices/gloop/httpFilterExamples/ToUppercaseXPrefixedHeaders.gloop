@@ -1,0 +1,165 @@
+{
+    "comments": "This service takes in a request and response, and then returns an altered copy of the response.\n\nThe new response shall contain the 'X'-prefixed headers provided by the request, albeit with values transformed to UPPERCASE.\n\nWhen invoked, you should see log messages for your 'X'-prefixed headers like below:\n\n```\nINFO  [Martini] Transforming value [lowercase] of header [X-FOO] to uppercase\nINFO  [Martini] Transforming value [CamelCase] of header [X-BAR] to uppercase\nINFO  [Martini] Transforming value [UPPERCASE] of header [X-BAZ] to uppercase\n```\n\nThis service can be used as the configured service of an [HTTP filter endpoint](http://docs.torocloud.com/martini/latest/developing/endpoints/types/http-filter).\n",
+    "input": [
+        {
+            "name": "$__request",
+            "type": "object",
+            "required": true,
+            "allowNull": false,
+            "comments": "The matched request",
+            "objectClassName": "javax.servlet.http.HttpServletRequest"
+        },
+        {
+            "name": "$__response",
+            "type": "object",
+            "required": true,
+            "allowNull": false,
+            "comments": "The response to the matched request",
+            "objectClassName": "javax.servlet.http.HttpServletResponse"
+        }
+    ],
+    "output": [
+        {
+            "name": "$newResponse",
+            "type": "object",
+            "allowNull": false,
+            "comments": "Replacement of the original response object",
+            "objectClassName": "javax.servlet.http.HttpServletResponse"
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Replace the response object",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "import javax.servlet.http.HttpServletResponseWrapper\nnew HttpServletResponseWrapper( $__response )",
+                    "evaluate": true,
+                    "to": [
+                        "$newResponse"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Get request headers",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "headers",
+                            "array": true
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "Collections.list( $__request.getHeaderNames() )",
+                    "evaluate": true,
+                    "to": [
+                        "headers"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterate over request headers",
+            "input": {
+                "path": [
+                    "headers"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "trace",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Checking header [$headers]\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "headers.toUpperCase().startsWith( \"X-\" )",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "comments": "Get the values of this header",
+                                    "declare": [
+                                        {
+                                            "variables": [
+                                                {
+                                                    "name": "values",
+                                                    "array": true
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "Collections.list( $__request.getHeaders( headers ) )",
+                                            "evaluate": true,
+                                            "to": [
+                                                "values"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "iterate",
+                                    "input": {
+                                        "path": [
+                                            "values"
+                                        ]
+                                    },
+                                    "children": [
+                                        {
+                                            "type": "invokeCode",
+                                            "className": "io.toro.martini.LoggerMethods",
+                                            "methodName": "info",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "type": "set",
+                                                    "expression": "\"Transforming value [$values] of header [$headers] to uppercase\"",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "message"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "gloovy",
+                                            "comments": "Set header value to upper case",
+                                            "gloovyScript": "$newResponse.addHeader( headers, values.toUpperCase() )"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

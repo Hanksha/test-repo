@@ -1,0 +1,86 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which inserts a new row in the `uuid_example` column family, with values specified through the provided parameters.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                },
+                {
+                    "name": "uuid",
+                    "type": "object",
+                    "objectClassName": "java.util.UUID"
+                },
+                {
+                    "name": "uuid2",
+                    "type": "object",
+                    "array": true,
+                    "objectClassName": "java.util.UUID"
+                },
+                {
+                    "name": "uuid3",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "value",
+                            "type": "object",
+                            "objectClassName": "java.util.UUID"
+                        }
+                    ]
+                },
+                {
+                    "name": "uuid4",
+                    "type": "object",
+                    "array": true,
+                    "objectClassName": "java.util.UUID"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO uuid_example (\n    id,\n    uuid,\n    uuid2,\n    uuid3,\n    uuid4\n)\nVALUES (\n    :id,\n    :uuid,\n    :uuid2,\n    :uuid3,\n    :uuid4\n)",
+    "keyspace": "cassandra_examples"
+}

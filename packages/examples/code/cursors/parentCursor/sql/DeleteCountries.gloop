@@ -1,0 +1,24 @@
+{
+    "type": "customSql",
+    "comments": "This [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) deletes all entries in the `COUNTRY` table",
+    "input": [
+        {
+            "name": "deleteCountriesInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "DELETE",
+    "query": "DELETE\nFROM\n\tCOUNTRY"
+}

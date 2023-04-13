@@ -1,0 +1,131 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Insert a New Record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) inserts a new row to the `NAME` table, using values provided through input properties. Upon successful execution, it returns and logs the auto-generated ID of the record.\n\nIt invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nThree [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required: `id`, `firstName`, and `lastName`.\n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `generatedKeys`.\n\nUpon successful execution, this service's return value if represented in JSON would look something like below:\n\n```\n{\n    \"generatedKeys\": {\n        \"ID\": 5\n    }\n}\n```\n\n[Service outputs can be checked via the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). They can be presented in JSON, XML, or through a value tree.\n\n### Logs\n\nA [console message](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following is expected when executing this service:\n\n```\nINFO [Martini] Record inserted to NAMES table with id: 5\"\n```\n\nIf this is the first service to be invoked in a newly installed Martini, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer"
+        },
+        {
+            "name": "firstName"
+        },
+        {
+            "name": "lastName"
+        }
+    ],
+    "output": [
+        {
+            "name": "generatedKeys",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeGloop",
+            "name": "sqlServices.sql.single.InsertSingleName",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "updateCount",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "firstName"
+                    ],
+                    "to": [
+                        "insertSingleNameInput",
+                        "firstName"
+                    ]
+                },
+                {
+                    "from": [
+                        "lastName"
+                    ],
+                    "to": [
+                        "insertSingleNameInput",
+                        "lastName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "true",
+                    "to": [
+                        "insertSingleNameInput",
+                        "$getGeneratedKeys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "updateCount"
+                    ],
+                    "to": [
+                        "updateCount"
+                    ]
+                },
+                {
+                    "from": [
+                        "generatedKeys"
+                    ],
+                    "to": [
+                        "generatedKeys"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "expression": "updateCount",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "1",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Record inserted to NAMES table with id: ${generatedKeys.ID}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "0",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Failed to insert record. Please try again.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

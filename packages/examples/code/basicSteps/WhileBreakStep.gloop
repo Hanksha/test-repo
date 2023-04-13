@@ -1,0 +1,368 @@
+{
+    "comments": "# [Using the While and Break Steps](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps/)\n\nThis example shows the different ways you could use the [while step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/) and the [break step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/break/).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nWhile running the service, you should expect to see the following logs in the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Starting the first While Step demo: Going to loop five times\nINFO  [Martini] 1\nINFO  [Martini] 2\nINFO  [Martini] 3\nINFO  [Martini] 4\nINFO  [Martini] 5\nINFO  [Martini] Starting While...Break demo. It is going to keep on looping while $gloopIndex is less than 5\nINFO  [Martini] Gloop Index: 0\nINFO  [Martini] Gloop Index: 1\nINFO  [Martini] Gloop Index: 2\nINFO  [Martini] Gloop Index: 3\nINFO  [Martini] Gloop Index: 4\nINFO  [Martini] Gloop index is at 5, we'll break the loop with break step. See line 11 of this service to learn how Break Step was used.\nINFO  [Martini] Starting the next While...Break demo. Using Iterate step. See comments on line 15 of this service to learn how it works\nINFO  [Martini] Found 1 instead of 3.\nINFO  [Martini] Found 2 instead of 3.\nINFO  [Martini] Found the number 3! Now let's stop.\nINFO  [Martini] Entering an infinite loop... Let's iterate 10 times, then break from the loop. The next steps will demonstrate using Break Step to break from a labelled parent. Follow the line comments starting from line 21. If this service executed properly, you shouldn't be able to see the output of line 30.\nINFO  [Martini] Current Count: 1\nINFO  [Martini] Current Count: 2\nINFO  [Martini] Current Count: 3\nINFO  [Martini] Current Count: 4\nINFO  [Martini] Current Count: 5\nINFO  [Martini] Current Count: 6\nINFO  [Martini] Current Count: 7\nINFO  [Martini] Current Count: 8\nINFO  [Martini] Current Count: 9\nINFO  [Martini] Current Count: 10\nINFO  [Martini] Looped 10 times, breaking from infinite loop... Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Starting the first While Step demo: Going to loop five times",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "comments": "This while loop will keep on looping while $gloopIndex is less than 5",
+            "expression": "5",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will log the $gloopCount to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "$gloopCount",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In preparation for the next example, we'll declare an integer array here and name it 'count'.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "count",
+                            "type": "integer",
+                            "array": true
+                        },
+                        {
+                            "name": "keepLooping",
+                            "type": "boolean",
+                            "defaultValue": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log \"Starting While...Break demo. It is going to keep on looping while $gloopIndex is less than 5\"",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Starting While...Break demo. It is going to keep on looping while $gloopIndex is less than 5",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "comments": "We evaluate true here so the loop won’t end. We’ll show you how to break from it",
+            "expression": "true",
+            "evaluate": true,
+            "children": [
+                {
+                    "type": "fork",
+                    "comments": "Check if $gloopIndex is less than 5",
+                    "expression": "$gloopIndex < 5",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "comments": "$gloopIndex is less than 5",
+                            "children": [
+                                {
+                                    "type": "gloovy",
+                                    "comments": "add $gloopCount to the integer array",
+                                    "gloovyScript": "count << $gloopCount"
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"Gloop Index: ${$gloopIndex}\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "block",
+                            "label": "false",
+                            "comments": "if $gloopIndex is not less than 5, we'll log an info message then break the while loop",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "log a message saying we're about to break from the while step",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"Gloop index is at ${$gloopIndex}, we'll break the loop with break step. See line 11 of this service to learn how Break Step was used.\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "break",
+                                    "comments": "We break from the While loop by using Break step and setting its expression property to $gloopWhile.",
+                                    "expression": "$gloopWhile"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a message saying we're about to start the next iterate step",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Starting the next While...Break demo. Using Iterate step. See comments on line 15 of this service to learn how it works",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "To further demonstrate the use of Break step, we'll show you how it can be used in an Iterate step. In this example, we iterate through the ‘count’ integer array and try to find the number 3.",
+            "input": {
+                "path": [
+                    "count"
+                ]
+            },
+            "children": [
+                {
+                    "type": "fork",
+                    "comments": "Check if count is equal to 3",
+                    "expression": "count == 3",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "comments": "If equal, log a message saying we found it then break the iteration by using the Break step and setting the expression to $gloopIterate.",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Send an info message to the underlying log engine",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "Found the number 3! Now let's stop.",
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "break",
+                                    "expression": "$gloopIterate"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "label": "false",
+                            "comments": "Send an info message to the underlying log engine",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Found ${count} instead of 3.\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log that we're entering an infinite loop, iterate 10 times, then break from the While Step with a label",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Entering an infinite loop... Let's iterate 10 times, then break from the loop. The next steps will demonstrate using Break Step to break from a labelled parent. Follow the line comments starting from line 21. If this service executed properly, you shouldn't be able to see the output of line 30.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "label": "infinite loop",
+            "comments": "You can also use Break Step to break from a parent with a 'label'",
+            "expression": "true",
+            "evaluate": true,
+            "children": [
+                {
+                    "type": "while",
+                    "comments": "Let's make another infinite loop here to demonstrate a Break Step breaking from a grandparent with a 'label', terminating its parent altogether",
+                    "expression": "true",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Current Count: ${$gloopCount}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "fork",
+                            "expression": "$gloopCount == 10",
+                            "children": [
+                                {
+                                    "type": "block",
+                                    "label": "true",
+                                    "children": [
+                                        {
+                                            "type": "invokeCode",
+                                            "comments": "log that we're about to break from the While step with the 'infinite loop\" label",
+                                            "className": "io.toro.martini.LoggerMethods",
+                                            "methodName": "info",
+                                            "parameters": [
+                                                "java.lang.String"
+                                            ],
+                                            "inputs": [
+                                                {
+                                                    "type": "set",
+                                                    "expression": "Looped 10 times, breaking from infinite loop... If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                                                    "to": [
+                                                        "message"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "break",
+                                            "comments": "This break step here means it is going to break from the while step labelled 'infinite loop'",
+                                            "expression": "infinite loop"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "break",
+            "comments": "This break step will exit the Gloop service. Look closely, as the last info log will not be executed.",
+            "expression": "$gloopParent"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Send an info message to the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "We shouldn't reach this statement.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

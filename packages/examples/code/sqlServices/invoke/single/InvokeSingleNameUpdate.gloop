@@ -1,0 +1,144 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Update a Record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) updates a record from the `NAME` table of the `example_db` database. It uses the data provided through input properties for the update.\n\nIt invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nThree [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required: `id`, `firstName`, and `lastName`. To ensure a successful update, use an ID from `1` to `4`. Records with these IDs are created upon package startup.\n\n## Expected Output\n\n### Properties\n\nThis service will return an `output` model with a `message` properly.  `output.message`'s value, after running the service, would look roughly similar to:\n\n```\nRecord with id <id> successfully updated\n```\n\n... where `<id>` will be substituted with the ID of the record updated.\n\n[Service outputs can be seen in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). They can be presented in JSON, XML, or through a value tree.\n\n### Logs\n\nA [console message](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following is expected when executing this service:\n\n```\nINFO  [Martini] Record with id 1 successfully updated\n```\n\nIf the update failed, however, the message will be:\n\n```\nERROR [Martini] Update failed. Make sure the record exists in the database.\n```\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "defaultValue": 5
+        },
+        {
+            "name": "firstName",
+            "defaultValue": "John"
+        },
+        {
+            "name": "lastName",
+            "defaultValue": "Doe"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeGloop",
+            "name": "sqlServices.sql.single.UpdateSingleName",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "updateCount",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "updateSingleNameInput",
+                        "id"
+                    ]
+                },
+                {
+                    "from": [
+                        "firstName"
+                    ],
+                    "to": [
+                        "updateSingleNameInput",
+                        "firstName"
+                    ]
+                },
+                {
+                    "from": [
+                        "lastName"
+                    ],
+                    "to": [
+                        "updateSingleNameInput",
+                        "lastName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "updateCount"
+                    ],
+                    "to": [
+                        "updateCount"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "expression": "updateCount",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "0",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Update failed. Make sure the record exists in the database.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "1",
+                    "comments": "Println a string to System.out",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "println",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Record with id ${id} successfully updated\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

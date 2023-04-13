@@ -1,0 +1,649 @@
+{
+    "comments": "A [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) that generates a random weather forecast.\n\nThis service is [exposed as a RESTful web service by `httpClient.mockApis.HttpClientMockEndpoints.api`](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Two [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required: `city` and `country`.\n\t\n### Expected Output\n\nThis service will return two properties: `responseCode` and `getWeatherForecastOutput`.\n\nYou can [check service outputs via the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). The Console view allows you to display the service's outputs in a model tree, or in JSON or XML.\n\nThis service will return a value similar to below (represented in JSON):\n\n```\n{\n    \"getWeatherForecastOutput\": {\n        \"city\": \"Manila\",\n        \"country\": \"PH\",\n        \"daily\": {\n            \"summary\": \"Shower rain throughout the week, with temperatures peaking at 43.5\\u00B0C on Tuesday.\",\n            \"data\": [\n                {\n                    \"summary\": \"Shower rain throughout the day.\",\n                    \"temperatureHigh\": 36.6,\n                    \"temperatureLow\": 32.8\n                },\n                {\n                    \"summary\": \"Shower rain in the afternoon, continuing until evening.\",\n                    \"temperatureHigh\": 43.5,\n                    \"temperatureLow\": 37.4\n                },\n                {\n                    \"summary\": \"Few clouds in the afternoon, continuing until evening.\",\n                    \"temperatureHigh\": 43.3,\n                    \"temperatureLow\": 41.6\n                },\n                {\n                    \"summary\": \"Rain in the morning.\",\n                    \"temperatureHigh\": 42.0,\n                    \"temperatureLow\": 33.5\n                },\n                {\n                    \"summary\": \"Scattered clouds throughout the day.\",\n                    \"temperatureHigh\": 41.8,\n                    \"temperatureLow\": 29.7\n                },\n                {\n                    \"summary\": \"Thunderstorm throughout the day.\",\n                    \"temperatureHigh\": 42.6,\n                    \"temperatureLow\": 42.6\n                },\n                {\n                    \"summary\": \"Clear sky in the morning.\",\n                    \"temperatureHigh\": 35.4,\n                    \"temperatureLow\": 32.2\n                }\n            ]\n        }\n    },\n    \"responseCode\": 200\n}\n```",
+    "input": [
+        {
+            "name": "city",
+            "required": true,
+            "allowNull": false,
+            "comments": "City to get the weather from",
+            "minLength": 1
+        },
+        {
+            "name": "country",
+            "required": true,
+            "allowNull": false,
+            "comments": "Country of the city to get the weather from",
+            "minLength": 2,
+            "maxLength": 2
+        }
+    ],
+    "output": [
+        {
+            "name": "getWeatherForecastOutput",
+            "type": "model",
+            "reference": "httpClient.model.GetWeatherForecastOutput"
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we capitalize `city` and `country` under `getWeatherForecastOutput` model. Also, we declare property here that will be used by the service.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "weather",
+                            "array": true
+                        },
+                        {
+                            "name": "weatherSummary"
+                        },
+                        {
+                            "name": "maxTempDay"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "country.toUpperCase()",
+                    "evaluate": true,
+                    "to": [
+                        "getWeatherForecastOutput",
+                        "country"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "city.capitalize()",
+                    "evaluate": true,
+                    "to": [
+                        "getWeatherForecastOutput",
+                        "city"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "comments": "This while loop will keep on looping until $gloopIndex is less than 7",
+            "expression": "7",
+            "children": [
+                {
+                    "type": "random",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Clear sky",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Few clouds",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Scattered clouds",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Broken clouds",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Shower rain",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Rain",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Add a non-null object to a list, if the value is null, it will not be added",
+                            "className": "io.toro.martini.ArrayMethods",
+                            "methodName": "addToList",
+                            "parameters": [
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "weather"
+                                    ],
+                                    "to": [
+                                        "list"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "Thunderstorm",
+                                    "to": [
+                                        "element"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "comments": "This while loop will keep on looping until $gloopIndex is less than 7",
+            "expression": "7",
+            "children": [
+                {
+                    "comments": "In this step, we declare the property `weatherTime`.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "weatherTime"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "In this step, we iterate over `weather` and will populate another array `(getWeatherForecastOutput.daily.data)` at the same time.",
+                    "input": {
+                        "path": [
+                            "weather"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "getWeatherForecastOutput",
+                            "daily",
+                            "data"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeGloop",
+                            "comments": "This Gloop service will generate a random temperature and map it to a new property.",
+                            "name": "httpClient.mockApis.weather.GenerateRandomTemperature",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "temperature",
+                                            "type": "double"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "unload": [
+                                [
+                                    "temperature"
+                                ]
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "temperature"
+                                    ],
+                                    "to": [
+                                        "temperature"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "temperature.format('0.0')",
+                                    "evaluate": true,
+                                    "to": [
+                                        "getWeatherForecastOutput",
+                                        "daily",
+                                        "data",
+                                        "temperatureLow"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "while",
+                            "comments": "This while loop will keep on looping until `getWeatherForecastOutput.daily.data.temperatureLow` is less than `getWeatherForecastOutput.daily.data.temperatureHigh`",
+                            "expression": "getWeatherForecastOutput.daily.data.temperatureLow > getWeatherForecastOutput.daily.data.temperatureHigh",
+                            "evaluate": true,
+                            "children": [
+                                {
+                                    "type": "invokeGloop",
+                                    "comments": "In this step, we generate a random temperature and map it to a new property.",
+                                    "name": "httpClient.mockApis.weather.GenerateRandomTemperature",
+                                    "declare": [
+                                        {
+                                            "variables": [
+                                                {
+                                                    "name": "temperature",
+                                                    "type": "double"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "unload": [
+                                        [
+                                            "temperature"
+                                        ]
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "from": [
+                                                "temperature"
+                                            ],
+                                            "to": [
+                                                "temperature"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "temperature.format('0.0')",
+                                            "evaluate": true,
+                                            "to": [
+                                                "getWeatherForecastOutput",
+                                                "daily",
+                                                "data",
+                                                "temperatureHigh"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "random",
+                            "children": [
+                                {
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "in the afternoon.",
+                                            "to": [
+                                                "weatherTime"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "in the afternoon, continuing until evening.",
+                                            "to": [
+                                                "weatherTime"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "in the morning.",
+                                            "to": [
+                                                "weatherTime"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "throughout the day.",
+                                            "to": [
+                                                "weatherTime"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "comments": "In this step, we set the `getWeatherForecastOutput` daily data summary to \"${weather} ${weatherTime}\"",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"${weather} ${weatherTime}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "getWeatherForecastOutput",
+                                        "daily",
+                                        "data",
+                                        "summary"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "gloovy",
+            "gloovyScript": "Map<String, Integer> wordCount = [:]\nfor( String s : weather ) {\n\tif( wordCount.containsKey(s) ) {\n\t\twordCount.replace( s, wordCount.get(s) + 1 )\n\t} else {\n\t\twordCount.put( s, 1 )\n\t}\n}\n\n\nwordCount = wordCount.sort { a, b ->\n\tb.value <=> a.value ?:\n\ta.key <=> b.key\n}\nprintln wordCount\n\nweatherSummary = wordCount.keySet().toArray()[0]"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we sort Gloop Models by a certain property.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "sortedWeatherData",
+                            "type": "object",
+                            "comments": "output Stream"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "sorted",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection",
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "getWeatherForecastOutput",
+                        "daily",
+                        "data"
+                    ],
+                    "to": [
+                        "collection"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "temperatureHigh",
+                    "to": [
+                        "sortBy"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "sortedWeatherData"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we collect the stream elements into a new List.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "output",
+                            "type": "object",
+                            "array": true,
+                            "comments": "array of items"
+                        }
+                    ]
+                }
+            ],
+            "unload": [
+                [
+                    "sortedWeatherData"
+                ]
+            ],
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "toList",
+            "parameters": [
+                "java.util.stream.Stream"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "sortedWeatherData"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In this step, we set a value to the `maxTemperature` property.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "maxTemperature",
+                            "type": "bigDecimal"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "output.get(output.size() - 1).temperatureHigh",
+                    "evaluate": true,
+                    "to": [
+                        "maxTemperature"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "In this step, we will iterate over the `getWeatherForecastOutput.daily.data` array.",
+            "input": {
+                "path": [
+                    "getWeatherForecastOutput",
+                    "daily",
+                    "data"
+                ]
+            },
+            "children": [
+                {
+                    "type": "fork",
+                    "comments": "In this step, we check if `getWeatherForecastOutput.daily.data.temperatureHigh` is equals to `maxTemperature`",
+                    "expression": "getWeatherForecastOutput.daily.data.temperatureHigh == maxTemperature",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "comments": "In this step, we set the value for `maxTempDay`.",
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "import java.time.format.TextStyle\nimport java.util.Locale\nimport java.time.DayOfWeek\n\nDayOfWeek.of($gloopCount).getDisplayName(TextStyle.FULL, Locale.ENGLISH)",
+                                            "evaluate": true,
+                                            "to": [
+                                                "maxTempDay"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "break",
+                                    "comments": "In this step, we break from the iteration.",
+                                    "expression": "$gloopIterate"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In this step, we set a value to the `getWeatherForecastOutput.daily.summary` property.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "\"${weatherSummary} throughout the week, with temperatures peaking at ${maxTemperature}\u00b0C on ${maxTempDay}.\"",
+                    "evaluate": true,
+                    "to": [
+                        "getWeatherForecastOutput",
+                        "daily",
+                        "summary"
+                    ]
+                }
+            ]
+        }
+    ]
+}

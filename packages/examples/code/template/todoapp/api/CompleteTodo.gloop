@@ -1,0 +1,61 @@
+{
+    "comments": "This Gloop service is used to set a todo  as completed or not in the database by invoking the Gloop SQL service `template.todoapp.api.impl.CompleteTodo` while making sure that the todo database is setup.\n\nThis service is also exposed at `/todo/completed/{id}?completed=true` so it can be requested by the Gloop template when modifying a todo. The output of the service also has a `$gloopView` property whose default value is `redirect:/app/todo`. That property can be used to redirect the user to the given path after it has been requested.",
+    "input": [
+        {
+            "name": "id",
+            "type": "long",
+            "comments": "the id of the todo"
+        },
+        {
+            "name": "completed",
+            "type": "boolean",
+            "defaultValue": true,
+            "comments": "whether or not the todo is completed"
+        }
+    ],
+    "output": [
+        {
+            "name": "$gloopView",
+            "defaultValue": "redirect:/app/todo",
+            "comments": "use redirect:/app/todo as default value to redirect the user to the todo page"
+        }
+    ],
+    "paths": [
+        "/todo/completed/{id}"
+    ],
+    "methods": [
+        "POST"
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "make sure the database is setup",
+            "name": "template.todoapp.api.impl.SetupTodoDatabase"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "set the todo as completed or not in the database",
+            "name": "template.todoapp.api.impl.CompleteTodo",
+            "inputs": [
+                {
+                    "from": [
+                        "completed"
+                    ],
+                    "to": [
+                        "completeTodoInput",
+                        "completed"
+                    ]
+                },
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "completeTodoInput",
+                        "id"
+                    ]
+                }
+            ]
+        }
+    ]
+}

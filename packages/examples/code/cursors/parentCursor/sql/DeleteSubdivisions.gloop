@@ -1,0 +1,24 @@
+{
+    "type": "customSql",
+    "comments": "This [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) deletes all entries from the `SUBDIVISION` table.",
+    "input": [
+        {
+            "name": "deleteSubdivisionsInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "DELETE",
+    "query": "DELETE \nFROM \n\tSUBDIVISION"
+}

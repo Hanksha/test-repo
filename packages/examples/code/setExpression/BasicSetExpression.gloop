@@ -1,0 +1,71 @@
+{
+    "comments": "# [Using a Set Expression to Set Model Properties](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/set-expressions/)\n\nIn this service, we will be setting the value of the `output` model using a [set expression](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#set-expressions) and log its value.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nThis service returns an `output` made up of three properties, with the values:\n\n- `output.name` = `Togo`\n- `output.number` = `21`\n- `output.date` = `2019-05-09T05:07:39+0000`\n\n[Service outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), in either JSON, XML, or tree format.",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "number",
+                    "type": "integer"
+                },
+                {
+                    "name": "date",
+                    "type": "date"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, each properties are mapped using Set expression. It's as simple as double clicking a property, and inputting a value on the Set Expression editor that will appear.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "21",
+                    "to": [
+                        "output",
+                        "number"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "now",
+                    "to": [
+                        "output",
+                        "date"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "Togo",
+                    "to": [
+                        "output",
+                        "name"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

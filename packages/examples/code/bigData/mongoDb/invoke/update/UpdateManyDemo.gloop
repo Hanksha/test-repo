@@ -1,0 +1,204 @@
+{
+    "comments": "## Updating Multiple Documents Using `updateMany`\n\nThis Gloop service demonstrates how query `updateMany` to update documents that matches the filer in a MongoDB collection. The MongoDB service (line 4) holds the query to update an `inventory` document's `qty` property.\n\nThis service will query an `updateMany` operation, and will replace all the existing MongoDB document's `qty` property based on the `qty` input from invoking this service.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide values to properties `min`, `max`, and `qty` to be sent as inputs to the query to be performed. For your convenience, these properties are already populated with values; changing these values is optional but possible.\n\n## Expected Output\n\nIf the query was executed successfully, this service will return an `output` model with `modifiedCount` property that has a value of `1`. A similar `INFO` message  will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Modified 6 documents that matched the provided query\n```",
+    "input": [
+        {
+            "name": "min",
+            "type": "integer",
+            "defaultValue": 1,
+            "comments": "The minimum value to use for the filter"
+        },
+        {
+            "name": "max",
+            "type": "integer",
+            "defaultValue": 50,
+            "comments": "The maximum value to use for the filter"
+        },
+        {
+            "name": "qty",
+            "type": "integer",
+            "defaultValue": 20,
+            "comments": "The new value to use when updating the documents that matched the min/max filter"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "modifiedCount",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection, as well as the documents required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Executes the updateMany query, updating all the documents that matches the filter provided to this service",
+                    "name": "bigData.mongoDb.services.update.UpdateMany",
+                    "inputs": [
+                        {
+                            "from": [
+                                "min"
+                            ],
+                            "to": [
+                                "input",
+                                "min"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "max"
+                            ],
+                            "to": [
+                                "input",
+                                "max"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "qty"
+                            ],
+                            "to": [
+                                "input",
+                                "qty"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output",
+                                "modifiedCount"
+                            ],
+                            "to": [
+                                "output",
+                                "modifiedCount"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "output.modifiedCount > 0",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "label": "true",
+                            "comments": "Log the number of documents that were updated by the updateMany query",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Modified ${output.modifiedCount} documents that matched the provided query\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "label": "false",
+                            "comments": "Log that there were no documents modified if modifiedCount < 0",
+                            "declare": [
+                                {
+                                    "path": [
+                                        "output"
+                                    ],
+                                    "variables": [
+                                        {
+                                            "name": "message",
+                                            "comments": "the warn message"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "warn",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "The filter sent to the query did not match any documents. No document was modified.",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "output"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

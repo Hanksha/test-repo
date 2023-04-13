@@ -1,0 +1,159 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Batch Delete Records](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) can delete multiple records from the `ADDITIONAL_DATA` table.\n\nIt invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database. This Gloop SQL service returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) which the service iteratively maps IDs to, in order to specify which records to delete.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nAn array of record IDs is required by the service as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). These IDs indicate which records would be deleted. Ideally, these records should exist in the table.\n\nTo ensure successful deletion, use any `ADDITIONAL_DATA` ID returned by the `sqlServices.invoke.multiple.InvokeMultipleAdditionalDataSelect` service. In case the `ADDITIONAL_DATA` table is empty, run `sqlServices.invoke.InsertNameWithAdditionalData` to populate it with entries.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] We are now going to start iterating over the id array property and map it to the output cursor\nINFO  [Martini] Deleting additional data with id 1.\nINFO  [Martini] Deleting additional data with id 2.\nINFO  [Martini] Deleting additional data with id 3.\nINFO  [Martini] Deleting additional data with id 4.\n...\n```\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "array": true,
+            "defaultValue": []
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Invoke the sql service that produces the cursor.",
+            "name": "sqlServices.sql.multiple.DeleteMultipleAdditionalData",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "deleteMultipleAdditionalDataOutputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "id",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "1000",
+                    "to": [
+                        "deleteMultipleAdditionalDataInput",
+                        "$batchSize"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "deleteMultipleAdditionalDataOutputCursor"
+                    ],
+                    "to": [
+                        "deleteMultipleAdditionalDataOutputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "We are now going to start iterating over the id array property and map it to the output cursor",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterate through the id property as an input array and the cursor as an output array",
+            "input": {
+                "path": [
+                    "id"
+                ]
+            },
+            "output": {
+                "path": [
+                    "deleteMultipleAdditionalDataOutputCursor"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Deleting additional data with id ${id}.\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comments": "Map the current iteration of id to the cursor",
+                    "lines": [
+                        {
+                            "from": [
+                                "id"
+                            ],
+                            "to": [
+                                "deleteMultipleAdditionalDataOutputCursor",
+                                "id"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Re-initialize the datasource since we touched the ADDITIONAL_DATA table in example_db",
+            "name": "sqlServices.conf.ReinitializeDatasources"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

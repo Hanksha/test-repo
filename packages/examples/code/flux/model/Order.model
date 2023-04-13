@@ -1,0 +1,22 @@
+{
+    "name": "Order",
+    "type": "model",
+    "comments": "A simple [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) used by example services under the `flux` package.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "productId",
+            "allowNull": false,
+            "choices": [
+                "productA",
+                "productB"
+            ]
+        },
+        {
+            "name": "quantity",
+            "type": "integer",
+            "defaultValue": 1,
+            "min": 1
+        }
+    ]
+}

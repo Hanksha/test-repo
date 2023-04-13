@@ -1,0 +1,9 @@
+{
+    "comments": "This Gloop service deletes the`report-builder-demo`. It is used by the `util.CleanupService.gloop` service.",
+    "steps": [
+        {
+            "type": "gloovy",
+            "gloovyScript": "def exampleReportImporterBean = new reportBuilderDemo.config.ExampleReportImporter()\nexampleReportImporterBean.deleteExampleReport()"
+        }
+    ]
+}

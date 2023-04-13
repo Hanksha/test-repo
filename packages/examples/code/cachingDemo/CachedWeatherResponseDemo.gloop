@@ -1,0 +1,231 @@
+{
+    "comments": "# [Caching](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/caching)\n\nThis service shows how [caching of data](https://docs.torocloud.com/martini/developing/services/one-liners/cache-methods/) is done in Gloop.  For this example, we are going to cache the current weather forecast.\n\nWe'll save the weather forecast based on city/country combination keys. The cache will then delete it after 10 seconds has passed since it was created. This means that it's going to give us the same response/output for 10 seconds after sending the first response, and gives us a new set of data thereafter.\n\nThis service has been exposed as a REST API and can be accessed via browser via `<host>:<port>/<api.rest.base-path>/cached/mock-api/getCurrentWeather/{city}/{country}`. For example, `http://localhost:8080/api/cached/mock-api/getCurrentWeather/manila/ph`.\n\nYou can have the cached response stay longer by editing the `expireAfterWrite` property, and giving it a higher value and/or unit of time. This property can be found in the `caches.conf` file, which is in the package `conf` directory.\n\nAlternatively, you can also use the `expireAfterAccess` property to expire entries based on a period of time since last access.\n\n## Invoking the Service\n\nTo invoke the service, [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) it from the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/). Before the actual execution commences, you will be asked to enter a value for `city` and `country`. You can use the default values if you like.\n\n## Expected Output\n\nThe service will return two models. The `getCurrentWeatherOutput` model is what we're interested in. It will contain the generated/cached weather data.\n\nThe [returned values of the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), if represented in JSON, roughly looks like this:\n\n```\n{\n    \"getCurrentWeatherOutput\": {\n        \"location\": {\n            \"city\": \"Manila\",\n            \"country\": \"PH\"\n        },\n        \"weather\": \"thunderstorm\",\n        \"temperature\": 31.560864756245866\n    },\n    \"output\": {\n        \"message\": \"Gloop Service Completed.\"\n    }\n}\n```",
+    "input": [
+        {
+            "name": "city",
+            "defaultValue": "manila"
+        },
+        {
+            "name": "country",
+            "defaultValue": "ph"
+        }
+    ],
+    "output": [
+        {
+            "name": "getCurrentWeatherOutput",
+            "type": "model",
+            "reference": "httpClient.model.GetCurrentWeatherOutput"
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Check the cache manager if it has a cached entry with the provided key. The response from the service will be mapped to getCurrentWeatherOutput which references GetCurrentWeatherOutput.model",
+            "className": "io.toro.martini.CacheMethods",
+            "methodName": "cacheGet",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "cachedWeatherResponse",
+                    "to": [
+                        "cacheName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "\"$city$country\"",
+                    "evaluate": true,
+                    "to": [
+                        "key"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "value"
+                    ],
+                    "to": [
+                        "getCurrentWeatherOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "Check if we have a previously cached response.",
+            "expression": "getCurrentWeatherOutput == null",
+            "children": [
+                {
+                    "type": "block",
+                    "label": "true",
+                    "comments": "If there is no cache entry stored, GenerateCurrentWeather will create a new set of weather data (step 4), and stores it in our configured cache provider (step 5) using the city-country combination as key.",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "Log that there's no cache entry for the city-country key combination",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "No cache entry found. Creating a cache entry...",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeGloop",
+                            "comments": "Let's use the GenerateCurrentWeather service in the httpClient examples to get the current weather and store the result in the output `getCurrentWeather` model.",
+                            "name": "httpClient.mockApis.weather.GenerateCurrentWeather",
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "city"
+                                    ],
+                                    "to": [
+                                        "city"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "country"
+                                    ],
+                                    "to": [
+                                        "country"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "getCurrentWeatherOutput"
+                                    ],
+                                    "to": [
+                                        "getCurrentWeatherOutput"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.CacheMethods",
+                            "methodName": "cachePut",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Object",
+                                "java.lang.Object"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "getCurrentWeatherOutput"
+                                    ],
+                                    "to": [
+                                        "value"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "cachedWeatherResponse",
+                                    "to": [
+                                        "cacheName"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "\"$city$country\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "key"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Log the generated mock weather forecast in Martini logs",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "'The generated mock weather forecast below is now saved in the cache, this service will keep on returning this value until the cache expires (10 seconds from when it was saved. See line 6 of this service)\\n\\n' + getCurrentWeatherOutput.asJson()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "label": "false",
+                    "comments": "Log the cache entry found in the Martini console.",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "'Found a cache entry! Returning a cache entry...\\n\\n' + getCurrentWeatherOutput.asJson()",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log a message about checking out the line/step comments of this service",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

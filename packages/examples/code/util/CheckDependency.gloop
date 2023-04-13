@@ -1,0 +1,202 @@
+{
+    "comments": "This Gloop service will check if all resources required by the `examples` package are present and initialized; and if not, to set them up so you won't have to do it yourself manually.\n\nWhen this service is called, it checks for the package property `dependency.initialized`. If set to `false`, the package's dependencies will be _initialized_.\n\nThis service is used by some services in the `examples` package to prepare required resources like datasources, reports, etc.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nUpon executing this service, you will see logs like the following [in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view): \n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "fork",
+                    "expression": "'dependency.initialized'.getPackageProperty()",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "false",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "This step will check if `example_db` already exists in the connection pool.",
+                                    "declare": [
+                                        {
+                                            "variables": [
+                                                {
+                                                    "name": "datasource1",
+                                                    "type": "boolean"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                    "methodName": "containsConnectionWithName",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "example_db",
+                                            "to": [
+                                                "name"
+                                            ]
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "from": [
+                                                "output"
+                                            ],
+                                            "to": [
+                                                "datasource1"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "This step will check if `example_xa_db` already exists in the connection pool.",
+                                    "declare": [
+                                        {
+                                            "variables": [
+                                                {
+                                                    "name": "datasource2",
+                                                    "type": "boolean"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                    "methodName": "containsConnectionWithName",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "example_xa_db_migrated",
+                                            "to": [
+                                                "name"
+                                            ]
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "from": [
+                                                "output"
+                                            ],
+                                            "to": [
+                                                "datasource2"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "This step will check if `conversion_sample` already exists in the connection pool.",
+                                    "declare": [
+                                        {
+                                            "variables": [
+                                                {
+                                                    "name": "datasource3",
+                                                    "type": "boolean"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                                    "methodName": "containsConnectionWithName",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "conversion_sample",
+                                            "to": [
+                                                "name"
+                                            ]
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "from": [
+                                                "output"
+                                            ],
+                                            "to": [
+                                                "datasource3"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "fork",
+                                    "comments": "In this step we check if the all the datasources exists",
+                                    "expression": "datasource1 && datasource2 && datasource3",
+                                    "children": [
+                                        {
+                                            "type": "invokeGloop",
+                                            "label": "false",
+                                            "name": "sqlServices.conf.SqlStartupService"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeGloop",
+                                    "comments": "This step imports the sample report used for Report Builder Demo",
+                                    "name": "reportBuilderDemo.config.ImportExampleReport"
+                                },
+                                {
+                                    "type": "gloovy",
+                                    "comments": "Sets dependency.initialized package property to true, so the next time this service is called, it will just ignore it.",
+                                    "gloovyScript": "'dependency.initialized'.savePackageProperty( 'true' )"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

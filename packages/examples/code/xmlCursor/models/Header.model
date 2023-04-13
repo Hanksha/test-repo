@@ -1,0 +1,17 @@
+{
+    "name": "Header",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) representing `<header>` entries in `resources/dataset.xml`.\n\nThis Gloop model is used by `xmlCursor.ReadLargeXmlFile.gloop`.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "details"
+        },
+        {
+            "name": "record_count"
+        },
+        {
+            "name": "total_count"
+        }
+    ]
+}

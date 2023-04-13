@@ -1,0 +1,46 @@
+{
+    "name": "GetWeatherForecastOutput",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) [generated using the HTTP Client Service wizard](https://docs.torocloud.com/martini/latest/developing/gloop/service/generating/#from-an-http-request).\n\nThis model was generated for `httpClient.services.GetWeatherForecast.gloop`. It represents the aforementioned service's output.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "city"
+        },
+        {
+            "name": "country"
+        },
+        {
+            "name": "daily",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "summary"
+                },
+                {
+                    "name": "data",
+                    "type": "model",
+                    "array": true,
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "summary"
+                        },
+                        {
+                            "name": "temperatureHigh",
+                            "type": "bigDecimal"
+                        },
+                        {
+                            "name": "temperatureLow",
+                            "type": "bigDecimal"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "error"
+        }
+    ]
+}

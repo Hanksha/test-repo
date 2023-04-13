@@ -1,0 +1,19 @@
+{
+    "name": "Todo",
+    "type": "model",
+    "comments": "Gloop model representing a todo",
+    "gloopProperties": [
+        {
+            "name": "id",
+            "type": "long"
+        },
+        {
+            "name": "name"
+        },
+        {
+            "name": "completed",
+            "type": "boolean",
+            "defaultValue": false
+        }
+    ]
+}

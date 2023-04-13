@@ -1,0 +1,14 @@
+{
+    "name": "Footer",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) representing `<trailer>` entries in `resources/dataset.xml`.\n\nThis Gloop model is used by `xmlCursor.ReadLargeXmlFile.gloop`.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "trailer_description"
+        },
+        {
+            "name": "next_records"
+        }
+    ]
+}

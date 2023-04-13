@@ -1,0 +1,314 @@
+{
+    "comments": "# [Using JSON Cursors](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/json-cursors/)\n\nThrough this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we will demonstrate how to read a JSON string, create an input JSON [cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) for it, then map it to an output JSON cursor.\n\nThis service creates a JSON string using `jsonCursor.output.WriteComplexJson.gloop`. It then creates an input JSON cursor for it, which it then iterates over and maps to the output JSON cursor.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\n### Properties\n\nThis service will return `output.jsonString` with the value of:\n\n```\n[\n    {\n        \"id\": \"1\",\n        \"firstName\": \"Wald\",\n        \"lastName\": \"Seys\",\n        \"email\": \"wseys0@furl.net\",\n        \"gender\": \"Male\",\n        \"ipAddress\": \"178.36.248.203\"\n    },\n    {\n        \"id\": \"2\",\n        \"firstName\": \"Rolland\",\n        \"lastName\": \"Matthieson\",\n        \"email\": \"rmatthieson1@canalblog.com\",\n        \"gender\": \"Male\",\n        \"ipAddress\": \"16.193.131.98\"\n    },\n    {\n        \"id\": \"3\",\n        \"firstName\": \"Carey\",\n        \"lastName\": \"Nickolls\",\n        \"email\": \"cnickolls2@multiply.com\",\n        \"gender\": \"Male\",\n        \"ipAddress\": \"68.126.219.148\"\n    },\n    {\n        \"id\": \"4\",\n        \"firstName\": \"Ingmar\",\n        \"lastName\": \"Hanning\",\n        \"email\": \"ihanning3@addtoany.com\",\n        \"gender\": \"Male\",\n        \"ipAddress\": \"192.194.58.46\"\n    },\n    {\n        \"id\": \"5\",\n        \"firstName\": \"Selig\",\n        \"lastName\": \"Brader\",\n        \"email\": \"sbrader4@kickstarter.com\",\n        \"gender\": \"Male\",\n        \"ipAddress\": \"71.82.241.24\"\n    },\n    {\n        \"id\": \"6\",\n        \"firstName\": \"Else\",\n        \"lastName\": \"Pawle\",\n        \"email\": \"epawle5@oakley.com\",\n        \"gender\": \"Female\",\n        \"ipAddress\": \"86.69.211.13\"\n    },\n    {\n        \"id\": \"7\",\n        \"firstName\": \"Christye\",\n        \"lastName\": \"Swindle\",\n        \"email\": \"cswindle6@youku.com\",\n        \"gender\": \"Female\",\n        \"ipAddress\": \"21.189.169.160\"\n    },\n    {\n        \"id\": \"8\",\n        \"firstName\": \"Gabby\",\n        \"lastName\": \"Boni\",\n        \"email\": \"gboni7@yandex.ru\",\n        \"gender\": \"Male\",\n        \"ipAddress\": \"82.102.45.53\"\n    },\n    {\n        \"id\": \"9\",\n        \"firstName\": \"Binnie\",\n        \"lastName\": \"Brunner\",\n        \"email\": \"bbrunner8@nature.com\",\n        \"gender\": \"Female\",\n        \"ipAddress\": \"71.191.175.193\"\n    },\n    {\n        \"id\": \"10\",\n        \"firstName\": \"Rowena\",\n        \"lastName\": \"Ivanyukov\",\n        \"email\": \"rivanyukov9@nationalgeographic.com\",\n        \"gender\": \"Female\",\n        \"ipAddress\": \"139.167.5.112\"\n    }\n]\n```\n\n### Logs\n\nAfter execution, logs like the following will be [displayed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\n{\n    \"header\": {\n        \"details\": \"This is the header for 1000 random people records\",\n        \"recordCount\": \"1000\",\n        \"totalCount\": \"12345\"\n    },    \n    \"records\": [\n        /* ... */\n    ],\n    \"trailer\": {\n        \"trailerDescription\": \"The trailer description goes here\",\n        \"nextRecords\": \"http://api.com/getPeople?start=1000\"\n    }\n}\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "jsonString",
+                    "defaultValue": ""
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step uses the service `WriteComplexJson` that writes complex json and return it as a string which will be used for this Gloop service.",
+                    "name": "jsonCursor.output.WriteComplexJson",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "jsonOutput"
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output",
+                                "jsonString"
+                            ],
+                            "to": [
+                                "jsonOutput"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will parse a large JSON input stream and return a Gloop cursor.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "gloopJsonCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "nodeName"
+                                        },
+                                        {
+                                            "name": "cursorRecord",
+                                            "type": "object"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "stringBuffer",
+                                    "type": "object",
+                                    "objectClassName": "java.lang.StringBuffer"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.JsonMethods",
+                    "methodName": "getInputCursorFromInputStream",
+                    "parameters": [
+                        "java.io.InputStream",
+                        "java.lang.String",
+                        "java.util.List",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "jsonOutput"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "records",
+                            "to": [
+                                "jsonNodeNames"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "gloopJsonCursor"
+                            ],
+                            "to": [
+                                "gloopJsonCursor"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "new StringBuffer()",
+                            "evaluate": true,
+                            "to": [
+                                "stringBuffer"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will open a cursor where we will write the data.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "jsonCursorOutput",
+                                    "type": "model",
+                                    "gloopProperties": [
+                                        {
+                                            "name": "indentPrinter",
+                                            "type": "object",
+                                            "comments": "printer used to write the json out to",
+                                            "objectClassName": "groovy.util.IndentPrinter"
+                                        },
+                                        {
+                                            "name": "jsonOutputCursor",
+                                            "type": "model",
+                                            "array": true,
+                                            "allowExtraProperties": true
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.JsonMethods",
+                    "methodName": "openJsonOutputCursor",
+                    "parameters": [
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "boolean",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "java.lang.Object",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "stringBuffer"
+                            ],
+                            "to": [
+                                "destination"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "printCommaAtStart"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "printStartDocumentBrace"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "printEndDocumentBrace"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "jsonCursorOutput"
+                            ],
+                            "to": [
+                                "jsonCursorOutput"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "This step will iterate over the `gloopJsonCursor` array and will populate another array `(jsonCursorOutput.jsonOutputCursor)` at the same time",
+                    "input": {
+                        "path": [
+                            "gloopJsonCursor"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "jsonCursorOutput",
+                            "jsonOutputCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "comments": "Map the `cursorRecord` to the `jsonOutputCursor`.",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "gloopJsonCursor",
+                                        "cursorRecord"
+                                    ],
+                                    "to": [
+                                        "jsonCursorOutput",
+                                        "jsonOutputCursor"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log the `stringBuffer` to the underlying log engine.",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "stringBuffer"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "type": "set",
+                            "expression": "stringBuffer",
+                            "evaluate": true,
+                            "to": [
+                                "output",
+                                "jsonString"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Learn how this service works by checking the line comments. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

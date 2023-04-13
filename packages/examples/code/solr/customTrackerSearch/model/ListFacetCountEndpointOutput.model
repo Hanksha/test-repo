@@ -1,0 +1,81 @@
+{
+    "name": "ListFacetCountEndpointOutput",
+    "type": "model",
+    "comments": "A model representing the output of the `ListFacetCountEndpoint.gloop` service.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "facet_field",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "documentTypeId",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name"
+                        },
+                        {
+                            "name": "facet_count",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "count",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "facet",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "name"
+                                },
+                                {
+                                    "name": "count",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "documentTypeName",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name"
+                        },
+                        {
+                            "name": "facet_count",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "count",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "facet",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "name"
+                                },
+                                {
+                                    "name": "count",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

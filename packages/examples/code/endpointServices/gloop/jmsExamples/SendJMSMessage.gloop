@@ -1,0 +1,119 @@
+{
+    "comments": "This Gloop service sends a JMS message, defined via `messageContent`, to `destination`. Replies received for sent messages will also be logged by this service.\n\nThis service is intended to trigger the `JMSListenerExample` endpoint. Said endpoint must be running to view the impact of this service.\n\nWhen invoking this service, you will be asked to provide values for the `messageContent` and `destination` input properties. Both have default values already. TORO recommends you change only the former if you want.",
+    "input": [
+        {
+            "name": "destination",
+            "defaultValue": "queue://exampleJMSListener"
+        },
+        {
+            "name": "messageContent",
+            "defaultValue": "Martini Desktop."
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "reply",
+                    "defaultValue": ""
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "replyLatch",
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    ],
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "import java.util.concurrent.CountDownLatch\n\nreplyLatch = new CountDownLatch(1)",
+                            "evaluate": true,
+                            "to": [
+                                "replyLatch"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Publish to jms queue/topic",
+                    "className": "io.toro.martini.JmsMethods",
+                    "methodName": "publishString",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "groovy.lang.Closure"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "messageContent"
+                            ],
+                            "to": [
+                                "string"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "destination"
+                            ],
+                            "to": [
+                                "destinationName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "{ replyMessage ->\n\t\"Received a reply for message \\\"${messageContent}\\\". The reply text is: ${replyMessage.text}\".info()\n\toutput.reply = replyMessage.text\n\treplyLatch.countDown()\n}",
+                            "evaluate": true,
+                            "to": [
+                                "replyClosure"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "gloovy",
+                    "comments": "Wait for 5s or until it receives a reply from the JMS listener after sending a JMS message.",
+                    "gloovyScript": "import java.util.concurrent.TimeUnit\n\nreplyLatch.await(5000, TimeUnit.MILLISECONDS)"
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,103 @@
+{
+    "name": "RequestHandlerEndpointOutput",
+    "type": "model",
+    "comments": "A model representing the output of the `RequestHandlerEndpoint.gloop` service.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "responseHeader",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "status",
+                    "type": "integer"
+                },
+                {
+                    "name": "QTime",
+                    "type": "integer"
+                },
+                {
+                    "name": "params",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "q"
+                        },
+                        {
+                            "name": "cache"
+                        },
+                        {
+                            "name": "rows"
+                        },
+                        {
+                            "name": "wt"
+                        },
+                        {
+                            "name": "version"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "response",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "numFound",
+                    "type": "integer"
+                },
+                {
+                    "name": "start",
+                    "type": "integer"
+                },
+                {
+                    "name": "docs",
+                    "type": "model",
+                    "array": true,
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "internalId"
+                        },
+                        {
+                            "name": "externalId"
+                        },
+                        {
+                            "name": "documentTypeId"
+                        },
+                        {
+                            "name": "documentTypeName"
+                        },
+                        {
+                            "name": "stateName"
+                        },
+                        {
+                            "name": "senderId"
+                        },
+                        {
+                            "name": "receiverId"
+                        },
+                        {
+                            "name": "userName"
+                        },
+                        {
+                            "name": "docContent",
+                            "array": true
+                        },
+                        {
+                            "name": "timeReceived"
+                        },
+                        {
+                            "name": "_version_",
+                            "type": "long"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

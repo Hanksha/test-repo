@@ -1,0 +1,199 @@
+{
+    "comments": "## Getting the number of documents near location\n\nThis Gloop service demonstrates how to query `[$near](https://docs.mongodb.com/manual/reference/operator/query/near/)` to get a list records from a Mongo DB collection.  This Gloop service holds the query (line 5) to return all the documents from the `restaurants` from nearest to farthest on the specified `longitude` and `latitude` within the given radians . However, this service only outputs the count of restaurants found within the given location.\n\nTo demonstrate the distinction between `$nearSphere` and `$near`, this service uses legacy coordinates whereas the `bigData.mongoDb.invoke.geospatial.ListRestaurantsNearDistance` service uses GeoJSON.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), The service will prompt you to provide a `longitude`, `latitude`, and `maxDistance` in radians to be sent as an input to the query to be performed. For your convenience, `maxDistance` is already populated with a value; changing these values are optional but possible.\n\n## Expected Output\n\nIf the query is successfully executed, the service will print a message in the console. The output will be returned as a Gloop model called `output` with a `count` property. However, the output that will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) will look similar below:\n\n```\nINFO  [Martini] Found 3772 restaurants within 180.0 degrees of [-73.9653967, 40.6064339]\n```",
+    "input": [
+        {
+            "name": "longitude",
+            "type": "double"
+        },
+        {
+            "name": "latitude",
+            "type": "double"
+        },
+        {
+            "name": "maxDistance",
+            "type": "double",
+            "defaultValue": 3.14159,
+            "comments": "Max distance in radians"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "count",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.conf.InitializeIndexes",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "2d",
+                            "to": [
+                                "indexType"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "address.coord_2d",
+                            "to": [
+                                "indexName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.geospatial.Near",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "longitude"
+                            ],
+                            "to": [
+                                "input",
+                                "longitude"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "latitude"
+                            ],
+                            "to": [
+                                "input",
+                                "latitude"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "maxDistance"
+                            ],
+                            "to": [
+                                "input",
+                                "maxDistance"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "from": [
+                                        "$gloopCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "count"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Found ${output.count} restaurants within ${(maxDistance * (180/3.1416)).round(2)} degrees of [${longitude}, ${latitude}]\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

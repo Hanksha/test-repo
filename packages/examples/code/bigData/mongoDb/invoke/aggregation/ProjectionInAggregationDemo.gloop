@@ -1,0 +1,253 @@
+{
+    "comments": "## Including or Excluding a field using `$project`\n\nThis Gloop service demonstrates a simple use case of using projection in an aggregation query. The MongoDB service (line 6) is a MongoDB aggregation query that uses `$project` that returns a single restaurant document, with fields excluded that can be included or excluded during the aggregation stage.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide values to the input properties of this service. It is important to know that you can either include or exclude them all, this means that you cannot mix and match the inclusion and exclusion. The input accepts 1s and 0s, to include and exclude the fields listed respectively in the input.\n\n## Expected Output\n\nDepending whether you chose to include or exclude the fields, the service will [print in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) what the document looks like before and after excluding/including the fields similar below (excluding fields):\n\n```\nINFO  [Martini] Displaying what the documents look like without projection applied.\n{\n    \"output\": {\n        \"_id\": \"5d27fda3c1461d6541a364b5\",\n        \"address\": {\n            \"building\": \"97-22\",\n            \"coord\": [\n                -73.8601152,\n                40.7311739\n            ],\n            \"street\": \"63 Road\",\n            \"zipcode\": \"11374\"\n        },\n        \"borough\": \"Queens\",\n        \"cuisine\": \"Jewish/Kosher\",\n        \"grades\": [\n            {\n                \"date\": \"2014-11-24T08:00:00+0800\",\n                \"grade\": \"Z\",\n                \"score\": 20\n            },\n            {\n                \"date\": \"2013-01-17T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 13\n            },\n            {\n                \"date\": \"2012-08-02T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 13\n            },\n            {\n                \"date\": \"2011-12-15T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 25\n            }\n        ],\n        \"name\": \"Tov Kosher Kitchen\",\n        \"restaurant_id\": \"40356068\"\n    }\n}\nINFO  [Martini] Displaying what the document looks like after projection filters are applied.\n{\n    \"_id\": \"5d27fda3c1461d6541a364b1\",\n    \"address\": {\n        \"building\": \"1007\",\n        \"coord\": [\n            -73.856077,\n            40.848447\n        ],\n        \"street\": \"Morris Park Ave\",\n        \"zipcode\": \"10462\"\n    },\n    \"grades\": [],\n    \"name\": \"Morris Park Bake Shop\"\n}\n```",
+    "input": [
+        {
+            "name": "fields",
+            "type": "model",
+            "comments": "The values for each property can only be 1 and 0, enabled and disabled respectively",
+            "gloopProperties": [
+                {
+                    "name": "borough",
+                    "type": "integer",
+                    "defaultValue": 1,
+                    "min": 0,
+                    "max": 1
+                },
+                {
+                    "name": "cuisine",
+                    "type": "integer",
+                    "defaultValue": 1,
+                    "min": 0,
+                    "max": 1
+                },
+                {
+                    "name": "grades",
+                    "type": "integer",
+                    "defaultValue": 1,
+                    "min": 0,
+                    "max": 1
+                },
+                {
+                    "name": "restaurantId",
+                    "type": "integer",
+                    "defaultValue": 1,
+                    "min": 0,
+                    "max": 1
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Get a single document for the purpose of showing what the original looks like",
+                    "name": "bigData.mongoDb.services.find.FindOne",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Queens",
+                            "to": [
+                                "input",
+                                "city"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log that the document returned by line 2 of this service is what the original document looks like",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Displaying what the documents look like without projection applied.\\n${output.asJson()}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.aggregation.ProjectionInAggregation",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "fields",
+                                "borough"
+                            ],
+                            "to": [
+                                "input",
+                                "borough"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "fields",
+                                "cuisine"
+                            ],
+                            "to": [
+                                "input",
+                                "cuisine"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "fields",
+                                "grades"
+                            ],
+                            "to": [
+                                "input",
+                                "grades"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "fields",
+                                "restaurantId"
+                            ],
+                            "to": [
+                                "input",
+                                "restaurantId"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "from": [
+                                        "results"
+                                    ],
+                                    "to": [
+                                        "output"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log in the console the result of the projection",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Displaying what the document looks like after projection filters are applied.\\n${output.asJson(false, false)}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

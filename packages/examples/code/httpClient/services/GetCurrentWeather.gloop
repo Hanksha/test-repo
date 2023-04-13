@@ -1,0 +1,267 @@
+{
+    "comments": "# [Making HTTP Calls in Gloop](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/http-client/)\n\nThis service sends a `GET` request to the `<host>:<port>/<api.rest.base-path>/sample/mock-api/weather/current` endpoint, and returns said endpoint's response using the `message` output property.\n\nThis service was generated using the [HTTP Client Service wizard](https://docs.torocloud.com/martini/latest/developing/gloop/service/generating/#from-an-http-request). Further modifications were made in order to achieve desired service flow (e.g. error handling, temperature conversion).\n\nThe HTTP operation called by this service is exposed by `httpClient.mockApis.HttpClientMockEndpoints.api`, and only provides mock data. \n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Three [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required: `city`, `countryCode`, and `temperatureScale`. You can either set these values with your own custom values, or use the default values already provided.\n\n## Expected Output\n\nThis service returns three properties: `responseCode`, `message`, and `output`. Its output should be fairly similar to below (if represented in JSON):\n\n```\n{\n    \"responseCode\": 200,\n    \"message\": \"The current weather in Manila, PH is mist. The temperature is 42.1 degrees Celsius.\",\n    \"output\": {\n        \"message\": \"Gloop Service Completed.\"\n    }\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a model tree.",
+    "input": [
+        {
+            "name": "city",
+            "defaultValue": "Manila",
+            "comments": "The city to get weather information for"
+        },
+        {
+            "name": "countryCode",
+            "defaultValue": "PH",
+            "comments": "The 2 letter country code where the city belongs"
+        },
+        {
+            "name": "temperatureScale",
+            "defaultValue": "Celsius",
+            "comments": "Output the temperature as Celsius (default) or Fahrenheit.",
+            "choices": [
+                "Celsius",
+                "Fahrenheit"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200,
+            "comments": "Response code of the request"
+        },
+        {
+            "name": "message",
+            "defaultValue": "",
+            "comments": "A small string showing the weather"
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Set the query string parameters. There's no need to check if the temperatureScale is invalid since Gloop will ensure it's one of it's valid values (choices)",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "queryStringParameters",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "city"
+                                },
+                                {
+                                    "name": "country"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "from": [
+                        "city"
+                    ],
+                    "to": [
+                        "queryStringParameters",
+                        "city"
+                    ]
+                },
+                {
+                    "from": [
+                        "countryCode"
+                    ],
+                    "to": [
+                        "queryStringParameters",
+                        "country"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "block",
+            "comments": "We add a try/catch block to catch any exceptions thrown by the http call",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "HTTP Get Request to the openweathermap API",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "getWeatherOutput",
+                                    "type": "model",
+                                    "reference": "httpClient.model.GetCurrentWeatherOutput"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.HttpMethods",
+                    "methodName": "http",
+                    "parameters": [
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "queryStringParameters"
+                            ],
+                            "to": [
+                                "request",
+                                "parameters"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GloopObject",
+                            "to": [
+                                "returnAs"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Auto Detect",
+                            "to": [
+                                "responseType"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GET",
+                            "to": [
+                                "request",
+                                "method"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GloopObject",
+                            "to": [
+                                "returnAs"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "true",
+                            "to": [
+                                "throwHttpExceptions"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"${'host.url'.getPackageProperty()}:${'server.http.port'.getApplicationProperty()}/api/sample/mock-api/weather/current\"",
+                            "evaluate": true,
+                            "to": [
+                                "request",
+                                "uri"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "response",
+                                "content"
+                            ],
+                            "to": [
+                                "getWeatherOutput"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "response",
+                                "responseCode"
+                            ],
+                            "to": [
+                                "responseCode"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check if there is an error message",
+                    "expression": "getWeatherOutput.message == null",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "type": "gloovy",
+                                    "comments": "Temperature conversion",
+                                    "gloovyScript": "//The temperature value of the endpoint is in Celsius\ndouble result = getWeatherOutput.temperature\n//if user wants Fahrenheit, we'll convert it\nif ('fahrenheit'.equalsIgnoreCase(temperatureScale))\n\tresult = result * 1.8 + 32\n//Set the converted temperature back to the model\ngetWeatherOutput.temperature = result.format('0.0')"
+                                },
+                                {
+                                    "comments": "Set the output string",
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"The current weather in ${getWeatherOutput.location.city}, ${getWeatherOutput.location.country} is ${getWeatherOutput.weather}. \" +\n\"The temperature is ${getWeatherOutput.temperature} degrees $temperatureScale.\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "label": "false",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "getWeatherOutput",
+                                        "message"
+                                    ],
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "comments": "If there are any exceptions, we set the exception message to the message output string",
+                    "lines": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "500",
+                            "to": [
+                                "responseCode"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

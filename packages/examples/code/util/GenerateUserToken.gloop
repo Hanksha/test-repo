@@ -1,0 +1,261 @@
+{
+    "comments": "Generates an access token if the specified user's token is already expired.\n\nThis service is used by the other services in the `solr` directory to generate tokens required to access Solr endpoints.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n`username` must be provided. If a user with the given `username` does not exist yet in Martini, one will be created by the service.\n\t\n## Expected Output\n\n### Properties\n\nThis service returns an `Authorization` model, which contains the generated authorization header information.\n\nThis service's output would look something like below (if represented in JSON):\n\n```\n{\n    \"Authorization\": {\n        \"name\": \"Authorization\",\n        \"value\": \"Bearer 9a0ce549-3f5a-4afb-9e32-562bdba3159d\"\n    }\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a model tree.\n\n### Logs\n\nLogs like below will be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Checking user information...\nINFO  [Martini] Admin not found. Creating user named 'Admin'\n```\n\nHowever, if the user already exists, nothing will be logged in the console.",
+    "input": [
+        {
+            "name": "username"
+        }
+    ],
+    "output": [
+        {
+            "name": "Authorization",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "name",
+                    "defaultValue": "Authorization"
+                },
+                {
+                    "name": "value"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we find the user by providing the username",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "userExists",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.user.User"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.UserGroupMethods",
+                    "methodName": "findUser",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "username"
+                            ],
+                            "to": [
+                                "username"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "user"
+                            ],
+                            "to": [
+                                "userExists"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "In this step, we check if the user exist.",
+                    "expression": "userExists?.username",
+                    "children": [
+                        {
+                            "type": "invokeGloop",
+                            "label": "$null",
+                            "comments": "In this step, we create the user",
+                            "name": "solr.config.CreateAdminUser"
+                        },
+                        {
+                            "type": "block",
+                            "label": "$else",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.UserGroupMethods",
+                                    "methodName": "addUserToGroup",
+                                    "parameters": [
+                                        "java.lang.String",
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "username"
+                                            ],
+                                            "to": [
+                                                "username"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "ESBAPIAdminGroup",
+                                            "to": [
+                                                "groupname"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we get the admin user token",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "userToken",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.user.AccessToken"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.UserGroupMethods",
+                    "methodName": "findAccessTokenByUsername",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "username"
+                            ],
+                            "to": [
+                                "userName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "token"
+                            ],
+                            "to": [
+                                "userToken"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Authorization",
+                            "to": [
+                                "Authorization",
+                                "name"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"Bearer ${userToken.accessToken}\"",
+                            "evaluate": true,
+                            "to": [
+                                "Authorization",
+                                "value"
+                            ],
+                            "priority": 5
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Validate if user token is expired",
+                    "expression": "userToken.expiryDate < new Date()",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "label": "true",
+                            "comments": "If true, generate a new access token ",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "token"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "className": "io.toro.martini.UserGroupMethods",
+                            "methodName": "generateToken",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "username"
+                                    ],
+                                    "to": [
+                                        "userName"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "token"
+                                    ],
+                                    "to": [
+                                        "userToken"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "token",
+                                        "accessToken"
+                                    ],
+                                    "to": [
+                                        "token"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "evalStringTemplate( \"Bearer ${userToken.accessToken}\" )",
+                                    "evaluate": true,
+                                    "to": [
+                                        "Authorization",
+                                        "value"
+                                    ],
+                                    "priority": 5
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

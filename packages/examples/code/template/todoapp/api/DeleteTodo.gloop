@@ -1,0 +1,47 @@
+{
+    "comments": "This Gloop service is used to delete a todo from the database by invoking the Gloop SQL service `template.todoapp.api.impl.DeleteTodo` while making sure that the todo database is setup.\n\nThis service is also exposed at `/api/todo/{id}` so it can be requested by the Gloop template when deleting a todo. The output of the service also have a `$gloopView` property which default value is `redirect:/app/todo`. That property can be used to redirect the user to the given path after it has been requested.",
+    "input": [
+        {
+            "name": "id",
+            "type": "long",
+            "comments": "id of the todo to delete"
+        }
+    ],
+    "output": [
+        {
+            "name": "$gloopView",
+            "defaultValue": "redirect:/app/todo",
+            "comments": "use redirect:/app/todo as default value to redirect the user to the todo page"
+        }
+    ],
+    "paths": [
+        "/todo/{id}"
+    ],
+    "methods": [
+        "DELETE",
+        "GET"
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "make sure the database is setup",
+            "name": "template.todoapp.api.impl.SetupTodoDatabase"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "delete the todo from the database",
+            "name": "template.todoapp.api.impl.DeleteTodo",
+            "inputs": [
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "deleteTodoInput",
+                        "id"
+                    ]
+                }
+            ]
+        }
+    ]
+}

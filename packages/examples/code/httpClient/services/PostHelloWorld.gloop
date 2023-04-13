@@ -1,0 +1,159 @@
+{
+    "comments": "# [Making HTTP Calls in Gloop](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/http-client/)\n\nThis service sends a `POST` request to the `<host>:<port>/<api.rest.base-path>/sample/mock-api/post` endpoint, and returns said endpoint's response using the `responseCode` and `postHelloWorldOutput` output properties.\n\nThis service was generated using the [HTTP Client Service wizard](https://docs.torocloud.com/martini/latest/developing/gloop/service/generating/#from-an-http-request). Further modifications were made in order to support error-handling.\n\nThe HTTP operation called by this service is exposed by `httpClient.mockApis.HttpClientMockEndpoints.api`.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Only one [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/) is required: `PostHelloWorldInput`. This model already has configured default property values for your convenience.\n\t\n## Expected Output\n\nThis service returns three properties: `responseCode`, `postHelloWorldOutput`, and `output`. Its output should be fairly similar to below (if represented in JSON):\n\n```\n{\n    \"responseCode\": 200,\n    \"postHelloWorldOutput\": {\n        \"data\": \"{\\n    \\\"message\\\": \\\"Hello world!\\\"\\n}\",\n        \"headers\": {\n            \"Accept\": \"*/*\",\n            \"Accept-Encoding\": \"gzip,deflate\",\n            \"Connection\": \"Keep-Alive\",\n            \"Content-Length\": \"33\",\n            \"Host\": \"127.0.0.1\",\n            \"User-Agent\": \"Martini/3.2.3-RC2 (build 2019-04-24T00:02:23) (Java/1.8.0_172)\"\n        },\n        \"origin\": \"127.0.0.1\",\n        \"url\": \"http://localhost:8080/api/sample/mock-api/post\"\n    },\n    \"output\": {\n        \"message\": \"Gloop Service Completed.\"\n    }\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a model tree.",
+    "input": [
+        {
+            "name": "PostHelloWorldInput",
+            "type": "model",
+            "comments": "Gloop Model input that contains the data to be sent",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "allowNull": false,
+                    "defaultValue": "Hello world!",
+                    "comments": "Message to send"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "comments": "Response code from the http request"
+        },
+        {
+            "name": "postHelloWorldOutput",
+            "type": "model",
+            "comments": "Gloop model containing the response of httpbin.org",
+            "reference": "httpClient.model.PostHelloWorldOutput"
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "comments": "We add a try/catch block to catch any exceptions thrown by the http call",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Here we send an HTTP POST request to https://\\<toro-martini-home\\>/api/sample/mock-api/post and map the response content to the generated Gloop model.",
+                    "className": "io.toro.martini.HttpMethods",
+                    "methodName": "http",
+                    "parameters": [
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "GloopObject",
+                            "to": [
+                                "returnAs"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Auto Detect",
+                            "to": [
+                                "responseType"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "POST",
+                            "to": [
+                                "request",
+                                "method"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GloopObject",
+                            "to": [
+                                "returnAs"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "true",
+                            "to": [
+                                "throwHttpExceptions"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "PostHelloWorldInput.asJson(false,false)",
+                            "evaluate": true,
+                            "to": [
+                                "request",
+                                "body"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"${'host.url'.getPackageProperty()}:${'server.http.port'.getApplicationProperty()}/api/sample/mock-api/post\"",
+                            "evaluate": true,
+                            "to": [
+                                "request",
+                                "uri"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "response",
+                                "responseCode"
+                            ],
+                            "to": [
+                                "responseCode"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "response",
+                                "content"
+                            ],
+                            "to": [
+                                "postHelloWorldOutput"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "comments": "If there are any exceptions, we set the exception message to the message output string",
+                    "lines": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "postHelloWorldOutput",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,139 @@
+{
+    "comments": "# [Mapping a Long Value to a Gloop Date](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/date-manipulation)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we will demonstrate how you can to set the value of a Gloop date property by passing it a long value. The long value should be the number of milliseconds since [the epoch](https://en.wikipedia.org/wiki/Unix_time).\n\nSince this service expects the time in seconds, we've multiplied `epochTimeInSeconds` by 1000 first before _mapping_ it to the date property.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Before execution, Martini will prompt you to provide a value for the `epochTimeInSeconds` input property. For your convenience, you can just use this property's [default value](https://docs.torocloud.com/martini/latest/developing/gloop/model/object-type/#default-value).\n\t\n## Expected Output\n\n### Property\n\nThe output of this service depends on the value provided for `epochTimeInSeconds`. If left with the default value of `1520901520`, the service will set `output.epochTimeInMilliseconds`'s value to `1520901520000`.\n\n### Logs\n\nWhen running the service, you should expect [log messages in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) similar to below:\n\n```\nINFO  [Martini] The Gloop Date output: Tue Mar 13 08:38:40 PHT 2018\nINFO  [Martini] The Gloop Date in seconds: 1520901520\nINFO  [Martini] The Epoch time in milliseconds: 1520901520000\n...\n```",
+    "input": [
+        {
+            "name": "epochTimeInSeconds",
+            "type": "long",
+            "defaultValue": 1520901520,
+            "comments": "Epoch timestamp in seconds"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "epochTimeInMilliseconds",
+                    "type": "long",
+                    "comments": "Epoch timestamp in milliseconds"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we convert the epoch seconds to milliseconds then set the result to the Gloop Date object via set\nexpression.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "date",
+                            "type": "date"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "comments": "Assign epochTimeInMilliseconds to the Gloop Date.",
+                    "expression": "epochTimeInSeconds * 1000",
+                    "evaluate": true,
+                    "to": [
+                        "date"
+                    ],
+                    "priority": 1
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the current value of the property `date` in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The Gloop Date output: ${date}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We will log the Gloop date in seconds in the underlying log engine.\n\nNote: The Gloop Date object also extends java.util.Date methods. So to convert Gloop Date back to epoch seconds, we will use\nthe getTime() method of java.util.Date which will return in milliseconds then divide it by 1000 to get the seconds.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The Gloop Date in seconds: ${date.getTime() / 1000}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In this step, we map Gloop Date to a Long object to convert it to milliseconds.",
+            "lines": [
+                {
+                    "from": [
+                        "date"
+                    ],
+                    "to": [
+                        "output",
+                        "epochTimeInMilliseconds"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Logs the Epoch timestamp in milliseconds in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The Epoch time in milliseconds: ${output.epochTimeInMilliseconds}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

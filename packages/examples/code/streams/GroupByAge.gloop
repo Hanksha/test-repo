@@ -1,0 +1,141 @@
+{
+    "comments": "# [Using `StreamMethods.groupBy(Stream, Collection, String)`](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/stream-methods/)\n\nThis service groups a given array of `Person`s by their `age` property.\n\nIt does so through the use of the [`StreamMethods`](https://docs.torocloud.com/martini/developing/services/one-liners/stream-methods/)`.groupBy(Stream, Collection, String)` one-liner.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nThis service will return an output property named `groups`, which is an array of models representing `Person` groups.\n\nEach group is defined by two properties: `key` and `elements`. `key` will contain the `age` value, and `elements` will be the array of `Person` models whose `age`s match the value of `key`.\n\n### Properties\n\nThe [service's output](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs) should be similar to below (if represented in JSON):\n\n```\n{\n    \"groups\": [\n        {\n            \"key\": \"20\",\n            \"elements\": [\n                {\n                    \"name\": \"Laz\",\n                    \"age\": 20\n                }\n            ]\n        },\n        {\n            \"key\": \"21\",\n            \"elements\": [\n                {\n                    \"name\": \"John\",\n                    \"age\": 21\n                },\n                {\n                    \"name\": \"Daniel\",\n                    \"age\": 21\n                }\n            ]\n        },\n        {\n            \"key\": \"22\",\n            \"elements\": [\n                {\n                    \"name\": \"Jane\",\n                    \"age\": 22\n                }\n            ]\n        },\n        {\n            \"key\": \"23\",\n            \"elements\": [\n                {\n                    \"name\": \"Andrew\",\n                    \"age\": 23\n                },\n                {\n                    \"name\": \"William\",\n                    \"age\": 23\n                }\n            ]\n        },\n        {\n            \"key\": \"12\",\n            \"elements\": [\n                {\n                    \"name\": \"Angela\",\n                    \"age\": 12\n                },\n                {\n                    \"name\": \"Lianne\",\n                    \"age\": 12\n                }\n            ]\n        }\n    ]\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a value tree.\n\n### Logs\n\nThe service will log the initial collection of `Person`s to the console, and will also log `Person`s in groups by the end of the service's execution.",
+    "output": [
+        {
+            "name": "groups",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "streams.helper.ProvidePeople",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "people",
+                            "type": "model",
+                            "array": true,
+                            "reference": "streams.model.Person"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "people"
+                    ]
+                },
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "people"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the people to be grouped",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Grouping people by age using the list below printed in JSON:\\n\\n ${people.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Groups together elements based on a property of a Gloop Model.",
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "groupBy",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection",
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "collection"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "age",
+                    "to": [
+                        "groupBy"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "groups"
+                    ],
+                    "to": [
+                        "groups"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the people that was grouped by StreamMethods.groupBy in JSON format",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"After using StreamMethods.groupBy, people are now grouped by age:\\n\\n ${groups.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

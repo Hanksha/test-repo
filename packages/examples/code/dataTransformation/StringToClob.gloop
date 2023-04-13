@@ -1,0 +1,176 @@
+{
+    "comments": "# [Converting a String to a CLOB](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we'll be converting a string to a CLOB. Afterwards, we'll be writing the [CLOB](https://en.wikipedia.org/wiki/Character_large_object) to a SQL database.\n\n[HSQL](http://hsqldb.org/) is the embedded database Martini uses out of the box.\n\n## Invoking the Service\n\nUpon [running the Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked by Martini to provide a value for the `stringToInsert` property. For your convenience, it is already set with the default value of `Martini`.\n\n## Expected Output\n\nThe output of this service depends on the value provided for `stringToInsert`. If it was left with its default value, then the expected [return value of the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), if in JSON format, is:\n\n```\n{\n    \"output\": {\n        \"clob\": \"Martini\"\n    }\n}\n```\n\nAside from this, the following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Inserting string to clob column: Martini\nINFO  [Martini] String inserted and generated a key. Pulling clob data from conversion_sample database using id 4\nINFO  [Martini] Clob data pulled: Martini\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "stringToInsert",
+            "defaultValue": "Martini"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "clobText"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Inserting string to clob column: ${stringToInsert}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Initializes the connection pool this service requires if it does not exist yet.",
+            "name": "sqlServices.conf.SqlStartupService"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we insert a record to our database by mapping the string that we want to insert to the column in database.",
+            "name": "dataTransformation.sql.InsertClob",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "generatedKeys",
+                            "type": "model",
+                            "allowExtraProperties": true
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stringToInsert"
+                    ],
+                    "to": [
+                        "insertClobInput",
+                        "clobColumn"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "true",
+                    "to": [
+                        "insertClobInput",
+                        "$getGeneratedKeys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "generatedKeys"
+                    ],
+                    "to": [
+                        "generatedKeys"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We log the Generated Key in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"String inserted and generated a key. Pulling clob data from conversion_sample database using id ${generatedKeys.ID}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "We log the record (`CLOB`) that we found from our database.",
+            "name": "dataTransformation.sql.SelectClob",
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "generatedKeys.getValue( Map ).values().toArray()[0]",
+                    "evaluate": true,
+                    "to": [
+                        "selectClobInput",
+                        "id"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "set",
+                    "expression": "def clobReader = $gloopOutput.selectClobOutput.CLOB_COLUMN.getCharacterStream()\nString targetString = org.apache.commons.io.IOUtils.toString(clobReader)\nclobReader.closeQuietly()\ntargetString",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "clobText"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Clob data pulled: ${output.clobText}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

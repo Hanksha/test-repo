@@ -1,0 +1,49 @@
+<definitions targetNamespace='http://gloop.torocloud.com' name='apis.soap_api.HelloYouSOAPConsumer'
+        xmlns='http://schemas.xmlsoap.org/wsdl/' xmlns:tns='http://gloop.torocloud.com'
+        xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/'>
+  <types>
+    <xsd:schema targetNamespace='http://gloop.torocloud.com' attributeFormDefault='unqualified' elementFormDefault='unqualified' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:tns='http://gloop.torocloud.com'>
+      <xsd:element name='HelloYouServiceInput' type='tns:HelloYouServiceRequest' />
+      <xsd:element name='HelloYouServiceOutput' type='tns:HelloYouServiceResponse' />
+      <xsd:complexType name='HelloYouServiceRequest'>
+        <xsd:sequence minOccurs='1' maxOccurs='1'>
+          <xsd:element name='name' type='xsd:string' minOccurs='0' nillable='true' />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name='HelloYouServiceResponse'>
+        <xsd:sequence minOccurs='1' maxOccurs='1'>
+          <xsd:element name='response' type='xsd:string' minOccurs='0' nillable='true' />
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:schema>
+  </types>
+  <message name='HelloYouServiceInput'>
+    <part name='parameters' element='tns:HelloYouServiceInput' />
+  </message>
+  <message name='HelloYouServiceOutput'>
+    <part name='parameters' element='tns:HelloYouServiceOutput' />
+  </message>
+  <portType name='apis.soap_api.HelloYouSOAPPortType'>
+    <operation name='HelloYouService'>
+      <input message='tns:HelloYouServiceInput' name='HelloYouServiceInput' />
+      <output message='tns:HelloYouServiceOutput' name='HelloYouServiceOutput' />
+    </operation>
+  </portType>
+  <binding name='apis.soap_api.HelloYouSOAPBinding' type='tns:apis.soap_api.HelloYouSOAPPortType'>
+    <soap:binding style='document' transport='http://schemas.xmlsoap.org/soap/http' />
+    <operation name='HelloYouService'>
+      <soap:operation soapAction='HelloYouService' style='document' />
+      <input>
+        <soap:body use='literal' parts='parameters' />
+      </input>
+      <output>
+        <soap:body use='literal' parts='parameters' />
+      </output>
+    </operation>
+  </binding>
+  <service name='apis.soap_api.HelloYouSOAP'>
+    <port name='apis.soap_api.HelloYouSOAPPort' binding='tns:apis.soap_api.HelloYouSOAPBinding'>
+      <soap:address location='http://localhost:8080/soap/apis.soap_api.HelloYouSOAP' />
+    </port>
+  </service>
+</definitions>

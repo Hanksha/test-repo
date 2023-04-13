@@ -1,0 +1,83 @@
+{
+    "comments": "# [Indexing Documents](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/search-indices/)\n\nThis Gloop service [demonstrates how to add a document to a custom Solr core](https://docs.torocloud.com/martini/custom-search-index/crud/#indexing-the-models-data). In particular, it will index the provided `movieDocument`, and write it to the Solr core `movie-core`.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nThis service requires that you provide a `movieDocument` [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). The `movieDocument` model contains the data to be indexed.\n\t\n## Expected Output\n\nAfter execution, the service will return an `updateResponse` model, whose value if represented in JSON, would look something like:\n\n```\n{\n    \"updateResponse\": {\n        \"responseHeader\": {\n            \"status\": 0,\n            \"QTime\": \"13\"\n        }\n    }\n}\n```\n\n`updateResponse` contains the Solr server's response to the executed indexing operation.\n\n[Service outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), in either JSON (like above), XML, or in a value tree.",
+    "input": [
+        {
+            "name": "movieDocument",
+            "type": "model",
+            "reference": "solr.customSolrCore.model.MovieDocument"
+        }
+    ],
+    "output": [
+        {
+            "name": "updateResponse",
+            "type": "model",
+            "reference": "io.toro.martini.solr.UpdateResponse"
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.SolrMethods",
+                    "methodName": "writeToIndex",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.object.property.GloopModel"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "movieDocument"
+                            ],
+                            "to": [
+                                "gloopModel"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "movie-core",
+                            "to": [
+                                "coreName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "updateResponse"
+                            ],
+                            "to": [
+                                "updateResponse"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,108 @@
+{
+    "comments": "# [Selecting Tuples in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) returns an array of records from the `tuple_example` column family in the `cassandra_examples` keyspace.\n\nThis service showcases how to handle [tuples](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/tupleType.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n## Expected Output\n\nThe output of this service depends on the entries in the `tuple_example` column family. If you want to have the same entries as described below, you should run `bigData/cassandra/services/tuple/InsertTuple.gloop`. Doing so will ensure your database contains similar data as the output below.\n\nThis service's return value is represented in JSON, it would look like something similar to the output below:\n\n```\n\"tupleData\": [\n        {\n            \"id\": 1,\n            \"tuple\": {\n                \"tupleEntry0\": 1,\n                \"tupleEntry1\": \"test\"\n            }\n        }\n    ]\n```",
+    "output": [
+        {
+            "name": "tupleData",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer"
+                },
+                {
+                    "name": "tuple",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "tupleEntry0",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "tupleEntry1"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Invokes the CQL query to produce a inputCursor",
+            "name": "bigData.cassandra.cql.tuple.SelectTuple",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputCursor",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "inputCursor"
+                    ],
+                    "to": [
+                        "inputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterates over the CQL inputCursor to the tupleData in the output properties",
+            "input": {
+                "path": [
+                    "inputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "tupleData"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Maps the CQL inputCursor data to the tupleData array in the output properties",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.id",
+                            "evaluate": true,
+                            "to": [
+                                "tupleData",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.tuple.tupleEntry0",
+                            "evaluate": true,
+                            "to": [
+                                "tupleData",
+                                "tuple",
+                                "tupleEntry0"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.tuple.tupleEntry1",
+                            "evaluate": true,
+                            "to": [
+                                "tupleData",
+                                "tuple",
+                                "tupleEntry1"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

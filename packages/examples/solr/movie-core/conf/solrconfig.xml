@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config>
+    <luceneMatchVersion>7.3.1</luceneMatchVersion>
+    <directoryFactory class="${solr.directoryFactory:solr.StandardDirectoryFactory}"
+            name="DirectoryFactory"/>
+
+    <dataDir>${solr.core1.data.dir:}</dataDir>
+    <schemaFactory class="ClassicIndexSchemaFactory"/>
+    <updateRequestProcessorChain>
+        <processor class="solr.UUIDUpdateProcessorFactory">
+            <str name="fieldName">id</str>
+        </processor>
+        <processor class="solr.LogUpdateProcessorFactory"/>
+        <processor class="solr.RunUpdateProcessorFactory"/>
+    </updateRequestProcessorChain>
+    <updateHandler class="solr.DirectUpdateHandler2">
+        <updateLog>
+            <str name="dir">${solr.core1.data.dir:}</str>
+        </updateLog>
+
+        <autoSoftCommit>
+            <maxTime>1000</maxTime>
+        </autoSoftCommit>
+
+        <autoCommit>
+            <maxTime>15000</maxTime>
+            <openSearcher>false</openSearcher>
+        </autoCommit>
+    </updateHandler>
+    
+  	<query>
+        <filterCache class="solr.FastLRUCache"
+                     size="1024"
+                     initialSize="1024"
+                     autowarmCount="512"/>
+
+        <queryResultCache class="solr.LRUCache"
+                         size="2048"
+                         initialSize="2048"
+                         autowarmCount="512"/>
+
+        <documentCache class="solr.LRUCache"
+                       size="2048"
+                       initialSize="2048"/>
+    </query>
+    
+    <requestHandler class="solr.RealTimeGetHandler" name="/get">
+        <lst name="defaults">
+            <str name="omitHeader">true</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.ReplicationHandler" name="/replication" startup="lazy"/>
+
+    <requestDispatcher handleSelect="true">
+        <requestParsers enableRemoteStreaming="false" formdataUploadLimitInKB="2048"
+                multipartUploadLimitInKB="2048"/>
+    </requestDispatcher>
+
+    <requestHandler class="solr.SearchHandler" default="true" name="standard">
+        <lst name="defaults">
+            <str name="echoParams">explicit</str>
+            <int name="rows">10</int>
+            <str name="df">text</str>
+            <str name="q.op">OR</str>
+        </lst>
+    </requestHandler>
+
+    <requestHandler class="solr.FieldAnalysisRequestHandler" name="/analysis/field" startup="lazy"/>
+    <requestHandler class="solr.UpdateRequestHandler" name="/update"/>
+
+    <requestHandler class="solr.PingRequestHandler" name="/admin/ping">
+        <lst name="invariants">
+            <str name="q">solrpingquery</str>
+        </lst>
+        <lst name="defaults">
+            <str name="echoParams">all</str>
+        </lst>
+    </requestHandler>
+
+    <admin>
+        <defaultQuery>*:*</defaultQuery>
+    </admin>
+
+</config>

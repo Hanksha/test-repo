@@ -1,0 +1,43 @@
+{
+    "name": "Country",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) representing a country. This is used in the `ParentCursorExample.gloop` service.",
+    "gloopProperties": [
+        {
+            "name": "code",
+            "comments": "The country code"
+        },
+        {
+            "name": "name",
+            "comments": "The name of the country"
+        },
+        {
+            "name": "subdivisions",
+            "type": "model",
+            "comments": "These can be associated with states, prefectures, etc.",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "subdivision",
+                    "type": "model",
+                    "array": true,
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "code",
+                            "comments": "Subdivision code"
+                        },
+                        {
+                            "name": "name",
+                            "comments": "Subdivision name"
+                        },
+                        {
+                            "name": "level",
+                            "comments": "Subdivision level"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

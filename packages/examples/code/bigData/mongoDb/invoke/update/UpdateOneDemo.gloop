@@ -1,0 +1,260 @@
+{
+    "comments": "## Updating a Single Document using `updateOne`\n\nThis Gloop service demonstrates how query `updateOne` to update a matching document in a MongoDB collection. The MongoDB service (line 2) holds the query to update an `inventory` document 's `qty` property.\n\nDepending on the `updateType` provided when this service is invoked, it will increase or decrease a matching document's `qty` property.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide values to properties `itemName`, `qty`, and `updateType`  to be sent as inputs to the query to be performed. For your convenience, these properties are already populated with values; changing these values is optional but possible.\n\n## Expected Output\n\nIf the query was executed successfully, this service will return an `output` model with `modifiedCount` property that has a value of `1`. A similar `INFO` message will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] qty decreased by -10\n```",
+    "input": [
+        {
+            "name": "itemName",
+            "defaultValue": "journal",
+            "comments": "The name of the item to be updated"
+        },
+        {
+            "name": "qty",
+            "type": "integer",
+            "defaultValue": 10,
+            "comments": "The amount of change, whether it will increase or decrease will be based on the updateType property"
+        },
+        {
+            "name": "updateType",
+            "defaultValue": "increase",
+            "comments": "only valid choices are: increase, and decrease",
+            "choices": [
+                "increase",
+                "decrease"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "modifiedCount",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will attempt to create the inventory collection if it hasn't been created already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check whether to increase or decrease the qty",
+                    "expression": "updateType",
+                    "children": [
+                        {
+                            "label": "decrease",
+                            "comments": "Make the original qty input negative, so that it decrease the qty field in the inventory document to be update",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"-${qty}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "qty"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Execute the update using the updateOne query",
+                    "name": "bigData.mongoDb.services.update.UpdateOne",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "modifiedCount",
+                                    "type": "long"
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "itemName"
+                            ],
+                            "to": [
+                                "input",
+                                "itemName"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "qty"
+                            ],
+                            "to": [
+                                "input",
+                                "qty"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output",
+                                "modifiedCount"
+                            ],
+                            "to": [
+                                "modifiedCount"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Let's check if the modified count matched the count we expect",
+                    "expression": "modifiedCount",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "1",
+                            "children": [
+                                {
+                                    "comments": "Map a successful response",
+                                    "lines": [
+                                        {
+                                            "from": [
+                                                "modifiedCount"
+                                            ],
+                                            "to": [
+                                                "output",
+                                                "modifiedCount"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Log the amount increased/decreased for the matching document that was updated",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"qty ${updateType}d by ${qty}\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "block",
+                            "label": "$else",
+                            "children": [
+                                {
+                                    "comments": "Map a failed update response",
+                                    "declare": [
+                                        {
+                                            "path": [
+                                                "output"
+                                            ],
+                                            "variables": [
+                                                {
+                                                    "name": "message"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "0",
+                                            "to": [
+                                                "output",
+                                                "modifiedCount"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "Record not modified.",
+                                            "to": [
+                                                "output",
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "warn",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "No record modified for this request.",
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

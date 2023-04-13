@@ -1,0 +1,195 @@
+{
+    "comments": "# [Reading Flat Files](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/flat-file/)\n\nIn this example, we're going to show you how you can read data from a flat file using a [flat file descriptor's](https://docs.torocloud.com/martini/latest/developing/gloop/service/flat-file-descriptors/) generated service.\n\nThis service will read data from the `resources/employees.csv` file. Before running this service, you should run  `WriteFile.gloop` to ensure said file has content.\n\nObtained data will be displayed in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\n## Expected Outputs\n\nUpon running this service, you should see log messages like below in the Martini console:\n\n```\nINFO  [Martini] Printing the contents of employees.csv generated from WriteFile.gloop\nINFO  [Martini] EmployeesCursor{\nfirstName = James\nlastName = Smith\n}\nINFO  [Martini] EmployeesCursor{\nfirstName = Thomas\nlastName = Miller\n}\nINFO  [Martini] EmployeesCursor{\nfirstName = Sarah\nlastName = Clark\n}\nINFO  [Martini] EmployeesCursor{\nfirstName = Elizabeth\nlastName = Taylor\n}\n...\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we open a resource from the resources folder and returning an input stream to read to.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "flatFileData",
+                                    "type": "object",
+                                    "objectClassName": "java.io.InputStream"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "resourceStream",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/employees.csv",
+                            "to": [
+                                "resource"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Opens the input cursor to be read. The cursor produced is based on the InputStream from the CSV file on step 3",
+                    "name": "flatfile.util.OpenEmployeesCursor",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "EmployeesCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "reference": "flatfile.model.Employee"
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "flatFileData"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Input",
+                            "to": [
+                                "type"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "EmployeesCursor"
+                            ],
+                            "to": [
+                                "EmployeesCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Printing the contents of employees.csv generated from WriteFile.gloop",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "read each line from file",
+                    "input": {
+                        "path": [
+                            "EmployeesCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "Log each entry to the console",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "EmployeesCursor",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Read employees cursor end",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Printed all file content of employees.csv generated from WriteFile.gloop. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

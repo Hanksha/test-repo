@@ -1,0 +1,14 @@
+{
+    "name": "Person",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) containing two properties, `name` and `age` to represent a person.",
+    "gloopProperties": [
+        {
+            "name": "name"
+        },
+        {
+            "name": "age",
+            "type": "integer"
+        }
+    ]
+}

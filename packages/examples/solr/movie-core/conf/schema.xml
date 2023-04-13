@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<schema name="movie-core" version="1.0">
+    <types>
+        <fieldType class="solr.DatePointField" name="date" omitNorms="true" sortMissingLast="true"/>
+        <fieldType class="solr.LongPointField" name="long" sortMissingLast="true" docValues="true"/>
+        <fieldType class="solr.DoublePointField" name="double" sortMissingLast="true" docValues="true"/>
+        <fieldType class="solr.StrField" name="string" omitNorms="true" sortMissingLast="true"/>
+        <fieldType class="solr.BoolField" name="boolean" omitNorms="true" sortMissingLast="true"/>
+        <fieldType class="solr.SpatialRecursivePrefixTreeFieldType" distErrPct="0.025"
+                distanceUnits="degrees" geo="true" maxDistErr="0.001" name="location_rpt"/>
+        <fieldType class="solr.TextField" name="text" positionIncrementGap="100">
+            <analyzer type="index">
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter catenateAll="0"
+                        catenateNumbers="1" catenateWords="1" class="solr.WordDelimiterGraphFilterFactory"
+                        generateNumberParts="1" generateWordParts="1" splitOnCaseChange="1"/>
+            </analyzer>
+            <analyzer type="query">
+                <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+                <filter catenateAll="0"
+                        catenateNumbers="0" catenateWords="0" class="solr.WordDelimiterGraphFilterFactory"
+                        generateNumberParts="1" generateWordParts="1" splitOnCaseChange="1"/>
+                <filter class="solr.LowerCaseFilterFactory"/>
+            </analyzer>
+        </fieldType>
+    </types>
+    <fields>
+        <field indexed="true" multiValued="false" name="id" required="true" stored="true" type="string"/>
+        <field indexed="true" multiValued="false" name="movieTitle" stored="true" type="string"/>
+        <field indexed="true" multiValued="false" name="director" stored="true" type="string"/>
+        <field indexed="true" multiValued="true" name="cast" stored="true" type="string"/>
+        <field indexed="true" multiValued="false" name="_version_" stored="true" type="long"/>
+        <field indexed="true" multiValued="true" name="text" stored="false" type="text"/>
+    </fields>
+    <uniqueKey>id</uniqueKey>
+    <copyField dest="text" source="id"/>
+    <copyField dest="text" source="movieTitle"/>
+    <copyField dest="text" source="director"/>
+    <copyField dest="text" source="cast"/>
+</schema>

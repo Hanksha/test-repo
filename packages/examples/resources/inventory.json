@@ -1,0 +1,137 @@
+[
+  {
+    "item": "journal",
+    "qty": 25,
+    "status": "available",
+    "size": {
+      "h": "14",
+      "w": "21",
+      "uom": "cm"
+    },
+    "tags": [
+      "black",
+      "small"
+    ]
+  },
+  {
+    "item": "notebook",
+    "qty": 50,
+    "status": "available",
+    "size": {
+      "h": "8",
+      "w": "11",
+      "uom": "in"
+    },
+    "tags": [
+      
+    ]
+  },
+  {
+    "item": "paper",
+    "qty": 100,
+    "status": "not available",
+    "size": {
+      "h": "8",
+      "w": "11",
+      "uom": "in"
+    },
+    "tags": [
+      
+    ]
+  },
+  {
+    "item": "planner",
+    "qty": 75,
+    "status": "not available",
+    "size": {
+      "h": "22",
+      "w": "30",
+      "uom": "cm"
+    },
+    "tags": [
+      
+    ]
+  },
+  {
+    "item": "postcard",
+    "qty": 45,
+    "status": "available",
+    "size": {
+      "h": "10",
+      "w": "15",
+      "uom": "cm"
+    },
+    "tags": [
+      
+    ]
+  },
+  {
+    "item": "sharpener",
+    "qty": 31,
+    "status": "available",
+    "size": {
+      "h": "9",
+      "w": "11",
+      "uom": "cm"
+    },
+    "tags": [
+      "black",
+      "white"
+    ]
+  },
+  {
+    "item": "pencil",
+    "qty": 31,
+    "status": "available",
+    "size": {
+      "h": "9",
+      "w": "11",
+      "uom": "cm"
+    },
+    "tags": [
+      "black",
+      "white"
+    ]
+  },
+  {
+    "item": "stencil",
+    "qty": 31,
+    "status": "available",
+    "size": {
+      "h": "9",
+      "w": "11",
+      "uom": "cm"
+    },
+    "tags": [
+      "black",
+      "white"
+    ]
+  },
+  {
+    "item": "ball-pen",
+    "qty": 31,
+    "status": "available",
+    "size": {
+      "h": "9",
+      "w": "11",
+      "uom": "cm"
+    },
+    "tags": [
+      "black",
+      "white"
+    ]
+  },
+  {
+    "item": "marker",
+    "qty": 50,
+    "status": "not available",
+    "size": {
+      "h": "8",
+      "w": "11",
+      "uom": "in"
+    },
+    "tags": [
+      
+    ]
+  }
+]

@@ -1,0 +1,169 @@
+{
+    "comments": "# [Selecting User-Defined Types in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) returns an array of records from the `udt_example` column family in the `cassandra_examples` keyspace.\n\nThis service showcases how to handle [User-Defined Types (UDTs)](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/cqlRefUDType.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n## Expected Output\n\nThe output of this service depends on the entries in the `udt_example` column family. If you want to have the same entries as described below, you should run `bigData/cassandra/services/udt/InsertUdt.gloop`. Doing so will ensure your database contains similar data as the output below.\n\nThis service's return value is represented in JSON, it would look similar to the output below:\n\n```\n\"udtData\": [\n    {\n        \"id\": 1,\n        \"udt\": {\n            \"id\": 1,\n            \"text\": \"regular udt\"\n        },\n        \"nestedudt\": {\n            \"id\": 1,\n            \"data\": {\n                \"id\": 1,\n                \"text\": \"nested udt\"\n            }\n        }\n    }\n]\n```\n\n[Service outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Aside from the JSON format like above, it can also be viewed in XML or in a value tree.",
+    "output": [
+        {
+            "name": "udtData",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "udt",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "id",
+                            "type": "integer",
+                            "defaultValue": 1
+                        },
+                        {
+                            "name": "text",
+                            "defaultValue": "regular udt"
+                        }
+                    ]
+                },
+                {
+                    "name": "nestedudt",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "id",
+                            "type": "integer",
+                            "defaultValue": 1
+                        },
+                        {
+                            "name": "data",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "id",
+                                    "type": "integer",
+                                    "defaultValue": 1
+                                },
+                                {
+                                    "name": "text",
+                                    "defaultValue": "nested udt"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Invokes the CQL query to produce a inputCursor",
+            "name": "bigData.cassandra.cql.udt.SelectUdt",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputCursor",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "inputCursor"
+                    ],
+                    "to": [
+                        "inputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterates over the CQL inputCursor and the udtData output property",
+            "input": {
+                "path": [
+                    "inputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "udtData"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Maps the CQL inputCursor data to the udtData output property",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.id",
+                            "evaluate": true,
+                            "to": [
+                                "udtData",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.udt.id",
+                            "evaluate": true,
+                            "to": [
+                                "udtData",
+                                "udt",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.udt.text",
+                            "evaluate": true,
+                            "to": [
+                                "udtData",
+                                "udt",
+                                "text"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.nested_udt.id",
+                            "evaluate": true,
+                            "to": [
+                                "udtData",
+                                "nestedudt",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.nested_udt.data.id",
+                            "evaluate": true,
+                            "to": [
+                                "udtData",
+                                "nestedudt",
+                                "data",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.nested_udt.data.text",
+                            "evaluate": true,
+                            "to": [
+                                "udtData",
+                                "nestedudt",
+                                "data",
+                                "text"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

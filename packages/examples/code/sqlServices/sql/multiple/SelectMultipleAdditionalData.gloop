@@ -1,0 +1,55 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be iterated over to retrieve entries from the `ADDITIONAL_DATA` table.",
+    "input": [
+        {
+            "name": "selectMultipleAdditionalDataInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "selectMultipleAdditionalDataInputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "ID",
+                    "type": "integer",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "IMAGE",
+                    "type": "object",
+                    "required": true,
+                    "objectClassName": "java.sql.Blob"
+                },
+                {
+                    "name": "INFORMATION",
+                    "type": "object",
+                    "required": true,
+                    "objectClassName": "java.sql.Clob"
+                },
+                {
+                    "name": "NAME_ID",
+                    "type": "integer",
+                    "required": true,
+                    "allowNull": false
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "SELECT_MULTI",
+    "query": "SELECT *\nFROM\n    ADDITIONAL_DATA"
+}

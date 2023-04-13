@@ -1,0 +1,121 @@
+{
+    "comments": "This Gloop service is used to invoke the `template.form.sql.SelectCustomers` Gloop SQL service while also making sure that the database is setup.\n\nThe service returns all the customers in the database.",
+    "output": [
+        {
+            "name": "customers",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "firstName"
+                },
+                {
+                    "name": "lastName"
+                },
+                {
+                    "name": "email"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "make sure the database is setup",
+            "name": "template.form.sql.SetupCustomerDatabase"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "get all the customers in the database",
+            "name": "template.form.sql.SelectCustomers",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "outputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "FIRST_NAME",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "LAST_NAME",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "EMAIL",
+                                    "required": true,
+                                    "allowNull": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "selectCustomersInputCursor"
+                    ],
+                    "to": [
+                        "outputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "iterate all the customers and put them in the customer model array",
+            "input": {
+                "path": [
+                    "outputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "customers"
+                ]
+            },
+            "children": [
+                {
+                    "lines": [
+                        {
+                            "from": [
+                                "outputCursor",
+                                "FIRST_NAME"
+                            ],
+                            "to": [
+                                "customers",
+                                "firstName"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "outputCursor",
+                                "LAST_NAME"
+                            ],
+                            "to": [
+                                "customers",
+                                "lastName"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "outputCursor",
+                                "EMAIL"
+                            ],
+                            "to": [
+                                "customers",
+                                "email"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

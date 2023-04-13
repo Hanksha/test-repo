@@ -1,0 +1,217 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Perform a Batch Update](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) updates records from the `ADDITIONAL_DATA` table of the `example_db` database. It uses data provided through the `additionalData` array for the update.\n\nThis service invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database. It uses the [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) returned by said SQL service to write entries to the table.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nRecords to update must be specified through the `additionalData` [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). For `additionalData` elements, you only need to enter values for `id`, `information`, and `nameId`. `image` properties are automatically set by the service (to `resources/MyPicture.png`).\n\n`nameId` must refer to the ID of an existing record in the `NAMES` table. To view records from this table, you may run `sqlServices.invoke.multiple.SelectMultipleAdditionalData`. If `NAMES` is empty, run `sqlServices.invoke.InsertNameWithAdditionalData` to add entries.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] We are now going to start iterating over the additionalData array property and map it to the output cursor\nINFO  [Martini] Updating additional data with count: 1\nINFO  [Martini] Updating additional data with count: 2\nINFO  [Martini] Updating additional data with count: 3\nINFO  [Martini] Updating additional data with count: 4\n...\n```\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "additionalData",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer"
+                },
+                {
+                    "name": "image",
+                    "type": "object",
+                    "comments": "BLOB",
+                    "objectClassName": "org.springframework.web.multipart.MultipartFile"
+                },
+                {
+                    "name": "information",
+                    "comments": "CLOB"
+                },
+                {
+                    "name": "nameID",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Invoke the sql service that produces the cursor.",
+            "name": "sqlServices.sql.multiple.UpdateMultipleAdditionalData",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "updateMultipleAdditionalDataOutputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "image",
+                                    "type": "object",
+                                    "objectClassName": "java.sql.Blob"
+                                },
+                                {
+                                    "name": "information",
+                                    "type": "object",
+                                    "objectClassName": "java.sql.Clob"
+                                },
+                                {
+                                    "name": "nameId",
+                                    "type": "integer"
+                                },
+                                {
+                                    "name": "id",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "1000",
+                    "to": [
+                        "updateMultipleAdditionalDataInput",
+                        "$batchSize"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "updateMultipleAdditionalDataOutputCursor"
+                    ],
+                    "to": [
+                        "updateMultipleAdditionalDataOutputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "We are now going to start iterating over the additionalData array property and map it to the output cursor",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterate through the additionalData model array as input array and the generated cursor as output array",
+            "input": {
+                "path": [
+                    "additionalData"
+                ]
+            },
+            "output": {
+                "path": [
+                    "updateMultipleAdditionalDataOutputCursor"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Updating additional data with count: ${$gloopCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comments": "Map the properties of the additionalData model to the cursor",
+                    "lines": [
+                        {
+                            "from": [
+                                "additionalData",
+                                "id"
+                            ],
+                            "to": [
+                                "updateMultipleAdditionalDataOutputCursor",
+                                "id"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "additionalData",
+                                "information"
+                            ],
+                            "to": [
+                                "updateMultipleAdditionalDataOutputCursor",
+                                "information"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "additionalData",
+                                "nameID"
+                            ],
+                            "to": [
+                                "updateMultipleAdditionalDataOutputCursor",
+                                "nameId"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"resources/MyPicture.png\".resourceStream( \"examples\" ).getBytes()",
+                            "evaluate": true,
+                            "to": [
+                                "updateMultipleAdditionalDataOutputCursor",
+                                "image"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,60 @@
+{
+    "comments": "This Gloop service checks if the `NAMES` table is empty, and adds some rows to it if it is. This Gloop service is set to run when the Martini package starts.",
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "This Gloop service invokes an sql service that returns a cursor that retrieves all the entries in the NAMES table. The cursor is then iterated over to get the individual entry and mapped to the names variable, a model array",
+            "name": "sqlServices.invoke.multiple.InvokeMultipleNameSelect",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "names",
+                            "type": "model",
+                            "array": true,
+                            "reference": "sqlServices.model.Name"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "names"
+                    ],
+                    "to": [
+                        "names"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "Check if the array `names` size is less than or equal to zero.",
+            "expression": "names.size() <= 0",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "label": "true",
+                    "comments": "This Gloop service invokes an sql service that returns a cursor that inserts entries to the database with the passed model array.",
+                    "name": "sqlServices.invoke.multiple.InvokeMultipleNameInsert",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "names {\n\tfirstName \"Juan\"\n\tlastName \"Dela Cruz\"\n}\n\nnames {\n\tfirstName \"Billy\"\n\tlastName \"Joe\"\n}\n\nnames {\n\tfirstName \"Bambi\"\n\tlastName \"Bambini\"\n}",
+                            "evaluate": true,
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,56 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                },
+                {
+                    "name": "$skip",
+                    "type": "integer"
+                },
+                {
+                    "name": "searchTerm"
+                },
+                {
+                    "name": "isCaseSensitive",
+                    "type": "boolean"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurants",
+    "queryType": "FIND_MANY",
+    "filter": "{\n\t$text: {\n\t\t$search: {{searchTerm:string}},\n\t\t$caseSensitive: {{isCaseSensitive:boolean}}\n\t}\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\n]"
+}

@@ -1,0 +1,113 @@
+{
+    "comments": "This Gloop service is used to retrieve all the todos from the database by invoking the Gloop SQL service`template.todoapp.api.impl.GetAllTodo` while also making sure that the todo database is setup.",
+    "output": [
+        {
+            "name": "todos",
+            "type": "model",
+            "array": true,
+            "reference": "template.todoapp.Todo"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "make sure the database is setup",
+            "name": "template.todoapp.api.impl.SetupTodoDatabase"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "retrieve all the todos from the database",
+            "name": "template.todoapp.api.impl.GetAllTodos",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "getAllTodosOutputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "ID",
+                                    "type": "integer",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "NAME",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "COMPLETED",
+                                    "type": "boolean",
+                                    "required": true,
+                                    "allowNull": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "getAllTodosOutputCursor"
+                    ],
+                    "to": [
+                        "getAllTodosOutputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "iterate all the todos and put them in the todo model array",
+            "input": {
+                "path": [
+                    "getAllTodosOutputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "todos"
+                ]
+            },
+            "children": [
+                {
+                    "lines": [
+                        {
+                            "from": [
+                                "getAllTodosOutputCursor",
+                                "ID"
+                            ],
+                            "to": [
+                                "todos",
+                                "id"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "getAllTodosOutputCursor",
+                                "NAME"
+                            ],
+                            "to": [
+                                "todos",
+                                "name"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "getAllTodosOutputCursor",
+                                "COMPLETED"
+                            ],
+                            "to": [
+                                "todos",
+                                "completed"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

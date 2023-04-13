@@ -1,0 +1,7 @@
+{
+    "type": "soap",
+    "documentation": "A very simple SOAP API that exposes a greeting operation. This is the SOAP counterpart of the HelloYou Gloop REST API. For more information about Gloop SOAP APIs, please see: https://docs.torocloud.com/martini/latest/developing/gloop/api/soap/creating//.",
+    "operations": [
+        "apis.service.HelloYouService"
+    ]
+}

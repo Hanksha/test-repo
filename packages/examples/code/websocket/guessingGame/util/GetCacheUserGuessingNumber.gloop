@@ -1,0 +1,52 @@
+{
+    "comments": "This service returns the value of an entry from the cache for a given username.",
+    "input": [
+        {
+            "name": "username"
+        }
+    ],
+    "output": [
+        {
+            "name": "userGuessingNumber",
+            "type": "integer"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.CacheMethods",
+            "methodName": "cacheGet",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "username"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "guessingGame",
+                    "to": [
+                        "cacheName"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "value"
+                    ],
+                    "to": [
+                        "userGuessingNumber"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,46 @@
+{
+    "type": "customSql",
+    "comments": "Gloop SQL service which selects all the `customer`s in the `customer` table.",
+    "input": [
+        {
+            "name": "selectCustomersInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "selectCustomersInputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "FIRST_NAME",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "LAST_NAME",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "EMAIL",
+                    "required": true,
+                    "allowNull": false
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "examples-customer",
+    "sqlType": "SELECT_MULTI",
+    "query": "SELECT FIRST_NAME, LAST_NAME, EMAIL\nFROM\n    CUSTOMER\n"
+}

@@ -1,0 +1,32 @@
+{
+    "type": "customSql",
+    "comments": "Gloop SQL service that sets a todo as completed or not in the database.",
+    "input": [
+        {
+            "name": "completeTodoInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "completed",
+                    "type": "boolean"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        }
+    ],
+    "connectionPoolName": "todo",
+    "sqlType": "UPDATE",
+    "query": "UPDATE todos \nSET completed = :completed \nWHERE id = :id"
+}

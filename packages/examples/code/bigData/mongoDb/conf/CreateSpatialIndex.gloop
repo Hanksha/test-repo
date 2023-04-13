@@ -1,0 +1,122 @@
+{
+    "comments": "This Gloop Service allows you to create spatial indexes for geospatial operations that requires it.",
+    "input": [
+        {
+            "name": "fieldName",
+            "comments": "The field name from the collection to be indexed"
+        },
+        {
+            "name": "indexSpecs",
+            "comments": "The type of index to be created e.g. 2dsphere"
+        }
+    ],
+    "output": [
+        {
+            "name": "created",
+            "type": "boolean",
+            "defaultValue": false
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "output",
+                            "comments": "the index name"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.MongoDbMethods",
+            "methodName": "createIndex",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "com.mongodb.client.ClientSession",
+                "java.lang.String",
+                "com.mongodb.client.model.IndexOptions"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "mongo",
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "examples",
+                    "to": [
+                        "databaseName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "restaurants",
+                    "to": [
+                        "collectionName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "\"\"\"\n{\n\t\"${fieldName}\": \"${indexSpecs}\"\n}\n\"\"\"",
+                    "evaluate": true,
+                    "to": [
+                        "keys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "expression": "org.apache.commons.lang3.StringUtils.isEmpty( output )",
+            "children": [
+                {
+                    "label": "false",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "true",
+                            "to": [
+                                "created"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Created a new index: ${output}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

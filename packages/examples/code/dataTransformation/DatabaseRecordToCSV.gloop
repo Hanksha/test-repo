@@ -1,0 +1,278 @@
+{
+    "comments": "# [Creating a Flat File from Database Records](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation/)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service), we will be writing a series of database records to a flat file. Reading and writing of data will be done through the use of [cursors](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/).\n\nAn input cursor shall be obtained for the database records. This input cursor will allow us to read records from the database. Meanwhile, an output cursor will also be obtained for the CSV file. We will use the output cursor to write entries to the file.\n\nData transformation occurs in line 8, where we map the input cursor to the output cursor. This line tells Gloop to read entries from the database and write them to the flat file.\n\nMapping from one cursor to another in Gloop is allowed, regardless if the underlying cursor reads from or writes to JSON, XML, YAML, databases, and flat files.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nUpon successful execution, this service will generate a CSV file named `DatabaseRecordToCSV.csv` in the `resources` directory of this package.",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop service completed. Look for resources folder in the examples package and refresh it to see the generated CSV file DatabaseRecordsToCSV."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+                    "name": "util.CheckDependency"
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Pulling names from example_db database...",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will open a file output stream in the `resources` directory of the examples package. The file will be called `DatabaseRecordToCSV.csv`",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "fileOutputStream",
+                                    "type": "object",
+                                    "objectClassName": "java.io.OutputStream"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "packageOutputStream",
+                    "parameters": [
+                        "io.toro.gloop.engine.GloopExecutionContext",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "java.lang.String[]"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/DatabaseRecordToCSV.csv",
+                            "to": [
+                                "file"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "fileOutputStream"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will returns an input cursor pointing to result set rows from the select statement.",
+                    "name": "sqlServices.sql.multiple.SelectMultipleNames",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "selectMultipleNamesInputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "ID",
+                                            "type": "integer",
+                                            "required": true,
+                                            "allowNull": false
+                                        },
+                                        {
+                                            "name": "FIRST_NAME",
+                                            "required": true,
+                                            "allowNull": false
+                                        },
+                                        {
+                                            "name": "LAST_NAME",
+                                            "required": true,
+                                            "allowNull": false
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "selectMultipleNamesInputCursor"
+                            ],
+                            "to": [
+                                "selectMultipleNamesInputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will return an output Gloop cursor which we will use to write to a delimited flat file",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "outputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "comments": "A GloopCursor implementation that can be used to iterate over the records in the flat file",
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FlatFileMethods",
+                    "methodName": "getDelimitedFileOutputCursor",
+                    "parameters": [
+                        "java.io.OutputStream",
+                        "java.lang.String",
+                        "char",
+                        "java.lang.Character",
+                        "java.lang.String",
+                        "java.lang.Character",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "java.lang.String[]",
+                        "java.lang.String",
+                        "boolean",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "fileOutputStream"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "selectMultipleNamesInputCursor"
+                            ],
+                            "to": [
+                                "modelTemplate"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "outputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "In this step, we iterate over array of names",
+                    "input": {
+                        "path": [
+                            "selectMultipleNamesInputCursor"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "outputCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "comments": "In this step, we map the selectMultipleNamesOutputCursor to outputCursor",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "selectMultipleNamesInputCursor"
+                                    ],
+                                    "to": [
+                                        "outputCursor"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Creating CSV file DatabaseRecordsToCSV.csv...",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Open and refresh resources folder of examples package to see the generated CSV file.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

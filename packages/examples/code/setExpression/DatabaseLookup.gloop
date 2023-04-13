@@ -1,0 +1,114 @@
+{
+    "comments": "# [Using Set Expression for Database Lookups](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/set-expressions/)\n\nThis service demonstrates database lookups by [invoking](https://docs.torocloud.com/martini/developing/services/groovy/invoking-gloop-flux/) a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) in a  [set expression](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#set-expressions).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Only one [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/) is required: `id`. For you convenience, a default value for `id` is already provided. You can set any number from 1-4 for as the value of `id`.\n\t\n## Expected Output\n\n### Properties\n\nIf the default value of `1` for the `id` was used, then the expected JSON representation of the service's output would look like:\n\n```\n{\n    \"name\": {\n        \"id\": 1,\n        \"firstName\": \"Jack\",\n        \"lastName\": \"Baker\"\n    }\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in the output tree.\n\n### Logs\n\nAfter execution, logs like the following will be [displayed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Found the requested name using id 1:\n{\n    \"name\": {\n        \"id\": 1,\n        \"firstName\": \"Jack\",\n        \"lastName\": \"Baker\"\n    }\n}\nINFO  [Martini] The value of id #1: [id:1, firstName:Jack, lastName:Baker]\n...\n```\n\nIf this is the first service you ran on a fresh instance of Martini, you will see the following logs before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens because the service initializes required `examples` package dependencies. This is a one-time setup and will not appear again if the dependencies have been initialized already.",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "defaultValue": 1
+        }
+    ],
+    "output": [
+        {
+            "name": "name",
+            "type": "model",
+            "reference": "sqlServices.model.Name"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "comments": "In this step, we will use the gloop( String, Object ) Groovy extension to execute the InvokeSingleSelect Gloop service\nfrom sqlServices.invoke.single and set the output name model.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "names",
+                            "type": "object"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "'sqlServices.invoke.single.InvokeSingleNameSelect'.gloop( id ).get( \"name\" )",
+                    "evaluate": true,
+                    "to": [
+                        "names"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "names.id",
+                    "evaluate": true,
+                    "to": [
+                        "name",
+                        "id"
+                    ],
+                    "priority": 1
+                },
+                {
+                    "type": "set",
+                    "expression": "names.firstName",
+                    "evaluate": true,
+                    "to": [
+                        "name",
+                        "firstName"
+                    ],
+                    "priority": 1
+                },
+                {
+                    "type": "set",
+                    "expression": "names.lastName",
+                    "evaluate": true,
+                    "to": [
+                        "name",
+                        "lastName"
+                    ],
+                    "priority": 1
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we log the found record in the database.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The value of id #${id}: ${name.getValue( Map )}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

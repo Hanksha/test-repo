@@ -1,0 +1,214 @@
+{
+    "comments": "# [Writing to Flat Files](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/flat-file/)\n\nIn this example, we're going to demonstrate how you can easily write to a flat file using a [flat file descriptor's](https://docs.torocloud.com/martini/latest/developing/gloop/service/flat-file-descriptors/) generated service.\n\nThe data we ought to write is declared in a [map step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/) at line 5. Each entry is then mapped to the cursor to signal the writing of data to the flat file.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nAfter running this service, the `resources/employees.csv` file should now have the following content:\n\n```\nJames,Smith\nThomas,Miller\nSarah,Clark\nElizabeth,Taylor\n```\n",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. If you wish to check the data written to employee.csv, head over to resources folder, right-click the file and select Open in Text Editor, or run ReadFile.gloop."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Opens the OutputStream to be used to write to employees CSV",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "flatFileData",
+                                    "type": "object",
+                                    "objectClassName": "java.io.OutputStream"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "packageOutputStream",
+                    "parameters": [
+                        "io.toro.gloop.engine.GloopExecutionContext",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "java.lang.String[]"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/employees.csv",
+                            "to": [
+                                "file"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Opens the output cursor to be read. The cursor produced is based on the OutputStream from the CSV file on step 3",
+                    "name": "flatfile.util.OpenEmployeesCursor",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "EmployeesCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "reference": "flatfile.model.Employee"
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "flatFileData"
+                            ],
+                            "to": [
+                                "flatFileData"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Output",
+                            "to": [
+                                "type"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "EmployeesCursor"
+                            ],
+                            "to": [
+                                "EmployeesCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comments": "In this step, we declare the employee array model with a set of first and last names",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "employees",
+                                    "type": "model",
+                                    "array": true,
+                                    "reference": "flatfile.model.Employee",
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "[\n\temployees {\n\t\tfirstName \"James\"\n\t\tlastName \"Smith\"\n\t},\n\temployees {\n\t\tfirstName \"Thomas\"\n\t\tlastName \"Miller\"\n\t},\n\temployees {\n\t\tfirstName \"Sarah\"\n\t\tlastName \"Clark\"\n\t},\n\temployees {\n\t\tfirstName \"Elizabeth\"\n\t\tlastName \"Taylor\"\n\t}\n]",
+                            "evaluate": true,
+                            "to": [
+                                "employees"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "In this step, we iterate over the employees array and will populate another array `(EmployeesCursor)` at the same time.",
+                    "input": {
+                        "path": [
+                            "employees"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "EmployeesCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "comments": "We map the employee model to the EmployeesCursor array",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "employees"
+                                    ],
+                                    "to": [
+                                        "EmployeesCursor"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Finished writing to file. If you wish to check the data written to employee.csv, head over to resources folder, right-click the file and select Open in Text Editor, or run ReadFile.gloop. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

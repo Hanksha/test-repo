@@ -1,0 +1,123 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be used as the output array of an [iterate](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/) or [while](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/) step for inserting new entries in the `restaurants` column family.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                },
+                {
+                    "name": "$batchSize",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "outputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "restaurant_id",
+                    "type": "integer"
+                },
+                {
+                    "name": "address",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "building"
+                        },
+                        {
+                            "name": "coord",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "tupleEntry0",
+                                    "type": "bigDecimal"
+                                },
+                                {
+                                    "name": "tupleEntry1",
+                                    "type": "bigDecimal"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "street"
+                        },
+                        {
+                            "name": "zipcode",
+                            "type": "integer"
+                        }
+                    ]
+                },
+                {
+                    "name": "borough"
+                },
+                {
+                    "name": "cuisine"
+                },
+                {
+                    "name": "grades",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "date",
+                            "type": "date"
+                        },
+                        {
+                            "name": "grade"
+                        },
+                        {
+                            "name": "score",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "INSERT_BATCH",
+    "query": "INSERT INTO restaurants (\n    name,\n    restaurant_id,\n    address,\n    borough,\n    cuisine,\n    grades\n)\nVALUES (\n    :name,\n    :restaurant_id,\n    :address,\n    :borough,\n    :cuisine,\n    :grades\n)",
+    "keyspace": "restaurants"
+}

@@ -1,0 +1,212 @@
+{
+    "comments": "## Inserting a Single Document Using `insertOne`\n\nThis Gloop service demonstrates how to query `insertOne` to insert a single document to a MongoDB collection. The MongoDB service (line 4) used in this Gloop service holds the query to insert a single document to the `inventory` collection.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to populate the `inventoryItem` model to be sent as an input to the query to be performed. The input model is already populated with values; changing this value is optional but possible.\n\n## Expected Output\n\nIf the query is successfully executed, the values provided in the `inventoryItem` input model will be inserted in the `inventory` collection. This service will also return a Gloop model called `output` that contains the `id` of the inserted record. This will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Inserted one document:\n{\n    \"_id\": \"5d283115d4fdc16fafe7ef48\",\n    \"item\": \"Item A\",\n    \"qty\": 10,\n    \"status\": \"available\",\n    \"size\": {\n        \"h\": 8.0,\n        \"w\": 11.0,\n        \"uom\": \"inches\"\n    },\n    \"tags\": [\n        \"small\",\n        \"red\"\n    ]\n}\n```",
+    "input": [
+        {
+            "name": "inventoryItem",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "item",
+                    "defaultValue": "Item A"
+                },
+                {
+                    "name": "qty",
+                    "type": "integer",
+                    "defaultValue": 10
+                },
+                {
+                    "name": "status",
+                    "defaultValue": "available"
+                },
+                {
+                    "name": "size",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "h",
+                            "type": "double",
+                            "defaultValue": 8.0
+                        },
+                        {
+                            "name": "w",
+                            "type": "double",
+                            "defaultValue": 11.0
+                        },
+                        {
+                            "name": "uom",
+                            "defaultValue": "in"
+                        }
+                    ]
+                },
+                {
+                    "name": "tags",
+                    "array": true,
+                    "defaultValue": [
+                        "black",
+                        "small"
+                    ]
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "insertedId"
+                },
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Call the MongoDB service that inserts the inventory item, and map the input of this service to this service.",
+                    "name": "bigData.mongoDb.services.insert.InsertOne",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "insertedDocument",
+                                    "type": "model",
+                                    "comments": "This is the same model that was inserted, except it has a new `_id` property, which is the id of the document in MongoDB. If this value was populated prior to inserting, this is the value that will be used instead",
+                                    "allowExtraProperties": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "_id"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "inventoryItem"
+                            ],
+                            "to": [
+                                "input",
+                                "insert"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "insertedDocument"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "output",
+                                "_id"
+                            ],
+                            "to": [
+                                "output",
+                                "insertedId"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check if MongoDB responded with an id, if it does, it means we have successfully inserted a single record to the MongoDB database.",
+                    "expression": "org.apache.commons.lang3.StringUtils.isEmpty( output?.insertedId )",
+                    "children": [
+                        {
+                            "label": "true",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "The insert service did not return an id. Insert failed!",
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "label": "false",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Inserted one document:\\n${insertedDocument.asJson( false, false )}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

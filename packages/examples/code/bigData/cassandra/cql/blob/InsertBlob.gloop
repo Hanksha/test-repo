@@ -1,0 +1,82 @@
+{
+    "type": "cassandraQl",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which inserts a new row in the `blob_example` column family, with values specified through the provided parameters.",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$keyspace"
+                },
+                {
+                    "name": "$consistencyLevel",
+                    "choices": [
+                        "ANY",
+                        "ONE",
+                        "TWO",
+                        "THREE",
+                        "QUORUM",
+                        "ALL",
+                        "LOCAL_QUORUM",
+                        "EACH_QUORUM",
+                        "SERIAL",
+                        "LOCAL_SERIAL",
+                        "LOCAL_ONE"
+                    ]
+                },
+                {
+                    "name": "$serialConsistencyLevel",
+                    "choices": [
+                        "SERIAL",
+                        "LOCAL_SERIAL"
+                    ]
+                },
+                {
+                    "name": "$idempotent",
+                    "type": "boolean"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                },
+                {
+                    "name": "blob",
+                    "type": "byte[]"
+                },
+                {
+                    "name": "blob2",
+                    "type": "byte[]",
+                    "array": true
+                },
+                {
+                    "name": "blob3",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "value",
+                            "type": "byte[]"
+                        }
+                    ]
+                },
+                {
+                    "name": "blob4",
+                    "type": "byte[]",
+                    "array": true
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "cassandra-example",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO blob_example (\n    id,\n    blob,\n    blob2,\n    blob3,\n    blob4\n)\nVALUES (\n    :id,\n    :blob,\n    :blob2,\n    :blob3,\n    :blob4\n)",
+    "keyspace": "cassandra_examples"
+}

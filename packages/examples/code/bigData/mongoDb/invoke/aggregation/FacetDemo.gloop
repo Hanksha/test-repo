@@ -1,0 +1,130 @@
+{
+    "comments": "## Processing Multiple Aggregation Pipelines in a Single Aggregation Stage Using `$facet`\n\nThis Gloop service demonstrates a simple use case of `$facet`. The MongoDB service (line 5) uses multiple aggregation operators to achieve the the expected output.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nThis service does not require any input. You can [run the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) as is.\n\n#Expected Output\n\nA JSON will be displayed will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) after running this service. It displays what the facet query returned:\n\n```\nINFO  [Martini] Using the restaurant collection. This example will create a faceted query that contains multiple aggregation pipelines within a single stage.\nINFO  [Martini] \n{\n    \"results\": {\n        \"categorizedByAverageScore\": [\n            {\n                \"_id\": {\n                    \"min\": 2.87,\n                    \"max\": 8.25\n                },\n                \"count\": 64\n            },\n            {\n                \"_id\": {\n                    \"min\": 8.25,\n                    \"max\": 10.0\n                },\n                \"count\": 63\n            },\n            {\n                \"_id\": {\n                    \"min\": 10.0,\n                    \"max\": 11.5\n                },\n                \"count\": 77\n            },\n            {\n                \"_id\": {\n                    \"min\": 11.5,\n                    \"max\": 15.4\n                },\n                \"count\": 65\n            },\n            {\n                \"_id\": {\n                    \"min\": 15.4,\n                    \"max\": 31.6\n                },\n                \"count\": 40\n            }\n        ],\n        \"restaurantCountByBorough\": [\n            {\n                \"_id\": \"Staten Island\",\n                \"count\": 158\n            },\n            {\n                \"_id\": \"Manhattan\",\n                \"count\": 1883\n            },\n            {\n                \"_id\": \"Queens\",\n                \"count\": 738\n            },\n            {\n                \"_id\": \"Brooklyn\",\n                \"count\": 684\n            },\n            {\n                \"_id\": \"Bronx\",\n                \"count\": 309\n            }\n        ]\n    }\n}\n```",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log in the console what this service is about to do",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Using the restaurant collection. This example will create a faceted query that contains multiple aggregation pipelines within a single stage.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This service calls the Facet query that contains multiple aggregation pipelines in a single stage",
+                    "name": "bigData.mongoDb.services.aggregation.Facet",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterate over the aggregation results, and display it in the console",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"\\n${results.asJson()}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

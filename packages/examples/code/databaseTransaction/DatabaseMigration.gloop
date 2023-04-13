@@ -1,0 +1,443 @@
+{
+    "comments": "# [Using Database XA Transactions](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/database-xa-transactions)\n\nIn this service, we are going to migrate data from `dataSource1.names` into `dataSource2.names`. If the migration is successful, then the inserted data will be deleted from `dataSource1`. If it fails, changes made will be rolled back. The latter is possible because of the use of [database XA transactions](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/configuring/properties/#xa-transactions) in this example.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\n### Properties\n\nIn the [JSON output](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs) tab, you will see a response similar to the following:\n\n```\n{\n    \"result\": {\n        \"message\": \"Migration Successful\",\n        \"persons\": [\n            {\n                \"ID\": 1,\n                \"FIRST_NAME\": \"Jack\",\n                \"LAST_NAME\": \"Baker\"\n            },\n            {\n                \"ID\": 2,\n                \"FIRST_NAME\": \"Marguirite\",\n                \"LAST_NAME\": \"Baker\"\n            },\n            {\n                \"ID\": 3,\n                \"FIRST_NAME\": \"Eveline\",\n                \"LAST_NAME\": \"Baker\"\n            },\n            {\n                \"ID\": 4,\n                \"FIRST_NAME\": \"Lucas\",\n                \"LAST_NAME\": \"Baker\"\n            },\n            {\n                \"ID\": 5,\n                \"FIRST_NAME\": \"Juan\",\n                \"LAST_NAME\": \"Dela Cruz\"\n            },\n            {\n                \"ID\": 6,\n                \"FIRST_NAME\": \"Billy\",\n                \"LAST_NAME\": \"Joe\"\n            },\n            {\n                \"ID\": 7,\n                \"FIRST_NAME\": \"Bambi\",\n                \"LAST_NAME\": \"Bambini\"\n            },\n            {\n                \"ID\": 8,\n                \"FIRST_NAME\": \"Juan\",\n                \"LAST_NAME\": \"Dela Cruz\"\n            },\n            {\n                \"ID\": 9,\n                \"FIRST_NAME\": \"Billy\",\n                \"LAST_NAME\": \"Joe\"\n            },\n            {\n                \"ID\": 10,\n                \"FIRST_NAME\": \"Bambi\",\n                \"LAST_NAME\": \"Bambini\"\n            }\n        ]\n    },\n    \"output\": {\n        \"message\": \"Migration Successful.\"\n    }\n}\n```\n\n### Logs\n\nIn the [Console view](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view), you will see messages similar to the following:\n\n```\nINFO  [Martini] Enabling xa for data sources [example_db, example_xa_db_migrated]\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [Martini] Starting data migration...\nINFO  [Martini] Successfully inserted a row to example_xa_db_migrated\nINFO  [Martini] Successfully deleted a row from example_db\nINFO  [Martini] Successfully inserted a row to example_xa_db_migrated\nINFO  [Martini] Successfully deleted a row from example_db\nINFO  [Martini] Successfully inserted a row to example_xa_db_migrated\nINFO  [Martini] Successfully deleted a row from example_db\nINFO  [Martini] Successfully inserted a row to example_xa_db_migrated\nINFO  [Martini] Successfully deleted a row from example_db\nINFO  [Martini] Successfully inserted a row to example_xa_db_migrated\nINFO  [Martini] Successfully deleted a row from example_db\nINFO  [Martini] Successfully migrated data from example_db to example_xa_db_migrated\nINFO  [Martini] Disabling xa for data sources [example_db, example_xa_db_migrated]\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\n```",
+    "output": [
+        {
+            "name": "result",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                },
+                {
+                    "name": "persons",
+                    "type": "model",
+                    "array": true
+                }
+            ]
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Migration Successful. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we declare and define a value for the `dataSource1` and `dataSource2` property.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "dataSource1"
+                        },
+                        {
+                            "name": "dataSource2"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "example_db",
+                    "to": [
+                        "dataSource1"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "example_xa_db_migrated",
+                    "to": [
+                        "dataSource2"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we are using a service that will ensure that xa transactions are enabled for data source 1 and 2",
+            "name": "databaseTransaction.util.EnableDatabaseXA"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will start a new JTA transaction with the Martini transaction manager.",
+            "className": "io.toro.martini.SqlMethods",
+            "methodName": "startTransaction",
+            "parameters": [
+                "boolean",
+                "int",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ]
+        },
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH_FINALLY",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Starting data migration...",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will select all of the records in datasource 1",
+                    "name": "sqlServices.sql.multiple.SelectMultipleNames",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "selectMultipleNamesInputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "ID",
+                                            "type": "integer",
+                                            "required": true,
+                                            "allowNull": false
+                                        },
+                                        {
+                                            "name": "FIRST_NAME",
+                                            "required": true,
+                                            "allowNull": false
+                                        },
+                                        {
+                                            "name": "LAST_NAME",
+                                            "required": true,
+                                            "allowNull": false
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "dataSource1"
+                            ],
+                            "to": [
+                                "selectMultipleNamesInput",
+                                "$martiniConnectionPool"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "selectMultipleNamesInputCursor"
+                            ],
+                            "to": [
+                                "selectMultipleNamesInputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "This step will iterate over selectMultipleNamesOutputCursor property",
+                    "input": {
+                        "path": [
+                            "selectMultipleNamesInputCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeGloop",
+                            "comments": "This step will insert the person name to datasource 2",
+                            "name": "sqlServices.sql.single.InsertSingleName",
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "dataSource2"
+                                    ],
+                                    "to": [
+                                        "insertSingleNameInput",
+                                        "$martiniConnectionPool"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "selectMultipleNamesInputCursor",
+                                        "FIRST_NAME"
+                                    ],
+                                    "to": [
+                                        "insertSingleNameInput",
+                                        "firstName"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "selectMultipleNamesInputCursor",
+                                        "LAST_NAME"
+                                    ],
+                                    "to": [
+                                        "insertSingleNameInput",
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Send an info message to the underlying log engine",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Successfully inserted a row to ${dataSource2}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeGloop",
+                            "comments": "This step will delete the person name in datasource 1.",
+                            "name": "sqlServices.sql.single.DeleteSingleName",
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "dataSource1"
+                                    ],
+                                    "to": [
+                                        "deleteSingleNameInput",
+                                        "$martiniConnectionPool"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "selectMultipleNamesInputCursor",
+                                        "ID"
+                                    ],
+                                    "to": [
+                                        "deleteSingleNameInput",
+                                        "id"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Send an info message to the underlying log engine",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"Successfully deleted a row from ${dataSource1}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This step will select all of the records in datasource 2",
+                    "name": "sqlServices.sql.multiple.SelectMultipleNames",
+                    "inputs": [
+                        {
+                            "from": [
+                                "dataSource2"
+                            ],
+                            "to": [
+                                "selectMultipleNamesInput",
+                                "$martiniConnectionPool"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "type": "set",
+                            "expression": "Migration Successful",
+                            "to": [
+                                "result",
+                                "message"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "selectMultipleNamesInputCursor"
+                            ],
+                            "to": [
+                                "result",
+                                "persons"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Successfully migrated data from ${dataSource1} to ${dataSource2}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "In this step, we are using a service that will populate dataSource1 with dataSource2 data",
+                    "name": "databaseTransaction.util.PopulateDatasource",
+                    "inputs": [
+                        {
+                            "from": [
+                                "dataSource1"
+                            ],
+                            "to": [
+                                "toDataSource"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "dataSource2"
+                            ],
+                            "to": [
+                                "fromDataSource"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will commit the current JTA transaction",
+                    "className": "io.toro.martini.SqlMethods",
+                    "methodName": "commitTransaction"
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "If there was an error, roll back the current JTA transaction",
+                    "className": "io.toro.martini.SqlMethods",
+                    "methodName": "rollbackTransaction"
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"Migration failed, rolling back transaction (${$gloopException.message})\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Migration failed, rolling back transaction (${$gloopException.message})\"",
+                            "evaluate": true,
+                            "to": [
+                                "result",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "finally": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Re-initializing datasources...",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "sqlServices.conf.ReinitializeDatasources"
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Disable xa transaction for data source 1 and 2",
+                    "name": "databaseTransaction.util.DisableDatabaseXA"
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Service has finished migrating datasource1 to datasource2. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

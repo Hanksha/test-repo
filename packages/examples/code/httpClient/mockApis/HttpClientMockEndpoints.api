@@ -1,0 +1,115 @@
+{
+    "info": {
+        "title": "Mock API",
+        "description": "This [RESTful API made using Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/) exposes three [operations](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/editor/operations/#operations).\n\nFor example purposes, we'll be generating [Gloop services that make HTTP calls to endpoints](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/http-client/) exposed by this API.",
+        "license": {
+            "name": "W3C"
+        },
+        "version": "1.0-SNAPSHOT"
+    },
+    "basePath": "/sample/mock-api",
+    "paths": {
+        "/weather/current": {
+            "get": {
+                "tags": [
+                    "HTTP Client"
+                ],
+                "summary": "Generate Current Weather",
+                "description": "Generates a mock current weather report.",
+                "produces": [
+                    "application/json"
+                ],
+                "externalDocumentation": {
+                    "url": "http://example.com"
+                },
+                "parameters": [
+                    {
+                        "name": "city",
+                        "type": "QUERY"
+                    },
+                    {
+                        "name": "country",
+                        "type": "QUERY"
+                    }
+                ],
+                "responses": {
+                    "-1": {
+                        "body": "getCurrentWeatherOutput",
+                        "description": "Gloop model output containing the response of this Gloop service"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "httpClient.mockApis.weather.GenerateCurrentWeather",
+                "responseCodeField": "responseCode"
+            }
+        },
+        "/post": {
+            "post": {
+                "tags": [
+                    "HTTP Client"
+                ],
+                "summary": "Return Post Data",
+                "produces": [
+                    "application/json"
+                ],
+                "externalDocumentation": {
+                    "url": "http://example.com"
+                },
+                "responses": {
+                    "-1": {
+                        "body": "postHelloWorldOutput",
+                        "description": "The request details"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "httpClient.mockApis.postData.ReturnPostData",
+                "responseCodeField": "responseCode"
+            }
+        },
+        "/forecast/{city}/{country}": {
+            "get": {
+                "tags": [
+                    "HTTP Client"
+                ],
+                "summary": "Generate Weather Forecast",
+                "description": "Generates a random weather forecast.",
+                "produces": [
+                    "application/json"
+                ],
+                "externalDocumentation": {
+                    "url": "http://example.com"
+                },
+                "parameters": [
+                    {
+                        "name": "city",
+                        "type": "PATH"
+                    },
+                    {
+                        "name": "country",
+                        "type": "PATH"
+                    }
+                ],
+                "responses": {
+                    "-1": {
+                        "body": "getWeatherForecastOutput",
+                        "description": "Gloop model output containing the response of this Gloop service"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "httpClient.mockApis.weather.GenerateWeatherForecast",
+                "responseCodeField": "responseCode"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "HTTP Client",
+            "externalDocumentation": {
+                "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/http-client/"
+            }
+        }
+    ],
+    "externalDocumentation": {
+        "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/http-client/"
+    }
+}

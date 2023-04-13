@@ -1,0 +1,175 @@
+{
+    "comments": "# [Defining the Value of a Gloop Date Property from a Date String](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/date-manipulation)\n\nIn this service, we will show how to parse and format date strings in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nTo demonstrate date parsing, we will be mapping a string representation of a date to a date property. As you will notice in line 1, the string is written in a [format supported by the receiving date property](https://docs.torocloud.com/martini/latest/developing/gloop/model/object-type/#date-formats).\n\nThis service also shows how to use the `DateFormatUtils.format(Date, String)` method to format the string representation of a given date.\n\n## Invoking the Service\n\nThis service can be [run like any other Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Upon running the service in Martini, you will have the option to set the `day`, `month`, and `year` input properties. For your convenience, you can also leave them to their default values.\n\n## Expected Output\n\n### Properties\n\nThis service returns an `output` model with a property named `formattedDateString`. `output.formattedDateString`'s value will be the string representation of the `date` property in `MMMM dd, yyyy` format.\n\nFor example, if `day` is set to `29`; `month` to `3`; and `year` to `1997`, then `output.formattedDateString`'s value will be `March 29, 1997`.\n\n### Logs\n\nThe following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Here's the custom date: 29-March-1997\nINFO  [Martini] The custom date converted to Gloop Date: Sat Mar 29 00:00:00 PHT 1997\n...\n```",
+    "input": [
+        {
+            "name": "day",
+            "type": "integer",
+            "defaultValue": 29,
+            "min": 1,
+            "max": 31
+        },
+        {
+            "name": "month",
+            "defaultValue": "March"
+        },
+        {
+            "name": "year",
+            "type": "integer",
+            "defaultValue": 1997
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "formattedDateString"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we define two property and set a value using set expression.\n\nWe'll define a certain format (day-month-year) to be parsed, and set it as an expression to the GloopDate object. Since the formats ‘dd-MM-yy’ and ‘dd-MMM-yy’ is not in the GloopDate default formats, we’ll define it in the Date Formats property so we can parse it.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "date",
+                            "type": "date",
+                            "dateFormats": [
+                                "dd-MM-yy",
+                                "dd-MMM-yy"
+                            ]
+                        },
+                        {
+                            "name": "customDate"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "\"${day}-${month}-${year}\"",
+                    "evaluate": true,
+                    "to": [
+                        "customDate"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "formattedDateString"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "customDate",
+                    "evaluate": true,
+                    "to": [
+                        "date"
+                    ],
+                    "priority": 1
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we log the value of the custom date in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Here's the custom date: ${customDate}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "In this step, we log the converted custom date format to Gloop date to the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The custom date converted to Gloop Date: ${date}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We’ll convert the Gloop Date object by using DateFormatUtils#format( Date, String ) method so we could specify the pattern we want during the conversion.",
+            "className": "org.apache.commons.lang3.time.DateFormatUtils",
+            "methodName": "format",
+            "parameters": [
+                "java.util.Date",
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "date"
+                    ],
+                    "to": [
+                        "date"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "MMMM dd, yyyy",
+                    "to": [
+                        "pattern"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output",
+                        "formattedDateString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

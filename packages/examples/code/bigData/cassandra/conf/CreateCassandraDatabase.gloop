@@ -1,0 +1,23 @@
+{
+    "comments": "This service executes [groovy services](https://docs.torocloud.com/martini/latest/developing/services/groovy/) from the `bigData/cassandra/conf/CassandraConfiguration.groovy` class. The methods creates the Cassandra keyspaces, User-Defined Types, and Column Families to be used in this package.",
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Creates the `restaurants` and `cassandra_examples` keyspaces",
+            "className": "bigData.cassandra.conf.CassandraConfiguration",
+            "methodName": "createKeyspace"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Creates the `restaurants` column family, `address` and `grade` User-Defined Types for the `restaurants` keyspace",
+            "className": "bigData.cassandra.conf.CassandraConfiguration",
+            "methodName": "createRestaurantTable"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Creates all the tables and UDTs needed for the `cassandra_examples` keyspace",
+            "className": "bigData.cassandra.conf.CassandraConfiguration",
+            "methodName": "createExamplesTables"
+        }
+    ]
+}

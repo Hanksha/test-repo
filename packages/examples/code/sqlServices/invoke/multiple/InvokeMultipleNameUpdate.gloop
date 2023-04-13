@@ -1,0 +1,173 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Perform a Batch Update](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) updates records from the `NAME` table of the `example_db` database. It uses data provided through the `name` array for the update.\n\nThis service invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database. It uses the [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) returned by said SQL service to write entries to the table.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nAn array of `name`s is required for this service. Furthermore, their `id`s must be existing in the `NAMES` table.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] We are now going to start iterating over the name array property and map it to the output cursor.\nINFO  [Martini] Updating entry with id 1\nINFO  [Martini] Updating entry with id 2\nINFO  [Martini] Updating entry with id 3\nINFO  [Martini] Updating entry with id 4\n...\n```\n\nIf this is the first service to be invoked in a newly installed Martini instance, the following logs would be shown before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens due to Martini setting up required dependencies. This only happens once. If the dependencies are already set up, then you won't be seeing these anymore.",
+    "input": [
+        {
+            "name": "name",
+            "type": "model",
+            "array": true,
+            "reference": "sqlServices.model.Name"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "util.CheckDependency"
+        },
+        {
+            "comments": "Set the default value for names if none provided",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "name {\n\tid 1\n\tfirstName \"Jack\"\n\tlastName \"Morrison\"\n}\nname {\n\tid 2\n\tfirstName \"Jesse\"\n\tlastName \"Mcree\"\n}\nname {\n\tid 3\n\tfirstName \"Angela\"\n\tlastName \"Ziegler\"\n}\nname {\n\tid 4\n\tfirstName \"Hana\"\n\tlastName \"Song\"\n}\n",
+                    "evaluate": true,
+                    "to": [
+                        "name"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Invoke the sql service that produces the cursor.",
+            "name": "sqlServices.sql.multiple.UpdateMultipleNames",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "updateMultipleNamesOutputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "firstName"
+                                },
+                                {
+                                    "name": "lastName"
+                                },
+                                {
+                                    "name": "id",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "1000",
+                    "to": [
+                        "updateMultipleNamesInput",
+                        "$batchSize"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "updateMultipleNamesOutputCursor"
+                    ],
+                    "to": [
+                        "updateMultipleNamesOutputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log that we are about to start iterating through the names and map it to the output cursor from the previous step.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "We are now going to start iterating over the name array property and map it to the output cursor.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterate through the name model array as input array and the generated cursor as output array",
+            "input": {
+                "path": [
+                    "name"
+                ]
+            },
+            "output": {
+                "path": [
+                    "updateMultipleNamesOutputCursor"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Updating entry with id ${name.id}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "comments": "Map the properties of the name model to the cursor",
+                    "lines": [
+                        {
+                            "from": [
+                                "name"
+                            ],
+                            "to": [
+                                "updateMultipleNamesOutputCursor"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

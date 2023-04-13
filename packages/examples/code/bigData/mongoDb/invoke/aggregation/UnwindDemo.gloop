@@ -1,0 +1,211 @@
+{
+    "comments": "## Deconstructing an array using `$unwind`\n\nThis Gloop service demonstrates a simple use case of using `$unwind` to deconstruct an array from a MongoDB document, making them an individual record of their own. The MongoDB service (line 6) uses an aggregation query with different changes, including `$unwind` to achieve the expected output\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nYou can [run the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) directly as it does not accept any input.\n\n## Expected Output\n\nIf the query is successfully executed, it will display the result of _unwinding_ the `grades` array field from the restaurant collection and will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) :\n\n```\nINFO  [Martini] Consider a document with grades array. This example uses $unwind to output each document in the array:\n{\n    \"result\": {\n        \"grades\": [\n            {\n                \"date\": \"2014-03-03T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 2\n            },\n            {\n                \"date\": \"2013-09-11T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 6\n            },\n            {\n                \"date\": \"2013-01-24T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 10\n            },\n            {\n                \"date\": \"2011-11-23T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 9\n            },\n            {\n                \"date\": \"2011-03-10T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 14\n            }\n        ],\n        \"name\": \"Morris Park Bake Shop\"\n    }\n}\nINFO  [Martini] After unwinding, the array is deconstructed to output a document for each element\nINFO  [Martini] {\n    \"results\": {\n        \"grades\": {\n            \"date\": \"2014-03-03T08:00:00+0800\",\n            \"grade\": \"A\",\n            \"score\": 2\n        },\n        \"name\": \"Morris Park Bake Shop\"\n    }\n}\nINFO  [Martini] {\n    \"results\": {\n        \"grades\": {\n            \"date\": \"2013-09-11T08:00:00+0800\",\n            \"grade\": \"A\",\n            \"score\": 6\n        },\n        \"name\": \"Morris Park Bake Shop\"\n    }\n}\n16/07/19 10:45:53.612 INFO  [Martini] {\n    \"results\": {\n        \"grades\": {\n            \"date\": \"2013-01-24T08:00:00+0800\",\n            \"grade\": \"A\",\n            \"score\": 10\n        },\n        \"name\": \"Morris Park Bake Shop\"\n    }\n}\n16/07/19 10:45:53.614 INFO  [Martini] {\n    \"results\": {\n        \"grades\": {\n            \"date\": \"2011-11-23T08:00:00+0800\",\n            \"grade\": \"A\",\n            \"score\": 9\n        },\n        \"name\": \"Morris Park Bake Shop\"\n    }\n}\n16/07/19 10:45:53.615 INFO  [Martini] {\n    \"results\": {\n        \"grades\": {\n            \"date\": \"2011-03-10T08:00:00+0800\",\n            \"grade\": \"B\",\n            \"score\": 14\n        },\n        \"name\": \"Morris Park Bake Shop\"\n    }\n}\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "itemCount",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Pull records from the restaurant collection to be used to demonstrate the $unwind aggregation operator",
+                    "name": "bigData.mongoDb.services.util.GetGrades",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Display the records from line 4",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Consider a document with grades array. This example uses \\$unwind to output each document in the array:\\n${result.asJson()}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This MongoDB service breaks down the grades array field into separate records",
+                    "name": "bigData.mongoDb.services.aggregation.Unwind",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "result?.name",
+                            "evaluate": true,
+                            "to": [
+                                "input",
+                                "name"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log in the console the result of 'unwinding' the grades array field",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "After unwinding, the array is deconstructed to output a document for each element",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterate over the results and display each record in the console",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "from": [
+                                        "$gloopCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "itemCount"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "results.asJson()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

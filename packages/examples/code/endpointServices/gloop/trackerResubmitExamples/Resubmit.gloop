@@ -1,0 +1,175 @@
+{
+    "comments": "This [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) will add a property `Resubmit Count` to the provided `document` if it does not exist yet, and increment said property's value.\n\nThis service is not meant to be invoked alone; it is intended to be used as the `TrackerResubmitExample` endpoint's service.\n\nThe inputs required by this service will be provided by the endpoint when it gets triggered.",
+    "input": [
+        {
+            "name": "document",
+            "type": "model",
+            "reference": "io.toro.martini.tracker.Document"
+        },
+        {
+            "name": "documentState",
+            "type": "model",
+            "reference": "io.toro.martini.tracker.DocumentState"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Send an info message to the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"endpoint called for document ${document.internalId} - ${documentState.stateName}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Find property resubmit count",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "dp",
+                            "type": "model",
+                            "reference": "io.toro.martini.tracker.DocumentProperty"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.ArrayMethods",
+            "methodName": "find",
+            "parameters": [
+                "java.lang.Iterable",
+                "groovy.lang.Closure"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "document",
+                        "documentProperties"
+                    ],
+                    "to": [
+                        "list"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "{ d -> d.propertyKey == 'Resubmit Count'}",
+                    "evaluate": true,
+                    "to": [
+                        "findClosure"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "dp"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "Validate if property key is exist",
+            "expression": "dp?.propertyValue == null",
+            "children": [
+                {
+                    "label": "true",
+                    "comments": "In this step, we define a value to the document property model child.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Resubmit Count",
+                            "to": [
+                                "dp",
+                                "propertyKey"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "0",
+                            "to": [
+                                "dp",
+                                "propertyValue"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "increment resubmit count",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "count",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "1 + dp.propertyValue.toInteger() ",
+                    "evaluate": true,
+                    "to": [
+                        "count"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will add the resubmit count in the tracker.",
+            "className": "io.toro.martini.TrackerMethods",
+            "methodName": "addDocumentProperty",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "document",
+                        "internalId"
+                    ],
+                    "to": [
+                        "internalId"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "Resubmit Count",
+                    "to": [
+                        "propertyName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "\"${count}\"",
+                    "evaluate": true,
+                    "to": [
+                        "propertyValue"
+                    ]
+                }
+            ]
+        }
+    ]
+}

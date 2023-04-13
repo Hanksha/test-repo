@@ -1,0 +1,177 @@
+{
+    "comments": "# [Creating a `Reader` from a String](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation/)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we'll demonstrate how you can convert a string property to a `java.io.Reader` object.\n\n## Invoking the Service\n\nUpon [running the Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked by Martini to provide values for the following input properties:\n\n- `stringToConvert` - the string to convert\n- `skip` - how many characters to skip\n\nTo save time, you can just use the default values already set for the above properties.\n\n- `stringToConvert` = `Martini`\n- `skip` = 3\n\n## Expected Output\n\nThe output of the service depends on the provided inputs. If the input properties were left to their default values, the [return value of the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs) would look something like this in JSON:\n\n```\n{\n    \"output\": {\n        \"unreadString\": \"ini Desktop\"\n    }\n}\n```\n\nAside from this, the following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Converting string: Martini Desktop\nINFO  [Martini] Martini Desktop has been mapped to a Gloop object with Class name: Reader and is now a Reader object\nINFO  [Martini] We'll skip 3 characters.\nINFO  [Martini] Reader now has this as first character: t\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "stringToConvert",
+            "defaultValue": "Martini Desktop",
+            "comments": "The string to be converted."
+        },
+        {
+            "name": "skip",
+            "type": "long",
+            "defaultValue": 3,
+            "comments": "Number of characters to skip from the input string."
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "unreadString"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Converting string: ${stringToConvert}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "We'll map the input string variable stringToConvert to the declared Reader object named reader.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "reader",
+                            "type": "object",
+                            "objectClassName": "Reader"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "from": [
+                        "stringToConvert"
+                    ],
+                    "to": [
+                        "reader"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${stringToConvert} has been mapped to a Gloop object with Class name: Reader and is now a Reader object\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We will log the number of characters that we will skip in the reader in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"We'll skip ${reader.skip( skip )} characters.\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We will log the first character from the Reader object in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Reader now has this as first character: ${(char) reader.read()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "We’ll then map what's left from the Reader object to the output variable named unreadString.",
+            "lines": [
+                {
+                    "from": [
+                        "reader"
+                    ],
+                    "to": [
+                        "output",
+                        "unreadString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This last step is not required since Gloop can close streams once the service is terminated but for best practice, we'll close the stream quietly.",
+            "className": "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+            "methodName": "closeQuietly",
+            "parameters": [
+                "java.io.Closeable"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "reader"
+                    ],
+                    "to": [
+                        "c"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

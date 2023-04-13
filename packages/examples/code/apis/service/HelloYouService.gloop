@@ -1,0 +1,81 @@
+{
+    "comments": "This service takes in a name, and returns and logs a greeting at the Martini console.\n\nFor example, if the `name` input property is set to `\"John Doe\"`, this service will return `\"Hello John Doe\"`. You should also see logs similar to this message logged in the console.\n\nThis service is also used in conjunction with [example Gloop REST and SOAP APIs](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/gloop-api/).\n\n## Invoking the Service\n\n[Run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) the service to see how it works. Before Martini runs the service for you, you will be asked to enter a value for the `name` property. You can enter any value you want, but you can also just use the property's default value.\n\n## Expected Output\n\nUpon successful execution, the `output.message` property (see service output model) will be set to something like `\"Hello John Doe\"`. You should also expect to see logs like the following in the Martini console:\n\n```\nINFO  [Martini] Hello John Doe\nINFO  [Martini] If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.\n```",
+    "input": [
+        {
+            "name": "name",
+            "defaultValue": "John Doe",
+            "minLength": 2,
+            "maxLength": 10
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Set the message property value to \"hello ${name}\"",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "\"Hello ${name}\"",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the message property value to the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "output",
+                        "message"
+                    ],
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

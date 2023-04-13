@@ -1,0 +1,262 @@
+{
+    "input": [
+        {
+            "name": "indexType"
+        },
+        {
+            "name": "indexName"
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "output",
+                                    "type": "object",
+                                    "comments": "the list indexes iterable interface",
+                                    "objectClassName": "io.toro.gloop.object.cursor.GloopCursor"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.MongoDbMethods",
+                    "methodName": "listIndexes",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "com.mongodb.client.ClientSession",
+                        "boolean",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "mongo",
+                            "to": [
+                                "connectionName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "examples",
+                            "to": [
+                                "databaseName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "cursorValues",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                },
+                                {
+                                    "name": "indexNames",
+                                    "array": true
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.GloopMethods",
+                    "methodName": "cursorToArray",
+                    "parameters": [
+                        "io.toro.gloop.object.cursor.GloopCursor"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "cursor"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "cursorValues"
+                            ],
+                            "to": [
+                                "cursorValues"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "cursorValues"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "indexNames"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "cursorValues.name",
+                                    "evaluate": true,
+                                    "to": [
+                                        "indexNames"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "indexExists",
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    ],
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "indexNames.any { it.equals( indexName ) }",
+                            "evaluate": true,
+                            "to": [
+                                "indexExists"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "indexExists",
+                    "children": [
+                        {
+                            "type": "fork",
+                            "label": "false",
+                            "expression": "indexType",
+                            "children": [
+                                {
+                                    "type": "invokeGloop",
+                                    "label": "text",
+                                    "name": "bigData.mongoDb.conf.CreateTextIndex"
+                                },
+                                {
+                                    "type": "invokeGloop",
+                                    "label": "2dsphere",
+                                    "comments": "2dsphere",
+                                    "name": "bigData.mongoDb.conf.CreateSpatialIndex",
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "address.coord",
+                                            "to": [
+                                                "fieldName"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "2dsphere",
+                                            "to": [
+                                                "indexSpecs"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeGloop",
+                                    "label": "2d",
+                                    "comments": "2dsphere",
+                                    "name": "bigData.mongoDb.conf.CreateSpatialIndex",
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "address.coord",
+                                            "to": [
+                                                "fieldName"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "2d",
+                                            "to": [
+                                                "indexSpecs"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

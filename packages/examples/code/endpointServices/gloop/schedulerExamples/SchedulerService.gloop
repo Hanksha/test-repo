@@ -1,0 +1,23 @@
+{
+    "comments": "A Gloop service that sends an email to list of  configured addresses in the package properties file.\n\nThis service can be set as the service of a [Scheduler endpoint](https://docs.torocloud.com/martini/developing/endpoints/types/scheduler/).\n\nUpon running this service, you should expect log messages like below to appear in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Hello World!\n```\n\nAs long as the [Scheduler endpoint](https://docs.torocloud.com/martini/developing/endpoints/types/scheduler/) is running, you will see the log message being displayed continuously in [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view)",
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Writes Hello World! in Martini console.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Hello World!",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

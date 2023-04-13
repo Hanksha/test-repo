@@ -1,0 +1,223 @@
+{
+    "comments": "## Categorizing MongoDB documents using `$bucket`\n\nThis Gloop service demonstrates a simple use case of categorizing MongoDB documents using `$bucket`. This is example is similar with `BucketAutoDemo` except that the MongoDB query used for this service requires you to manually specify the bucket settings like the min and max boundaries, etc. The MongoDB service (line 7) uses aggregation with `$bucket` for further customization.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nThis service does not require any inputs. You can [run the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) as is.\n\n## Expected Output\n\nIf the service invoke is successful, you will see a similar log message that will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) :\n\n```\nINFO  [Martini] Using the documents below taken from the restaurant collection:\nINFO  [Martini] {\n    \"results\": {\n        \"_id\": \"5d27fda3c1461d6541a364b1\",\n        \"name\": \"Morris Park Bake Shop\",\n        \"averageScore\": 8.2\n    }\n}\nINFO  [Martini] {\n    \"results\": {\n        \"_id\": \"5d27fda3c1461d6541a364bb\",\n        \"name\": \"Wild Asia\",\n        \"averageScore\": 6.0\n    }\n}\nINFO  [Martini] {\n    \"results\": {\n        \"_id\": \"5d27fda3c1461d6541a364d0\",\n        \"name\": \"Carvel Ice Cream\",\n        \"averageScore\": 9.0\n    }\n}\nINFO  [Martini] {\n    \"results\": {\n        \"_id\": \"5d27fda3c1461d6541a364d4\",\n        \"name\": \"Happy Garden\",\n        \"averageScore\": 11.0\n    }\n}\nINFO  [Martini] {\n    \"results\": {\n        \"_id\": \"5d27fda3c1461d6541a364e6\",\n        \"name\": \"Happy Garden\",\n        \"averageScore\": 10.8\n    }\n}\nINFO  [Martini] After using $bucket to categorize the restaurants by average score. It returns with the following documents:\nINFO  [Martini] {\n    \"bucketResults\": {\n        \"_id\": 0,\n        \"restaurants\": [\n            \"The Lark'S Nest\",\n            \"African Terrace\",\n            \"White Castle\",\n            \"El Molino Rojo Restaurant\",\n            \"Pelham Bay Diner\",\n            \"Ambassador Diner\",\n            \"Capri Ii Pizza\",\n            \"Pasquale Rigoletto Restaurant\",\n            \"Billy'S Sport Bar Restaurant & Lounge\",\n            \"Johnny'S O'S\",\n            \"Snack Bar (Located Between A-B Between Fancy Food And Masters)\",\n            \"Sheas Emerald\"\n        ],\n        \"count\": 12\n    }\n}\n15/07/19 11:41:19.138 INFO  [Martini] {\n    \"bucketResults\": {\n        \"_id\": 5,\n        \"restaurants\": [\n            \"Morris Park Bake Shop\",\n            \"Wild Asia\",\n            \"Carvel Ice Cream\",\n            \"Manhem Club\",\n            \"Marina Delray\",\n            ...\n            \"Domino'S Pizza\",\n            \"Popeyes Chicken & Biscuits\",\n            \"Carvel\",\n            \"Fordham University - Millenium Grill\",\n            \"Fordham University - Student Deli\",\n            \"J.E. Bakery\",\n            \"Cea Lo Cafe\",\n            \"New Rainbow Restaurant\"\n        ],\n        \"count\": 121\n    }\n}\n15/07/19 11:41:19.142 INFO  [Martini] {\n    \"bucketResults\": {\n        \"_id\": 10,\n        \"restaurants\": [\n            \"Happy Garden\",\n            \"Happy Garden\",\n            \"The New Starling Athletic Club Of The Bronx\",\n            \"Yankee Tavern\",\n            \"Munchtime\",\n            ...\n            \"Fordham University/Mcginley Center/Ramskeller Kitchen\",\n            \"Seafood  City\",\n            \"La Nueva Giralda Bakery\",\n            \"Roca Tone Seafood Restaurant\",\n            \"Mug-Z'S Sports Bar\",\n            \"Frank'S Pizzeria\",\n            \"Nb. National Bakery\"\n        ],\n        \"count\": 138\n    }\n}\n15/07/19 11:41:19.145 INFO  [Martini] {\n    \"bucketResults\": {\n        \"_id\": 15,\n        \"restaurants\": [\n            \"Mcdwyers Pub\",\n            \"The Punch Bowl\",\n            \"Bronx Grill\",\n            \"Quality Cafe & Restaurant\",\n            \"John & Joe Pizzeria & Restaurant\",\n            ...\n            \"Prospect Coffee Shop\",\n            \"Mcdonald'S\",\n            \"Malecon Restaurant\",\n            \"Subway\",\n            \"El Buen Ambiente\",\n            \"Wilbel Pizza\",\n            \"Memories Lounge\",\n            \"The Best Italian Pizza\"\n        ],\n        \"count\": 38\n    }\n}\n```",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Log in the console the sample restaurant documents to be used for this example",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Using the documents below taken from the restaurant collection:",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Pulls a list of restaurant documents from the restaurant collection",
+                    "name": "bigData.mongoDb.services.util.GetRestaurantsWithAvgScore",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "results",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Bronx",
+                            "to": [
+                                "input",
+                                "borough"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "results"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterate over the results, and display them in the console",
+                    "input": {
+                        "path": [
+                            "results"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "results.asJson()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This service queries the $bucket aggregation pipeline stage. Similar with $bucketAuto, except you need to specify the boundaries in which the documents will be grouped",
+                    "name": "bigData.mongoDb.services.aggregation.Bucket",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "bucketResults",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Bronx",
+                            "to": [
+                                "input",
+                                "borough"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "bucketResults"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "After using $bucket to categorize the restaurants by average score. It returns with the following documents:",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterate over the aggregation results and display it to the console",
+                    "input": {
+                        "path": [
+                            "bucketResults"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "bucketResults.asJson()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,148 @@
+{
+    "comments": "This Gloop service generates a determined number of `field`-`value` pairs under the `data` output property.\n\nIt is exposed as a RESTful web service by `reportBuilderDemo.api.ReportPopulatorApi.api`, which [`report-builder-demo`](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/report-builder/) consumes to get data for one of the charts.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). The `fields` [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/) is required for this service, set to the value of `10` by default.\n\nThe `fields` property specifies the number of items the `data` output property would have.\n\t\n## Expected Output\n\nThis service returns two properties: `data` and `output`. After execution, you may find the service returning values like:\n\n```\n{\n    \"data\": [\n        {\n            \"field\": \"Field 1\",\n            \"value\": 2\n        },\n        {\n            \"field\": \"Field 1\",\n            \"value\": 2\n        },\n        {\n            \"field\": \"Field 2\",\n            \"value\": 5\n        },\n        {\n            \"field\": \"Field 2\",\n            \"value\": 5\n        },\n        {\n            \"field\": \"Field 3\",\n            \"value\": 3\n        },\n        {\n            \"field\": \"Field 3\",\n            \"value\": 3\n        },\n        {\n            \"field\": \"Field 4\",\n            \"value\": 7\n        },\n        {\n            \"field\": \"Field 4\",\n            \"value\": 7\n        },\n        {\n            \"field\": \"Field 5\",\n            \"value\": 1\n        },\n        {\n            \"field\": \"Field 5\",\n            \"value\": 1\n        },\n        {\n            \"field\": \"Field 6\",\n            \"value\": 8\n        },\n        {\n            \"field\": \"Field 6\",\n            \"value\": 8\n        },\n        {\n            \"field\": \"Field 7\",\n            \"value\": 2\n        },\n        {\n            \"field\": \"Field 7\",\n            \"value\": 2\n        },\n        {\n            \"field\": \"Field 8\",\n            \"value\": 5\n        },\n        {\n            \"field\": \"Field 8\",\n            \"value\": 5\n        },\n        {\n            \"field\": \"Field 9\",\n            \"value\": 1\n        },\n        {\n            \"field\": \"Field 9\",\n            \"value\": 1\n        },\n        {\n            \"field\": \"Field 10\",\n            \"value\": 8\n        },\n        {\n            \"field\": \"Field 10\",\n            \"value\": 8\n        }\n    ],\n    \"output\": {\n        \"message\": \"Gloop Service Completed.\"\n    }\n}\n```\n\nThe Console view, which automatically appears when a service is run, allows you to [see service outputs](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs) in either JSON (like above), XML, or a value tree.",
+    "input": [
+        {
+            "name": "fields",
+            "type": "integer",
+            "defaultValue": 10,
+            "comments": "Number of Fields for the Report"
+        }
+    ],
+    "output": [
+        {
+            "name": "data",
+            "type": "model",
+            "array": true,
+            "comments": "Data that will be used on a report page table",
+            "gloopProperties": [
+                {
+                    "name": "field",
+                    "comments": "Field Number"
+                },
+                {
+                    "name": "value",
+                    "type": "integer",
+                    "comments": "Random Number between 1 and 10"
+                }
+            ]
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "while",
+            "comments": "Keep on looping until we manually break from the loop",
+            "expression": "true",
+            "evaluate": true,
+            "children": [
+                {
+                    "comments": "Declare output data per field",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "input",
+                                    "type": "model",
+                                    "gloopProperties": [
+                                        {
+                                            "name": "field"
+                                        },
+                                        {
+                                            "name": "value",
+                                            "type": "integer"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "\"Field \" + $gloopCount",
+                            "evaluate": true,
+                            "to": [
+                                "input",
+                                "field"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "new Random().nextInt(10) + 1",
+                            "evaluate": true,
+                            "to": [
+                                "input",
+                                "value"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "gloovy",
+                    "comments": "In this step, we append input to data",
+                    "gloovyScript": "data << input"
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "In this step, we add the model property `input` to the `data` array.",
+                    "className": "io.toro.martini.ArrayMethods",
+                    "methodName": "addToList",
+                    "parameters": [
+                        "java.lang.Object",
+                        "java.lang.Object"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "data"
+                            ],
+                            "to": [
+                                "list"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "input"
+                            ],
+                            "to": [
+                                "element"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Break out of loop when the number of field is reached",
+                    "expression": "$gloopCount == fields",
+                    "children": [
+                        {
+                            "type": "break",
+                            "label": "true",
+                            "comments": "Let's break from the while loop",
+                            "expression": "$gloopWhile"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

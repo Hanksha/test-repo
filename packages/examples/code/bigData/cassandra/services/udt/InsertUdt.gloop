@@ -1,0 +1,105 @@
+{
+    "comments": "# [Inserting User-Defined Types in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) inserts a new row to the `udt_example` column family in the `cassandra_examples` keyspace, using values provided through the input property.\n\nThis service showcases how to handle [User-Defined Types (UDTs)](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/cqlRefUDType.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n`id`, `udt`, and `nestedudt` is required as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). `udt` is a [gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) with `id` and `text` as its properties. `nestedUdt` is another gloop model but as its name suggests, it has another udt nested within it named `data`, it has `id` and `data` as its properties.\n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Insert UDT with id 1, udt with \n{\n    \"udt\": {\n        \"id\": 1,\n        \"text\": \"regular udt\"\n    }\n}, \nand nestedUdt with \n{\n    \"nestedudt\": {\n        \"id\": 1,\n        \"data\": {\n            \"id\": 1,\n            \"text\": \"nested udt\"\n        }\n    }\n}\n```",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "defaultValue": 1
+        },
+        {
+            "name": "udt",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "text",
+                    "defaultValue": "regular udt"
+                }
+            ]
+        },
+        {
+            "name": "nestedudt",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "data",
+                    "type": "model",
+                    "gloopProperties": [
+                        {
+                            "name": "id",
+                            "type": "integer",
+                            "defaultValue": 1
+                        },
+                        {
+                            "name": "text",
+                            "defaultValue": "nested udt"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Insert UDT with id $id, udt with \\n${udt.asJson()}, \\nand nestedUdt with \\n${nestedudt.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Inserts a UDT and nested UDT to the udt_example columnfamily in the cassandra_examples keyspace",
+            "name": "bigData.cassandra.cql.udt.InsertUdt",
+            "inputs": [
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "input",
+                        "id"
+                    ]
+                },
+                {
+                    "from": [
+                        "udt"
+                    ],
+                    "to": [
+                        "input",
+                        "udt"
+                    ]
+                },
+                {
+                    "from": [
+                        "nestedudt"
+                    ],
+                    "to": [
+                        "input",
+                        "nestedudt"
+                    ]
+                }
+            ]
+        }
+    ]
+}

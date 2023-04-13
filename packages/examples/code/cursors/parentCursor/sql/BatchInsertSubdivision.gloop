@@ -1,0 +1,53 @@
+{
+    "type": "customSql",
+    "comments": "This [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) that can be iterated over (as an output array of a [while](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/) or [iterate](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/iterate/) step) to insert multiple entries to the `SUBDIVISION` table.",
+    "input": [
+        {
+            "name": "batchInsertSubdivisionInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$batchSize",
+                    "type": "integer"
+                },
+                {
+                    "name": "$parentJDBCBatchCursor",
+                    "type": "object",
+                    "objectClassName": "io.toro.gloop.cursor.jdbc.JDBCBatchGloopCursor"
+                },
+                {
+                    "name": "getGeneratedKeys",
+                    "type": "boolean",
+                    "defaultValue": false
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "batchInsertSubdivisionOutputCursor",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "subdivisionCode"
+                },
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "level"
+                },
+                {
+                    "name": "countryCode"
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "INSERT_BATCH",
+    "query": "INSERT INTO SUBDIVISION (\n    SUBDIVISION_CODE,\n    NAME,\n    LEVEL,\n    COUNTRY_CODE\n)\nVALUES (\n    :subdivisionCode,\n    :name,\n    :level,\n    :countryCode\n)"
+}

@@ -1,0 +1,16 @@
+{
+    "name": "Header",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) representing `<header>` entries in `resources/dataset.xml`.\n\nThis Gloop model is used in the `jsonCursor.output.WriteComplexJson.gloop` service.",
+    "gloopProperties": [
+        {
+            "name": "details"
+        },
+        {
+            "name": "recordCount"
+        },
+        {
+            "name": "totalCount"
+        }
+    ]
+}

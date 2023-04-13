@@ -1,0 +1,180 @@
+{
+    "comments": "# [Using Gloop DSL in Set Expressions](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/set-expressions/)\n\nIn this example, we will show you how to set the value of Gloop models using [Gloop DSL](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/#set-expressions) in [set expressions](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#set-expressions).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Only one [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/) is required: `id`. For you convenience, a default value for `id` is already provided.\n\n## Expected Output\n\n### Properties\n\nIf the default value of `1` for the `id` was used, then the expected JSON representation of the service's output would look like:\n\n```\n{\n    \"names\": [\n        {\n            \"name\": \"Jack Baker\",\n            \"age\": 4,\n            \"friend\": []\n        },\n        {\n            \"name\": \"Bambi\",\n            \"age\": 12,\n            \"friend\": [\n                {\n                    \"name\": \"John Doe\",\n                    \"age\": 4\n                },\n                {\n                    \"name\": \"Jack Baker\",\n                    \"age\": 50\n                }\n            ]\n        }\n    ]\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in the output tree.\n\n### Logs\n\nAfter execution, logs like the following will be [displayed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Found the requested name using id 1:\n{\n    \"name\": {\n        \"id\": 1,\n        \"firstName\": \"Jack\",\n        \"lastName\": \"Baker\"\n    }\n}\nINFO  [Martini] The value of id #1: [id:1, firstName:Jack, lastName:Baker]\nINFO  [Martini] The value of names model:\n{\n    \"names\": [\n        {\n            \"name\": \"Jack Baker\",\n            \"age\": 4,\n            \"friend\": []\n        }\n    ]\n}\nINFO  [Martini] The new value of names model:\n{\n    \"names\": [\n        {\n            \"name\": \"Jack Baker\",\n            \"age\": 4,\n            \"friend\": []\n        },\n        {\n            \"name\": \"Bambi\",\n            \"age\": 12,\n            \"friend\": [\n                {\n                    \"name\": \"John Doe\",\n                    \"age\": 4\n                },\n                {\n                    \"name\": \"Jack Baker\",\n                    \"age\": 50\n                }\n            ]\n        }\n    ]\n}\n...\n```\n\nIf this is the first service you ran on a fresh instance of Martini, you will see the following logs before the logs above:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_db'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [JndiBindingDataSourceManager] Successfully bound datasource to 'java:comp/env/jdbc/conversion_sample'\nINFO  [Martini] Creating default Martini user named Demo\nINFO  [Martini] Creating default Martini user group named 'Rule 1 GROUP' and assign user 'Demo' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 1\nINFO  [Martini] Creating default Martini user named DemoII\nINFO  [Martini] Creating default Martini user group named 'Rule 2 GROUP' and assign user 'DemoII' in it\nINFO  [Martini] Creating default Martini monitor rule named Rule 2\n```\n\nThis happens because the service initializes required `examples` package dependencies. This is a one-time setup and will not appear again if the dependencies have been initialized already.",
+    "input": [
+        {
+            "name": "id",
+            "type": "integer",
+            "defaultValue": 1
+        }
+    ],
+    "output": [
+        {
+            "name": "names",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "age",
+                    "type": "integer"
+                },
+                {
+                    "name": "friend",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name"
+                        },
+                        {
+                            "name": "age",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will setup what is needed to run this example.",
+            "name": "setExpression.conf.SetExpressionSetup"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "We'll use the DatabaseLookup service which is also from this package to get an entry from the database. We'll also\ndeclare an Integer variable named 'age' and set its value by getting a random integer using java.util.Random#nextInt( int )\nthrough set expression.",
+            "name": "setExpression.DatabaseLookup",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "name",
+                            "type": "model",
+                            "reference": "sqlServices.model.Name",
+                            "gloopProperties": [
+                                {
+                                    "name": "age",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "id"
+                    ],
+                    "to": [
+                        "id"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "name"
+                    ],
+                    "to": [
+                        "name"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "new Random().nextInt(50) + 1",
+                    "evaluate": true,
+                    "to": [
+                        "name",
+                        "age"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "Next, we'll use set expression to set the value of the names array. Gloop DSL is used to map values in this step\n",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "names {\n\t'name' \"${name.firstName} ${name.lastName}\"\n\t'age' name.age\n}",
+                    "evaluate": true,
+                    "to": [
+                        "names"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Logs the current value of the names variable.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The value of names model:\\n${names.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "How about setting multiple values to the names array? In this step, In addition to mapping a single value using Gloop DSL like we did on step 2,  we will add multiple items this time.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "[\n    {\n     \tname \"${name.firstName} ${name.lastName}\"\n\t\tage name.age\n\t},\n\t{\n\t\tname 'Bambi'\n\t\tage new Random().nextInt(50) + 1\n\t\tfriend {\n\t\t\tname 'John Doe'\n\t\t\tage new Random().nextInt(50) + 1\n\t\t}\n\t\tfriend {\n\t\t\tname 'Jack Baker'\n\t\t\tage new Random().nextInt(50) + 1\n\t\t}\n\t}\n]",
+                    "evaluate": true,
+                    "to": [
+                        "names"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Logs the new value of the names variable.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The new value of names model:\\n${names.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

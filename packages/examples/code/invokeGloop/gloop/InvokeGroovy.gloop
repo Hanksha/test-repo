@@ -1,0 +1,69 @@
+{
+    "comments": "# [Invoking Groovy in Gloop](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/invoke-gloop-in-groovy/#invoking-gloop-in-groovy)\n\nThis example demonstrates how you can [invoke](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/invoke/) a [Groovy service](https://docs.torocloud.com/martini/developing/services/groovy/) in a [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/). In particular, it will invoke `invokeGloop.groovy.Sample.hello(String)`.\n\nInvoking Groovy within Gloop is easy: all you have to do is drag and drop the service from the Martini Navigator view to the Step editor.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Only the `name` [input property](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) is required for this service. Fortunately, we've already set a default value for it so you don't have to.\n\t\n## Expected Output\n\nAfter execution, this service will set `output.message`'s value to `Hello <name>`. If the `name` provided was `John Doe`, then the service will return `Hello John Doe` as `output.message`'s value.\n\nFurthermore, a log message like below will be sent to the console:\n\n```\nINFO  [Martini] Hello John Doe\n```",
+    "input": [
+        {
+            "name": "name",
+            "defaultValue": "John Doe"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "The Groovy method from invokeGloop/groovy/Sample.groovy.",
+            "className": "invokeGloop.groovy.Sample",
+            "methodName": "hello",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "name"
+                    ],
+                    "to": [
+                        "name"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

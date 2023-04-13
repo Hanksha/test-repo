@@ -1,0 +1,191 @@
+{
+    "comments": "## Using `$sort` to Sort Documents in an Aggregation Pipeline\n\nThis Gloop service demonstrates a simple use case of using `$sort` operator to input documents from an aggregation pipeline, and outputs them in a sorted order. The MongoDB service (line 8) uses `$sort` along with other aggregation pipeline stages operators to achieve the expected results.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a sort order in which will be assigned to the `sort` property. The input property only accepts two values, `ascending` and `descending`.\n\n#Expected Output\n\nDepending the the sort order provided to the input property `sort` when this service was invoked, it will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) similar below:\n\n```\nINFO  [Martini] Displaying the number of restaurants by borough in descending order\nINFO  [Martini] {\n    \"result\": {\n        \"_id\": \"Manhattan\",\n        \"numberOfRestaurants\": 1883\n    }\n}\nINFO  [Martini] {\n    \"result\": {\n        \"_id\": \"Queens\",\n        \"numberOfRestaurants\": 738\n    }\n}\nINFO  [Martini] {\n    \"result\": {\n        \"_id\": \"Brooklyn\",\n        \"numberOfRestaurants\": 684\n    }\n}\nINFO  [Martini] {\n    \"result\": {\n        \"_id\": \"Bronx\",\n        \"numberOfRestaurants\": 309\n    }\n}\nINFO  [Martini] {\n    \"result\": {\n        \"_id\": \"Staten Island\",\n        \"numberOfRestaurants\": 158\n    }\n}\n```\n\nIn this case, the result set is displayed in descending order based on number of restaurants.",
+    "input": [
+        {
+            "name": "sort",
+            "defaultValue": "ascending",
+            "choices": [
+                "ascending",
+                "descending"
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "order",
+                                    "type": "integer"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "sort",
+                    "children": [
+                        {
+                            "label": "ascending",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "1",
+                                    "to": [
+                                        "order"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "label": "descending",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "-1",
+                                    "to": [
+                                        "order"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.aggregation.Sort",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "order"
+                            ],
+                            "to": [
+                                "input",
+                                "sort"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Displaying the number of restaurants by borough in ${sort} order\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "result"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "result.asJson()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

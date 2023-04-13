@@ -1,0 +1,147 @@
+{
+    "comments": "# Getting All Hash Key\n\nThis service shows how to get all hash key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection` and `key`, the service will get all hash key in Redis using `RedisHashMethods.hgetall` one-liner. If `connection`'s value doesn't exist, then an error will be [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection` and `key` input properties. The default values are already set for `connection` and `key`.\n\nThe `RedisHashMethods.hgetall` one-liner has a return [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) array which consists all the hash key.  \n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- The `output.message`'s value will be set to the value of the return `redisMap` of the `RedisHashMethods.hgetall` one-liner.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] redisMap{\nname = address\nvalue = USA\n}\nINFO  [Martini] redisMap{\nname = gender\nvalue = male\n}\nINFO  [Martini] redisMap{\nname = email\nvalue = john.doe@gmail.com\n}\nINFO  [Martini] redisMap{\nname = user\nvalue = John Doe\n}\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "hashKey"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "bigData.redis.hashes.SetMultipleHashKey",
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connection"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This will return a array of gloop model which has the value of the hash key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisMap",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "name",
+                                    "type": "object"
+                                },
+                                {
+                                    "name": "value",
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisHashMethods",
+            "methodName": "hgetall",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisMap"
+                    ],
+                    "to": [
+                        "redisMap"
+                    ]
+                },
+                {
+                    "from": [
+                        "redisMap"
+                    ],
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "iterate the returned gloop model from the hash key in Redis",
+            "input": {
+                "path": [
+                    "redisMap"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This will log each value of the returned gloop model",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "redisMap"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

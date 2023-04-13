@@ -1,0 +1,25 @@
+{
+    "name": "GetStatisticsEndpointOutput",
+    "type": "model",
+    "comments": "A model representing the output of the `GetStatisticsEndpoint.gloop` service.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "name"
+        },
+        {
+            "name": "min"
+        },
+        {
+            "name": "max"
+        },
+        {
+            "name": "count",
+            "type": "integer"
+        },
+        {
+            "name": "missing",
+            "type": "integer"
+        }
+    ]
+}

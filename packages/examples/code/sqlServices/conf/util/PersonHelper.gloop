@@ -1,0 +1,25 @@
+{
+    "comments": "This service returns an array of names, useful for services in need of mock data.",
+    "output": [
+        {
+            "name": "name",
+            "type": "model",
+            "array": true,
+            "reference": "sqlServices.model.Name"
+        }
+    ],
+    "steps": [
+        {
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "[name{\n\tfirstName 'Jack'\n\tlastName 'Baker'\n},name{\n\tfirstName 'Marguirite'\n\tlastName 'Baker'\n},name{\n\tfirstName 'Eveline'\n\tlastName 'Baker'\n},name{\n\tfirstName 'Lucas'\n\tlastName 'Baker'\n}]",
+                    "evaluate": true,
+                    "to": [
+                        "name"
+                    ]
+                }
+            ]
+        }
+    ]
+}

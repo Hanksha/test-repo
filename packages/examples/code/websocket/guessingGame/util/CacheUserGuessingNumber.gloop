@@ -1,0 +1,45 @@
+{
+    "comments": "This service puts a random number ranging from 1 to 10, to the cache for a given username.",
+    "input": [
+        {
+            "name": "username"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.CacheMethods",
+            "methodName": "cachePut",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "java.lang.Object"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "username"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "guessingGame",
+                    "to": [
+                        "cacheName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "new Random().nextInt(10)",
+                    "evaluate": true,
+                    "to": [
+                        "value"
+                    ]
+                }
+            ]
+        }
+    ]
+}

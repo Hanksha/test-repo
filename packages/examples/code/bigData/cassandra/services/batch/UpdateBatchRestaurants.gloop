@@ -1,0 +1,437 @@
+{
+    "comments": "# [Using a Gloop Cassandra Service to perform a batch update](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) updates records from the `RESTAURANTS` column family in the `restaurants` keyspace in Cassandra. \n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database. This Gloop Cassandra service returns a [Gloop Cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/) which the service iteratively maps entries into, in order to update the records.\n\n## Prerequisite\n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nThe service will then read the json file and update the data in the Cassandra Database.\n\n## Expected Output\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Getting Data from restaurants.json\nINFO  [Martini] Starting to update the database with the json data\nINFO  [Martini] Processed 100 records\nINFO  [Martini] Processed 200 records\nINFO  [Martini] Processed 300 records\nINFO  [Martini] Processed 400 records\n...\n```",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "jsonResource",
+                                    "type": "object",
+                                    "objectClassName": "java.io.InputStream"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.FileMethods",
+                    "methodName": "resourceStream",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "resources/restaurants.json",
+                            "to": [
+                                "resource"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "jsonResource"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "gloopJsonCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "nodeName"
+                                        },
+                                        {
+                                            "name": "cursorRecord",
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.JsonMethods",
+                    "methodName": "getInputCursorFromInputStream",
+                    "parameters": [
+                        "java.io.InputStream",
+                        "java.lang.String",
+                        "java.util.List",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "jsonResource"
+                            ],
+                            "to": [
+                                "inputStream"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "['$jsonRoot']",
+                            "evaluate": true,
+                            "to": [
+                                "jsonNodeNames"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "gloopJsonCursor"
+                            ],
+                            "to": [
+                                "gloopJsonCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Invokes the CQL query to produce the outputCursor",
+                    "name": "bigData.cassandra.cql.batch.UpdateBatchRestaurants",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "outputCursor",
+                                    "type": "model",
+                                    "array": true,
+                                    "gloopProperties": [
+                                        {
+                                            "name": "address",
+                                            "type": "model",
+                                            "gloopProperties": [
+                                                {
+                                                    "name": "building"
+                                                },
+                                                {
+                                                    "name": "coord",
+                                                    "type": "model",
+                                                    "gloopProperties": [
+                                                        {
+                                                            "name": "tupleEntry0",
+                                                            "type": "bigDecimal"
+                                                        },
+                                                        {
+                                                            "name": "tupleEntry1",
+                                                            "type": "bigDecimal"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "name": "street"
+                                                },
+                                                {
+                                                    "name": "zipcode",
+                                                    "type": "integer"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "borough"
+                                        },
+                                        {
+                                            "name": "cuisine"
+                                        },
+                                        {
+                                            "name": "grades",
+                                            "type": "model",
+                                            "array": true,
+                                            "gloopProperties": [
+                                                {
+                                                    "name": "date",
+                                                    "type": "date"
+                                                },
+                                                {
+                                                    "name": "grade"
+                                                },
+                                                {
+                                                    "name": "score",
+                                                    "type": "integer"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "name"
+                                        },
+                                        {
+                                            "name": "restaurant_id",
+                                            "type": "integer"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "2",
+                            "to": [
+                                "input",
+                                "$batchSize"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "outputCursor"
+                            ],
+                            "to": [
+                                "outputCursor"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Starting to update the database with the json data",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "comments": "Iterates over the json inputCursor and the CQL outputCursor",
+                    "input": {
+                        "path": [
+                            "gloopJsonCursor"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "outputCursor"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "comments": "Maps the JsonCursor to the restaurant model",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "restaurant",
+                                            "type": "model",
+                                            "reference": "bigData.model.Restaurant"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "lines": [
+                                {
+                                    "from": [
+                                        "gloopJsonCursor",
+                                        "cursorRecord"
+                                    ],
+                                    "to": [
+                                        "restaurant"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "comments": "Maps the restaurant model with data to the CQL outputCursor",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "restaurant_id"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "restaurant_id"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "name"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "name"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "grades"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "grades"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "cuisine"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "cuisine"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "borough"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "borough"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "address",
+                                        "building"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "address",
+                                        "building"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "address",
+                                        "street"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "address",
+                                        "street"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "restaurant",
+                                        "address",
+                                        "zipcode"
+                                    ],
+                                    "to": [
+                                        "outputCursor",
+                                        "address",
+                                        "zipcode"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "restaurant.address.coord[0]",
+                                    "evaluate": true,
+                                    "to": [
+                                        "outputCursor",
+                                        "address",
+                                        "coord",
+                                        "tupleEntry0"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "restaurant.address.coord[1]",
+                                    "evaluate": true,
+                                    "to": [
+                                        "outputCursor",
+                                        "address",
+                                        "coord",
+                                        "tupleEntry1"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "fork",
+                            "comments": "Prints how many records have been processed every 100 records processed.",
+                            "expression": "$gloopCount % 100 == 0",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "label": "true",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"Processed ${$gloopCount} records\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

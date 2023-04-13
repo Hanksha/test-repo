@@ -1,0 +1,176 @@
+{
+    "comments": "## Using `addField` to Add a New Field to a MongoDB Document\n\nThis Gloop service demonstrates the usage of `$addFields` aggregation pipeline stage to add new fields to MongoDB documents. The MongoDB service (line 5) that holds the aggregation query to perform adding of fields to existing documents.\n\nThis example service will add a new field to an existing restaurant document called `averageScore` which does not exists in the original document.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nYou can [run the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) as is. No inputs were set up in this.\n\n## Expected Output\n\nAfter invoking the service, the `INFO` log below will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view). It shows what a restaurant document looks like before adding the new field, and after adding a new field:\n\n```\nINFO  [Martini] A restaurant document looks like this before aggregation:\n{\n    \"restaurant\": {\n        \"_id\": \"5d27fda3c1461d6541a364b2\",\n        \"address\": {\n            \"building\": \"469\",\n            \"coord\": [\n                -73.961704,\n                40.662942\n            ],\n            \"street\": \"Flatbush Avenue\",\n            \"zipcode\": \"11225\"\n        },\n        \"borough\": \"Brooklyn\",\n        \"cuisine\": \"Hamburgers\",\n        \"grades\": [\n            {\n                \"date\": \"2014-12-30T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 8\n            },\n            {\n                \"date\": \"2014-07-01T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 23\n            },\n            {\n                \"date\": \"2013-04-30T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 12\n            },\n            {\n                \"date\": \"2012-05-08T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 12\n            }\n        ],\n        \"name\": \"Wendy'S\",\n        \"restaurant_id\": \"30112340\"\n    }\n}\nINFO  [Martini] After aggregation using addField, averageScore is added to the document. See similar document below:\n{\n    \"aggregationResults\": {\n        \"_id\": \"5d27fda3c1461d6541a364b1\",\n        \"address\": {\n            \"building\": \"1007\",\n            \"coord\": [\n                -73.856077,\n                40.848447\n            ],\n            \"street\": \"Morris Park Ave\",\n            \"zipcode\": \"10462\"\n        },\n        \"borough\": \"Bronx\",\n        \"cuisine\": \"Bakery\",\n        \"grades\": [\n            {\n                \"date\": \"2014-03-03T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 2\n            },\n            {\n                \"date\": \"2013-09-11T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 6\n            },\n            {\n                \"date\": \"2013-01-24T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 10\n            },\n            {\n                \"date\": \"2011-11-23T08:00:00+0800\",\n                \"grade\": \"A\",\n                \"score\": 9\n            },\n            {\n                \"date\": \"2011-03-10T08:00:00+0800\",\n                \"grade\": \"B\",\n                \"score\": 14\n            }\n        ],\n        \"name\": \"Morris Park Bake Shop\",\n        \"restaurant_id\": \"30075445\",\n        \"averageScore\": 8.2\n    }\n}\n```\n\nAt a glance, the two documents look similar, but notice that there's a new field called `averageScore` added at the document that was printed after the first one.",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Pull one restaurant from the restaurants collection so we can see what the document looks like before we add a new field",
+                    "name": "bigData.mongoDb.services.find.FindOne",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "restaurant",
+                                    "type": "model",
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Brooklyn",
+                            "to": [
+                                "input",
+                                "city"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "restaurant"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Show what the document looks like before the addField aggregation stage",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"A restaurant document looks like this before aggregation:\\n${restaurant.asJson()}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This service adds a new field called averageScore that is the average of grades.score. This new field was added via aggregation pipeline used in the MongoDB service. This service is configured to return a single document for the sake of comparison before and after adding a new field using aggregation.",
+                    "name": "bigData.mongoDb.services.aggregation.AddField",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "aggregationResults",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "1",
+                            "to": [
+                                "input",
+                                "limit"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "aggregationResults"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "aggregationResults"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"After aggregation using addField, averageScore is added to the document. See similar document below:\\n${aggregationResults.asJson()}\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

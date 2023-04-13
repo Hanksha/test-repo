@@ -1,0 +1,194 @@
+{
+    "comments": "## Listing all the documents within a given radius\n\nThis Gloop service demonstrates how to query `[$getWithin](https://docs.mongodb.com/manual/reference/operator/query/geoWithin/index.html)` with `$centerSphere`(https://docs.mongodb.com/manual/reference/operator/query/centerSphere/) to get a list records from a Mongo DB collection.  This Gloop service holds the query (line 5) to return all the documents from the `restaurants` within the given `miRadius` (mile radius) on the specified `longitude` and `latitude`.\n\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), The service will prompt you to provide a `longitude`, `latitude`, and `maxDistance` in radians to be sent as an input to the query to be performed. For your convenience, `miRadius` is already populated with a value; changing these values are optional but possible.\n\n## Expected Output\n\nIf the query is successfully executed, the service will print a message in the console. The service does not return any output property. However, the output that will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) will look similar below:\n\n```\nINFO  [Martini] Listing all the restaurants within 10.0 mile radius of [-73.856077, 40.848447]\nINFO  [Martini] Olympic Cafe\nINFO  [Martini] 42Nd Street Pizza Diner\nINFO  [Martini] Canard Inc\nINFO  [Martini] Mcquaids Public House\n...\nINFO  [Martini] Azuri Cafe\nINFO  [Martini] Posh\nINFO  [Martini] Uncle Nicks\nINFO  [Martini] Mcdonald'S\nINFO  [Martini] Leon Bakery\n```",
+    "input": [
+        {
+            "name": "longitude",
+            "type": "double",
+            "allowNull": false
+        },
+        {
+            "name": "latitude",
+            "type": "double",
+            "allowNull": false
+        },
+        {
+            "name": "miRadius",
+            "type": "double",
+            "allowNull": false,
+            "defaultValue": 10.0
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.conf.InitializeIndexes",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "2dsphere",
+                            "to": [
+                                "indexType"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "address.coord_2dsphere",
+                            "to": [
+                                "indexName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "name": "bigData.mongoDb.services.geospatial.GeoWithin",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "longitude"
+                            ],
+                            "to": [
+                                "input",
+                                "coordX"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "latitude"
+                            ],
+                            "to": [
+                                "input",
+                                "coordY"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "miRadius / 3963.2",
+                            "evaluate": true,
+                            "to": [
+                                "input",
+                                "mileRadius"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Listing all the restaurants within ${miRadius} mile radius of [${longitude}, ${latitude}]\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "result"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "result.name",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

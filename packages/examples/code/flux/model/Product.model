@@ -1,0 +1,14 @@
+{
+    "name": "Product",
+    "type": "model",
+    "comments": "A simple [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) used by example services under the `flux` package.",
+    "gloopProperties": [
+        {
+            "name": "name"
+        },
+        {
+            "name": "price",
+            "type": "bigDecimal"
+        }
+    ]
+}

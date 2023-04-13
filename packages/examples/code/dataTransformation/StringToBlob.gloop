@@ -1,0 +1,195 @@
+{
+    "comments": "# [Converting a String to a Blob](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation/)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we'll be converting a string to a BLOB. Afterwards, we'll be writing the [BLOB](https://en.wikipedia.org/wiki/Binary_large_object) to a SQL database.\n\n[HSQL](http://hsqldb.org/) is the embedded database Martini uses out of the box.\n\n## Invoking the Service\n\nUpon [running the Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked by Martini to provide a value for the `stringToInsert` property. For your convenience, it is already set with the default value of `Martini`.\n\n## Expected Output\n\nThe output of this service depends on the value provided for `stringToInsert`. If it was left with its default value, then the expected [return value of the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), if in JSON format, is:\n\n```\n{\n    \"output\": {\n        \"blobText\": \"Blob data pulled: Martini\"\n    }\n}\n```\n\nAside from this, the following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Inserting string to the blob column: Martini\nINFO  [Martini] String inserted and generated a key. Pulling the blob data from conversion_sample database using id 5\nINFO  [Martini] Blob data pulled: Martini\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "stringToInsert",
+            "defaultValue": "Martini"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "blobText"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This step will run the service which will check for the dependencies needed for this Gloop service to run properly.",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Inserting string to the blob column: ${stringToInsert}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we insert a record to our database by mapping the string that we want to insert to the column in database.",
+            "name": "dataTransformation.sql.InsertBlob",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "generatedKeys",
+                            "type": "model",
+                            "allowExtraProperties": true
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stringToInsert"
+                    ],
+                    "to": [
+                        "insertBlobInput",
+                        "blobColumn"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "true",
+                    "to": [
+                        "insertBlobInput",
+                        "$getGeneratedKeys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "generatedKeys"
+                    ],
+                    "to": [
+                        "generatedKeys"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We log the Generated Key in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"String inserted and generated a key. Pulling the blob data from conversion_sample database using id ${generatedKeys.ID}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "In this step, we get the inserted record in step one from our database.",
+            "name": "dataTransformation.sql.SelectBlob",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "BLOB_COLUMN",
+                            "type": "object",
+                            "required": true,
+                            "objectClassName": "java.sql.Blob"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "generatedKeys.ID",
+                    "evaluate": true,
+                    "to": [
+                        "selectBlobInput",
+                        "id"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "selectBlobOutput",
+                        "BLOB_COLUMN"
+                    ],
+                    "to": [
+                        "BLOB_COLUMN"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "We log the record (`BLOB`) that we found from our database in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Blob data pulled: ${BLOB_COLUMN.getBinaryStream()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output",
+                        "blobText"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

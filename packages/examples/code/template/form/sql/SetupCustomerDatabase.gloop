@@ -1,0 +1,164 @@
+{
+    "comments": "Util Gloop service that sets up the `examples-customer` database connection, creates the `customer` table and initializes it with sample data.\n\nNote that this service could be added to the package's startup services in order to initialize the database and therefore it would not be required to invoke this service before any database operation. You can learn more about package lifecycle [here](https://docs.torocloud.com/martini/latest/developing/package/lifecycle/).",
+    "steps": [
+        {
+            "comments": "declare and set the value of `connectionName`",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "connectionName"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "examples-customer",
+                    "to": [
+                        "connectionName"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "invoke the `template.util.SetupDatabase` Gloop service to setup the customer database and create the customer table",
+            "name": "template.util.SetupDatabase",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "created",
+                            "type": "boolean",
+                            "defaultValue": false
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connectionName"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "CREATE TABLE IF NOT EXISTS customer (\n\tid INTEGER IDENTITY PRIMARY KEY,\n\tfirst_name VARCHAR(50) NOT NULL,\n\tlast_name VARCHAR(50) NOT NULL,\n\temail VARCHAR(50) NOT NULL\n);",
+                    "to": [
+                        "createTableStatement"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "created"
+                    ],
+                    "to": [
+                        "created"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "if the database was created",
+            "expression": "created",
+            "children": [
+                {
+                    "type": "block",
+                    "label": "true",
+                    "comments": "initialize the data in the customer table",
+                    "blockType": "TRY_CATCH",
+                    "children": [
+                        {
+                            "comments": "give some values to the `customers` model array",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "customers",
+                                            "type": "model",
+                                            "array": true,
+                                            "reference": "template.form.Customer"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "customer {\n\tfirstName 'John'\n\tlastName 'Doe'\n\temail 'john.doe@gmail.com'\n}\ncustomer {\n\tfirstName 'Jane'\n\tlastName 'Doe'\n\temail 'john.doe@gmail.com'\n}\ncustomer {\n\tfirstName 'Pierre'\n\tlastName 'Dupond'\n\temail 'pierre.dupond@gmail.com'\n}\n",
+                                    "evaluate": true,
+                                    "to": [
+                                        "customers"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "iterate",
+                            "input": {
+                                "path": [
+                                    "customers"
+                                ]
+                            },
+                            "children": [
+                                {
+                                    "type": "invokeGloop",
+                                    "comments": "insert the customer in the database table",
+                                    "name": "template.form.sql.InsertCustomer",
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "customers"
+                                            ],
+                                            "to": [
+                                                "insertCustomerInput"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "catch": [
+                        {
+                            "type": "invokeCode",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "error",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.Throwable"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "$gloopException",
+                                        "realException"
+                                    ],
+                                    "to": [
+                                        "throwable"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "\"Failed to initialize data of database '${connectionName}'\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

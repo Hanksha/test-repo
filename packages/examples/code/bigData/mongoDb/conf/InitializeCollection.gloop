@@ -1,0 +1,156 @@
+{
+    "comments": "This Gloop Service initializes the Collection needed for the MongoDB examples",
+    "input": [
+        {
+            "name": "collectionName"
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "collectionExists",
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.MongoDbMethods",
+                    "methodName": "listCollectionNames",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.String",
+                        "com.mongodb.client.ClientSession"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "mongo",
+                            "to": [
+                                "connectionName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "examples",
+                            "to": [
+                                "databaseName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "type": "set",
+                            "expression": "$gloopOutput.output.any { it.equals( collectionName ) }",
+                            "evaluate": true,
+                            "to": [
+                                "collectionExists"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "collectionExists",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "false",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.MongoDbMethods",
+                                    "methodName": "createDatabaseAndCollection",
+                                    "parameters": [
+                                        "java.lang.String",
+                                        "java.lang.String",
+                                        "java.lang.String",
+                                        "com.mongodb.client.ClientSession"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "mongo",
+                                            "to": [
+                                                "connectionName"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "examples",
+                                            "to": [
+                                                "databaseName"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "collectionName",
+                                            "evaluate": true,
+                                            "to": [
+                                                "collectionName"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "fork",
+                                    "expression": "collectionName",
+                                    "children": [
+                                        {
+                                            "type": "invokeGloop",
+                                            "label": "restaurants",
+                                            "name": "bigData.mongoDb.conf.PopulateRestaurants"
+                                        },
+                                        {
+                                            "type": "invokeGloop",
+                                            "label": "inventory",
+                                            "name": "bigData.mongoDb.conf.PopulateInventory"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

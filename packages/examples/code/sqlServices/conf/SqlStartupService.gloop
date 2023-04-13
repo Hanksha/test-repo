@@ -1,0 +1,335 @@
+{
+    "comments": "This service creates the connection pool, sets up the database and its tables, and inserts mock data necessary for services under the `sqlServices` directory.\n\nIt gets invoked upon package startup.",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "name": "sqlServices.conf.util.DataSourceHelper",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "datasources",
+                                    "array": true
+                                }
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "datasources"
+                            ],
+                            "to": [
+                                "datasources"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "datasources"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "declare": [
+                                {
+                                    "variables": [
+                                        {
+                                            "name": "exists",
+                                            "type": "boolean"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                            "methodName": "containsConnectionWithName",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "datasources"
+                                    ],
+                                    "to": [
+                                        "name"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "from": [
+                                        "output"
+                                    ],
+                                    "to": [
+                                        "exists"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "fork",
+                            "expression": "exists",
+                            "children": [
+                                {
+                                    "type": "block",
+                                    "label": "true",
+                                    "children": [
+                                        {
+                                            "type": "fork",
+                                            "expression": "datasources",
+                                            "children": [
+                                                {
+                                                    "type": "block",
+                                                    "label": "example_db",
+                                                    "children": [
+                                                        {
+                                                            "type": "invokeGloop",
+                                                            "name": "cursors.parentCursor.conf.StartUpService"
+                                                        },
+                                                        {
+                                                            "type": "invokeGloop",
+                                                            "name": "sqlServices.conf.util.PersonHelper",
+                                                            "declare": [
+                                                                {
+                                                                    "variables": [
+                                                                        {
+                                                                            "name": "name",
+                                                                            "type": "model",
+                                                                            "array": true,
+                                                                            "reference": "sqlServices.model.Name"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "outputs": [
+                                                                {
+                                                                    "from": [
+                                                                        "name"
+                                                                    ],
+                                                                    "to": [
+                                                                        "name"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "invokeCode",
+                                                            "className": "io.toro.martini.SqlMethods",
+                                                            "methodName": "executeSql",
+                                                            "parameters": [
+                                                                "java.lang.String",
+                                                                "java.lang.String",
+                                                                "io.toro.gloop.object.property.GloopModel",
+                                                                "io.toro.gloop.engine.GloopExecutionContext"
+                                                            ],
+                                                            "inputs": [
+                                                                {
+                                                                    "from": [
+                                                                        "datasources"
+                                                                    ],
+                                                                    "to": [
+                                                                        "databaseConnectionName"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "set",
+                                                                    "expression": "TRUNCATE TABLE NAMES",
+                                                                    "to": [
+                                                                        "sqlStatement"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "iterate",
+                                                            "input": {
+                                                                "path": [
+                                                                    "name"
+                                                                ]
+                                                            },
+                                                            "children": [
+                                                                {
+                                                                    "type": "invokeGloop",
+                                                                    "name": "sqlServices.sql.single.InsertSingleName",
+                                                                    "inputs": [
+                                                                        {
+                                                                            "from": [
+                                                                                "name",
+                                                                                "firstName"
+                                                                            ],
+                                                                            "to": [
+                                                                                "insertSingleNameInput",
+                                                                                "firstName"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "from": [
+                                                                                "name",
+                                                                                "lastName"
+                                                                            ],
+                                                                            "to": [
+                                                                                "insertSingleNameInput",
+                                                                                "lastName"
+                                                                            ]
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "block",
+                                    "label": "false",
+                                    "children": [
+                                        {
+                                            "type": "invokeGloop",
+                                            "name": "sqlServices.conf.util.DatabaseCreation",
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "datasources"
+                                                    ],
+                                                    "to": [
+                                                        "poolName"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "gloovy",
+                                            "comments": "give it time to create the datasource",
+                                            "gloovyScript": "Thread.sleep( 2000 )"
+                                        },
+                                        {
+                                            "type": "fork",
+                                            "expression": "datasources",
+                                            "children": [
+                                                {
+                                                    "type": "block",
+                                                    "label": "example_db",
+                                                    "children": [
+                                                        {
+                                                            "type": "invokeGloop",
+                                                            "name": "cursors.parentCursor.conf.StartUpService"
+                                                        },
+                                                        {
+                                                            "type": "invokeGloop",
+                                                            "name": "sqlServices.conf.util.PersonHelper",
+                                                            "declare": [
+                                                                {
+                                                                    "variables": [
+                                                                        {
+                                                                            "name": "name",
+                                                                            "type": "model",
+                                                                            "array": true,
+                                                                            "reference": "sqlServices.model.Name"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "outputs": [
+                                                                {
+                                                                    "from": [
+                                                                        "name"
+                                                                    ],
+                                                                    "to": [
+                                                                        "name"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "iterate",
+                                                            "input": {
+                                                                "path": [
+                                                                    "name"
+                                                                ]
+                                                            },
+                                                            "children": [
+                                                                {
+                                                                    "type": "invokeGloop",
+                                                                    "name": "sqlServices.sql.single.InsertSingleName",
+                                                                    "inputs": [
+                                                                        {
+                                                                            "from": [
+                                                                                "name",
+                                                                                "firstName"
+                                                                            ],
+                                                                            "to": [
+                                                                                "insertSingleNameInput",
+                                                                                "firstName"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "from": [
+                                                                                "name",
+                                                                                "lastName"
+                                                                            ],
+                                                                            "to": [
+                                                                                "insertSingleNameInput",
+                                                                                "lastName"
+                                                                            ]
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

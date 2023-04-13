@@ -1,0 +1,74 @@
+{
+    "comments": "Invoke this service to remove all generated dependency resources for the `examples` package. This reverts changes made by `util.CheckDependency`.\n\nAfter removing all dependencies initialized by `util.CheckDependency`, it sets the package property `dependency.initialized` to `false`. This lets `util.CheckDependency` know dependencies are flushed, \n\n to re-initialize the required dependencies other services in this package requires.\n\n---\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nThis service also produces logs [for the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view).\n\nThe logs below will only appear if there are data sources to delete:\n\n```\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/example_db'\nINFO  [DefaultDatabaseConfigRepository] Custom database config for 'example_db' was deleted. Subsequent fetch for 'example_db' will return the default configuration\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/example_xa_db_migrated'\nINFO  [DefaultDatabaseConfigRepository] Custom database config for 'example_xa_db_migrated' was deleted. Subsequent fetch for 'example_xa_db_migrated' will return the default configuration\nINFO  [JndiBindingDataSourceManager] Successfully unbound datasource from 'java:comp/env/jdbc/conversion_sample'\nINFO  [DefaultDatabaseConfigRepository] Custom database config for 'conversion_sample' was deleted. Subsequent fetch for 'conversion_sample' will return the default configuration\n```\n\nEither way, the logs below will also be printed in the console (following the logs above if they are present):\n\n```\nINFO  [Martini] Cleaning up Solr user settings\nINFO  [Martini] Deleting created user named 'Admin'\nINFO  [Martini] Cleaning up monetization config...\nINFO  [Martini] Deleting monitor rule named 'Rule 1'\nINFO  [Martini] Deleting user group named 'Rule 1 GROUP'\nINFO  [Martini] Deleting monitor rule named 'Rule 2'\nINFO  [Martini] Deleting user group named 'Rule 2 GROUP'\nINFO  [Martini] Deleting user named 'Demo'\nINFO  [Martini] Deleting user named 'DemoII'\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Removes the datasources initialized by CheckDependency service",
+                    "name": "sqlServices.conf.SqlShutdownService"
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Removes the Admin user created for Solr examples",
+                    "name": "solr.config.DeleteAdminUser"
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Deletes the examples report imported by CheckDependency service.",
+                    "name": "reportBuilderDemo.config.DeleteExampleReport"
+                },
+                {
+                    "type": "gloovy",
+                    "comments": "Sets dependency.initialized package property value to false, allowing CheckDependency service to initialize again.",
+                    "gloovyScript": "'dependency.initialized'.savePackageProperty( 'false' )"
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

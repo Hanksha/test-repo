@@ -1,0 +1,228 @@
+{
+    "comments": "# [Using the Gloop Concurrent Step](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps/)\n\nThrough this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service), we're going to show you how you can run parts of your Gloop code in separate threads using the [concurrent step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/concurrent/).\n\nThis service will run the children steps of the concurrent step at line 4 each in separate threads. Meanwhile, children steps of the concurrent step at line 13 will altogether be run in a separate thread. Since there's only one thread, lines 14 - 16 will be executed in sequence. And because line 13 will be executing in a separate thread (containing calls to `Thread.sleep(int)`), it is expected for line 17 to get executed first.\n\nThe service won't be marked as completed by Gloop though until all steps under line 13 have completed. All of the log messages that this service sends are prefixed with their thread names. This is to make it easier to see which steps are using which threads.\n\n## Invoking the Service\n\nThis service needs to be run [from a browser](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http) or via the [Martini's HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http). This is because Martini will always run the service in debug mode, regardless whether you choose Debug or Run to execute. Gloop does not run steps asynchronously in debug mode.\n\nBefore you execute the service, we recommend ensuring your [Console view](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) is open so you can see the stream of logs being sent by the service as it runs.\n\n## Expected Output\n\n### Response\n\nUpon successfully invoking the service via browser or HTTP client, the service will return a response containing the message:\n\n```\nGloop Service Completed. Please check the Martini logs to see how the Gloop service executed its Concurrent and asynchronous Concurrent steps. Visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view to learn more about viewing the Martini logs on the platform you are in.\n```\n\nThis response can either be in XML or JSON format, depending on the configuration of the request sent.\n\n### Logs\n\nWhile the service is running, you will see logs getting printed on the console similar to this:\n\n```\nINFO http-nio-8080-exec-5 First concurrent step is starting...\nINFO ForkJoinPool-4-worker-0 #1 This is from the second while step\nINFO ForkJoinPool-4-worker-7 #1 This is from the first while step\nINFO ForkJoinPool-4-worker-0 #2 This is from the second while step\nINFO ForkJoinPool-4-worker-7 #2 This is from the first while step\nINFO ForkJoinPool-4-worker-0 #3 This is from the second while step\nINFO ForkJoinPool-4-worker-7 #3 This is from the first while step\nINFO ForkJoinPool-4-worker-0 #4 This is from the second while step\nINFO ForkJoinPool-4-worker-7 #4 This is from the first while step\nINFO ForkJoinPool-4-worker-0 #5 This is from the second while step\nINFO ForkJoinPool-4-worker-7 #5 This is from the first while step\nINFO http-nio-8080-exec-5 First concurrent step completed\nINFO http-nio-8080-exec-5 Second concurrent step is starting...\nINFO pool-26-thread-5 The first child step is going to sleep for 3 seconds\nINFO http-nio-8080-exec-5 Logging this message without waiting for the second concurrent step to complete.\nINFO pool-26-thread-5 The first child step is now awake\nINFO pool-26-thread-5 The second child step is going to sleep for 4 seconds\nINFO pool-26-thread-5 The second child step is now awake\nINFO pool-26-thread-5 Second concurrent step completed\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. Please check the Martini logs to see how the Gloop service executed its Concurrent and asynchronous Concurrent steps. Visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view to learn more about viewing the Martini logs on the platform you are in."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "Check if the service is being debugged. $gloopExecutionContext is a reserved variable word in Gloop expressions. As is $context",
+            "expression": "$gloopExecutionContext.isDebug()",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "true",
+                    "comments": "If it's being debugged, throw an exception.",
+                    "className": "io.toro.martini.GloopMethods",
+                    "methodName": "throwException",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Please execute this in run mode, not debug mode. To do this, invoke this Gloop service from a browser",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} First concurrent step is starting...\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "concurrent",
+            "comments": "This Concurrent step will execute its child steps concurrently/asynchronously and will wait until all the child steps has finished executing",
+            "children": [
+                {
+                    "type": "while",
+                    "comments": "This while loop will keep on looping until $gloopIndex is less than 5",
+                    "expression": "5",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "Send an info message to the underlying log engine",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"${Thread.currentThread().getName()} #${$gloopCount} This is from the first while step\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "gloovy",
+                            "comments": "This step will make the current thread sleep for 1 second",
+                            "gloovyScript": "Thread.sleep( 1000 )"
+                        }
+                    ]
+                },
+                {
+                    "type": "while",
+                    "comments": "This while loop will keep on looping until $gloopIndex is less than 5",
+                    "expression": "5",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "comments": "Send an info message to the underlying log engine",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "\"${Thread.currentThread().getName()} #${$gloopCount} This is from the second while step\"",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "gloovy",
+                            "comments": "This step will make the current thread sleep for 1 second",
+                            "gloovyScript": "Thread.sleep( 1000 )"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} First concurrent step completed\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} Second concurrent step is starting...\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "concurrent",
+            "children": [
+                {
+                    "type": "gloovy",
+                    "comments": "First child step will sleep for 3 seconds",
+                    "gloovyScript": "\"${Thread.currentThread().getName()} The first child step is going to sleep for 3 seconds\".info()\n\nThread.sleep( 3000 )\n\n\"${Thread.currentThread().getName()} The first child step is now awake\".info()"
+                },
+                {
+                    "type": "gloovy",
+                    "comments": "First child step will sleep for 4 seconds",
+                    "gloovyScript": "\"${Thread.currentThread().getName()} The second child step is going to sleep for 4 seconds\".info()\n\nThread.sleep( 4000 )\n\n\"${Thread.currentThread().getName()} The second child step is now awake\".info()"
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${Thread.currentThread().getName()} Second concurrent step completed\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "async": true
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This steps logs a message to the martini logs demonstrating how it runs without waiting for the second concurrent step to complete. Also, it sets a value to the service output.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} Logging this message without waiting for the second concurrent step to complete.\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "set",
+                    "expression": "Gloop Service Completed. Please check the Martini logs to see how the part of the Gloop service ran in a separate thread.",
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,304 @@
+{
+    "comments": "A [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) that parses the provided Velocity template using a [`VelocityMethods`](https://docs.torocloud.com/martini/latest/developing/services/one-liners/velocity-methods/) one-liner, and sends the produced document as an email using an `EmailMethods` one-liner.",
+    "input": [
+        {
+            "name": "template",
+            "allowNull": false,
+            "comments": "Velocity template"
+        },
+        {
+            "name": "context",
+            "type": "model",
+            "allowExtraProperties": true
+        },
+        {
+            "name": "protocol",
+            "allowNull": false,
+            "choices": [
+                "smtp",
+                "smtps"
+            ],
+            "allowOtherValues": true
+        },
+        {
+            "name": "login"
+        },
+        {
+            "name": "password"
+        },
+        {
+            "name": "server",
+            "allowNull": false,
+            "choices": [
+                "smtp.gmail.com",
+                "smtp.mail.yahoo.com",
+                "smtp-mail.outlook.com"
+            ],
+            "allowOtherValues": true
+        },
+        {
+            "name": "port",
+            "type": "integer",
+            "choices": [
+                25,
+                465,
+                587
+            ],
+            "allowOtherValues": true
+        },
+        {
+            "name": "from"
+        },
+        {
+            "name": "to",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.email.Address"
+        },
+        {
+            "name": "cc",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.email.Address"
+        },
+        {
+            "name": "bcc",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.email.Address"
+        },
+        {
+            "name": "subject",
+            "allowNull": false
+        },
+        {
+            "name": "isHtml",
+            "type": "boolean",
+            "defaultValue": "false"
+        }
+    ],
+    "output": [
+        {
+            "name": "response"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Evaluate a velocity template, using all the variables available in the mapped Gloop modelVariables mapped belong in a model called context",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "velocityOutput"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.VelocityMethods",
+            "methodName": "parse",
+            "parameters": [
+                "java.lang.String",
+                "io.toro.gloop.object.property.GloopModel",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "template"
+                    ],
+                    "to": [
+                        "template"
+                    ]
+                },
+                {
+                    "from": [
+                        "context"
+                    ],
+                    "to": [
+                        "context"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "velocityOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "fork",
+                    "comments": "Check if the required field are populated",
+                    "expression": "protocol && login && password && server && port && from && subject && to.address",
+                    "children": [
+                        {
+                            "type": "invokeCode",
+                            "label": "true",
+                            "className": "io.toro.martini.EmailMethods",
+                            "methodName": "sendEmail",
+                            "parameters": [
+                                "java.lang.String",
+                                "java.lang.String",
+                                "java.lang.String",
+                                "java.lang.String",
+                                "int",
+                                "java.lang.String",
+                                "java.util.List",
+                                "java.util.List",
+                                "java.util.List",
+                                "java.lang.String",
+                                "boolean",
+                                "java.lang.String",
+                                "java.util.List",
+                                "java.util.List"
+                            ],
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "protocol"
+                                    ],
+                                    "to": [
+                                        "protocol"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "login"
+                                    ],
+                                    "to": [
+                                        "login"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "password"
+                                    ],
+                                    "to": [
+                                        "password"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "server"
+                                    ],
+                                    "to": [
+                                        "server"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "port"
+                                    ],
+                                    "to": [
+                                        "port"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "from"
+                                    ],
+                                    "to": [
+                                        "from"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "to"
+                                    ],
+                                    "to": [
+                                        "to"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "cc"
+                                    ],
+                                    "to": [
+                                        "cc"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "bcc"
+                                    ],
+                                    "to": [
+                                        "bcc"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "subject"
+                                    ],
+                                    "to": [
+                                        "subject"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "isHtml"
+                                    ],
+                                    "to": [
+                                        "isHtml"
+                                    ]
+                                },
+                                {
+                                    "from": [
+                                        "velocityOutput"
+                                    ],
+                                    "to": [
+                                        "body"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "Email was sent successfully!",
+                                    "to": [
+                                        "response"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "label": "false",
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "It looks like you missed something in your `package.properties`. Make sure that you provide all necessary information.",
+                                    "to": [
+                                        "response"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "lines": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "response"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

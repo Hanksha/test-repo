@@ -1,0 +1,42 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) that updates an entry in the `ADDITIONAL_DATA` table, using data specified through input parameters.",
+    "input": [
+        {
+            "name": "updateSingleAdditionalDataInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "image",
+                    "type": "object",
+                    "objectClassName": "java.sql.Blob"
+                },
+                {
+                    "name": "information",
+                    "type": "object",
+                    "objectClassName": "java.sql.Clob"
+                },
+                {
+                    "name": "nameId",
+                    "type": "integer"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "UPDATE",
+    "query": "UPDATE ADDITIONAL_DATA\nSET\n    IMAGE = :image,\n    INFORMATION = :information,\n    NAME_ID = :nameId\nWHERE ( ID = :id )"
+}

@@ -1,0 +1,194 @@
+{
+    "comments": "## Deleting Multiple Documents Using `deleteMany`\n\nThis Gloop service demonstrates how to query `deleteMany` to delete multiple record in the `inventory` collection. The MongoDB service (line 4) that queries the `deleteMany` with `status` as the filter. Documents that matched with the `status` filter will be deleted.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a `status` to be sent as an input to the query to be performed. The status query accepts only one of these values: _available_ and _not available_. The query will then try to look for all the documents that matches the provided input. For your convenience, the `status` property is already set with a default value of `not available`; changing this value is optional but possible.\n\n## Expected Output\n\nThis service will return an `output` model that contains the count of deleted document. The expected value of the `deleteCount` should be `3` if you left everything at default. If you choose to run this service with your preferred input, then the count should match the number of documents you are expecting to be deleted. If the service did not find matching documents to be deleted, then the output will have an extra property called message, that tells you that there were no documents deleted.",
+    "input": [
+        {
+            "name": "status",
+            "defaultValue": "not available",
+            "comments": "The status of the documents to be deleted. All documents that matches the value of this input will be deleted by the query that receives this input",
+            "choices": [
+                "available",
+                "not available"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "deleteCount",
+                    "type": "integer",
+                    "defaultValue": 0
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Executes the deleteMany query, deleting all the documents that matches the filter. This service will return a count of the deleted items if there's any.",
+                    "name": "bigData.mongoDb.services.delete.DeleteMany",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "gloopProperties": [
+                                        {
+                                            "name": "deleteCount",
+                                            "type": "long"
+                                        },
+                                        {
+                                            "name": "acknowledged",
+                                            "type": "boolean"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "status"
+                            ],
+                            "to": [
+                                "input",
+                                "status"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check the deleteCount if it's not equal, or greater than 0.",
+                    "expression": "result.deleteCount > 0 || result.deleteCount != 0",
+                    "children": [
+                        {
+                            "label": "true",
+                            "comments": "If true, map a successful response",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "result",
+                                        "deleteCount"
+                                    ],
+                                    "to": [
+                                        "output",
+                                        "deleteCount"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "label": "false",
+                            "comments": "if false, add a new property to the Gloop output model called message, then set a failed message",
+                            "declare": [
+                                {
+                                    "path": [
+                                        "output"
+                                    ],
+                                    "variables": [
+                                        {
+                                            "name": "message"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Query did not match documents in the collection. No documents were deleted",
+                                    "to": [
+                                        "output",
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Deleted records: ${output.deleteCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

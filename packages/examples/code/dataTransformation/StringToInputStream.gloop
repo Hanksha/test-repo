@@ -1,0 +1,173 @@
+{
+    "comments": "# [Creating an `InputStream` from a String](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation/)\n\nIn this [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we'll demonstrate how you can convert a string property to a `java.io.InputStream` object.\n\n## Invoking the Service\n\nUpon [running the Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), you will be asked by Martini to provide a value for the `stringToConvert` property. For your convenience, it is already set with the default value of `Martini`.\n\n## Expected Output\n\nThe output of this service depends on the value provided for `stringToConvert`. If it was left with its default value, then the expected [return value of the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), if in JSON format, is:\n\n```\n{\n    \"output\": {\n        \"unreadString\": \"Martini Desktop\"\n    }\n}\n```\n\nAside from this, the following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Converting string: Martini\nINFO  [Martini] InputStream bytes available: 15\nINFO  [Martini] InputStream first character: M\nINFO  [Martini] InputStream bytes left: 14\nINFO  [Martini] Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.\n```",
+    "input": [
+        {
+            "name": "stringToConvert",
+            "defaultValue": "Martini",
+            "comments": "The string to be converted."
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "unreadString"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "Log the string to be converted in the console",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Converting string: ${stringToConvert}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "We'll map the input string variable stringToConvert to the declared InputStream object named inputStream.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputStream",
+                            "type": "object",
+                            "objectClassName": "InputStream"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "from": [
+                        "stringToConvert"
+                    ],
+                    "to": [
+                        "inputStream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log the bytes available from the InputStream object in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"InputStream bytes available: ${inputStream.available()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Read the first character from the InputStream object.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"InputStream first character: ${(char) inputStream.read()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log how many bytes are left after reading the first character.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"InputStream bytes left: ${inputStream.available()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "We’ll then map what's left from the InputStream object to the output variable named unreadString.",
+            "lines": [
+                {
+                    "from": [
+                        "inputStream"
+                    ],
+                    "to": [
+                        "output",
+                        "unreadString"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This last step is not required since Gloop can close streams once the service is terminated but for best practice, we'll close the stream quietly.",
+            "className": "org.codehaus.groovy.runtime.DefaultGroovyMethods",
+            "methodName": "closeQuietly",
+            "parameters": [
+                "java.io.Closeable"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "inputStream"
+                    ],
+                    "to": [
+                        "c"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

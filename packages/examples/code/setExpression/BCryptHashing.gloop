@@ -1,0 +1,68 @@
+{
+    "comments": "# [Importing Classes in Set Expressions](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/set-expressions)\n\nYou can use `import` statements in [set expressions](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#set-expressions) to use other available classes. For this example, we'll be using Spring Security's `BCrypt` to hash a given string then check if the output hash is correct.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Only one [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/) is required: `stringToHash`. For your convenience, a default value for `stringToHash` is already provided.\n\t\n## Expected Output\n\nThe output of this service depends on the provided `stringToHash` input property.\n\nIf left with the default `stringToHash` of `Martini`, this service will return:\n\n- `output.hashed` = `$2a$10$pevTQVaOgROlxy.CkU9qJeV1H5s9aeqKd.YbuUx0NoZyOGh4qon3e`\n- `output.hashIsValid` = `true`\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, JSON, or in the output tree.",
+    "input": [
+        {
+            "name": "stringToHash",
+            "defaultValue": "Martini"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "hashed"
+                },
+                {
+                    "name": "hashIsValid",
+                    "type": "boolean"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "You can also use the Set Expression editor to apply Groovy code snippets like we did on this step",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "import org.springframework.security.crypto.bcrypt.BCrypt\n\nBCrypt.hashpw( stringToHash, BCrypt.gensalt() )",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "hashed"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "import org.springframework.security.crypto.bcrypt.BCrypt\n\nBCrypt.checkpw( stringToHash, output.hashed )",
+                    "evaluate": true,
+                    "to": [
+                        "output",
+                        "hashIsValid"
+                    ],
+                    "priority": 1
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

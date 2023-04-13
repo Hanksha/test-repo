@@ -1,0 +1,81 @@
+{
+    "comments": "# [Using Gloop to Render a JSP Page](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/rendering-jsp/)\n\nThis service is used in conjunction with `jspResponse.api.JspController` to demonstrate how you can render a [JSP page](https://docs.torocloud.com/martini/developing/packages/web-pages/) in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\n`jspResponse.api.JspController`, a [Gloop REST API](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/), exposes a `GET` web endpoint for this service. When said endpoint is invoked via browser, the JSP page located in `<package-home>/web` will get rendered. That particular view gets rendered because we have specified it through the output variable `$gloopView` .\n\n[Running this service via the Gloop service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) alone will **not** properly demonstrate JSP rendering. Instead, the HTTP endpoint exposed for it must be invoked in a browser.\n\nFor more information, see the `jspResponse.api.JspController`.",
+    "input": [
+        {
+            "name": "parameters",
+            "type": "model",
+            "comments": "POST Parameters ",
+            "gloopProperties": [
+                {
+                    "name": "firstname",
+                    "defaultValue": "John"
+                },
+                {
+                    "name": "lastname",
+                    "defaultValue": "Doe"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "$gloopView",
+            "defaultValue": "",
+            "comments": "Returns a webpage"
+        },
+        {
+            "name": "firstName",
+            "comments": "Gets added as a JSP variable"
+        },
+        {
+            "name": "lastName"
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        },
+        {
+            "name": "responseCode",
+            "type": "integer",
+            "defaultValue": 200
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we set the response $gloopView value to 'sample.jsp'.",
+            "lines": [
+                {
+                    "from": [
+                        "parameters",
+                        "firstname"
+                    ],
+                    "to": [
+                        "firstName"
+                    ]
+                },
+                {
+                    "from": [
+                        "parameters",
+                        "lastname"
+                    ],
+                    "to": [
+                        "lastName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "sample",
+                    "to": [
+                        "$gloopView"
+                    ]
+                }
+            ]
+        }
+    ]
+}

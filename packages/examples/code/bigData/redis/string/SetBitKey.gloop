@@ -1,0 +1,134 @@
+{
+    "comments": "# Setting a Bit Key\n\nThis service shows on how to set a Redis Bit Key in [Gloop](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\n\nGiven a String `connection`, `key`, `offset` and `value`, the service will set a bit key in Redis using `RedisStringMethods.setbit` one-liner. If `connection`'s value doesn't exist, then an error will be  [logged](https://docs.torocloud.com/martini/latest/developing/one-liner/logger-methods//) to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) from the service.\n\n## Prerequisite\n\nIf you haven't created a [Redis connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/redis/), follow these steps:\n\n1. Right click the [`Databases`](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/) above and click new. \n2. Choose `type Redis` and name it `redis`.\n3. Change the `URI` to where your `redis instance` is located (e.g. `redis://127.0.0.1:6379/0`)\n4. Then save and start the connection pool.\n\n## Invoking the Service\n\nThe simplest way to execute this service is via the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor), where you may either [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) or [debug](https://docs.torocloud.com/martini/latest/developing/gloop/service/debugging/) it.\n\nWhen executing the service, the service will prompt you to provide the `connection`, `key`, `offset` and `value` input properties. The default values are already set for `connection`, `key`, `offset` and `value`.\n\nThe `RedisStringMethods.setbit` has an output property `redisSetbitOutput` which return the result of the set bit. \n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- The `output.message`'s values will be set to the value of the `redisSetbitOutput`.\n\n### Logs\n\nUpon setting the [`output` model](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs), the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] The result of the set bitKey key : 1\n\n```",
+    "input": [
+        {
+            "name": "connection",
+            "defaultValue": "redis"
+        },
+        {
+            "name": "key",
+            "defaultValue": "bitKey"
+        },
+        {
+            "name": "offset",
+            "type": "long",
+            "defaultValue": 100
+        },
+        {
+            "name": "value",
+            "type": "integer",
+            "defaultValue": 1
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "This step will set the bit of the string key in Redis",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "redisSetbitOutput",
+                            "type": "long",
+                            "comments": "Long integer-reply the original bit value stored at <em>offset</em>."
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.redis.RedisStringMethods",
+            "methodName": "setbit",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.Object",
+                "long",
+                "int",
+                "io.toro.gloop.engine.GloopExecutionContext"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "connection"
+                    ],
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "from": [
+                        "key"
+                    ],
+                    "to": [
+                        "key"
+                    ]
+                },
+                {
+                    "from": [
+                        "offset"
+                    ],
+                    "to": [
+                        "offset"
+                    ]
+                },
+                {
+                    "from": [
+                        "value"
+                    ],
+                    "to": [
+                        "value"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "redisSetbitOutput"
+                    ],
+                    "to": [
+                        "redisSetbitOutput"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This will log the returned value of the set bit in Redis and map it to output model",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"The result of the set ${key} key : ${redisSetbitOutput}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output",
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

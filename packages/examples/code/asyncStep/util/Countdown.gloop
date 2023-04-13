@@ -1,0 +1,63 @@
+{
+    "comments": "A service that _counts_ from 0 to 25 through a [while step](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/). Every count is logged to the console. \n\nTo slow down the loop, the [delay](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/while/#other-features) property of the while step has been populated so the step will wait `150` milliseconds before performing the next iteration.\n\nBy running this service, you should expect to see logs like:\n\n```\n29/05/19 14:23:37.512 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 0\n29/05/19 14:23:37.668 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 1\n29/05/19 14:23:37.824 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 2\n29/05/19 14:23:37.982 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 3\n29/05/19 14:23:38.137 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 4\n29/05/19 14:23:38.296 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 5\n29/05/19 14:23:38.450 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 6\n29/05/19 14:23:38.608 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 7\n29/05/19 14:23:38.764 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 8\n29/05/19 14:23:38.920 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 9\n29/05/19 14:23:39.077 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 10\n29/05/19 14:23:39.234 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 11\n29/05/19 14:23:39.390 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 12\n29/05/19 14:23:39.542 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 13\n29/05/19 14:23:39.694 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 14\n29/05/19 14:23:39.850 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 15\n29/05/19 14:23:40.005 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 16\n29/05/19 14:23:40.159 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 17\n29/05/19 14:23:40.313 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 18\n29/05/19 14:23:40.467 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 19\n29/05/19 14:23:40.620 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 20\n29/05/19 14:23:40.775 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 21\n29/05/19 14:23:40.928 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 22\n29/05/19 14:23:41.084 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 23\n29/05/19 14:23:41.240 INFO  [Martini] clientInboundChannel-512 countdown: Current count is 24\n29/05/19 14:23:41.624 INFO  [Martini] clientInboundChannel-512 countdown: Finished counting\n```\n\nTo see this service in action, see `AsyncStepDemo.gloop`.",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "while",
+            "comments": "This while loop will keep on looping until $gloopIndex is less than 25",
+            "expression": "25",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will log the current $gloopIndex to the message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${Thread.currentThread().getName()} countdown: Current count is ${$gloopIndex}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "delay": 150
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will log after the while loop is done",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} countdown: Finished counting\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

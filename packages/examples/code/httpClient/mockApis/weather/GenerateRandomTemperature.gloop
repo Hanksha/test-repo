@@ -1,0 +1,24 @@
+{
+    "comments": "A [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) that generates a random temperature.\n\nThis service is [exposed as a RESTful web service by `httpClient.mockApis.HttpClientMockEndpoints.api`](https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nThis service will return one property: `temperature`. This value is random and varies per execution.\n\nHere's an example output from this service (displayed in JSON):\n\n```\n{\n    \"temperature\": 24.784929280015447\n}\n```\n\nYou can [check service outputs via the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). The Console view allows you to display the service's outputs in a model tree, or in JSON or XML.",
+    "output": [
+        {
+            "name": "temperature",
+            "type": "double"
+        }
+    ],
+    "steps": [
+        {
+            "comments": "This step randomly generates a double from 24 to 45.",
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "org.apache.commons.lang3.RandomUtils.nextDouble(24, 45)",
+                    "evaluate": true,
+                    "to": [
+                        "temperature"
+                    ]
+                }
+            ]
+        }
+    ]
+}

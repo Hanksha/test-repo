@@ -1,0 +1,91 @@
+{
+    "comments": "This Gloop service will get the `exampleProperty` package property of the `examples` package. Once obtained, its value will be logged to the Martini console.\n\nTo see how this service is used, check out `AsyncStepDemo.gloop`.",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will get the `exampleProperty` property in the Martini package property",
+                    "className": "io.toro.martini.GroovyMethods",
+                    "methodName": "getPackageProperty",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "exampleProperty",
+                            "to": [
+                                "key"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will log the exampleProperty value in the Martini info log",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${Thread.currentThread().getName()} exampleProperty is: ${output.message}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send a warn message to the underlying log engine, asking to ensure a package has been set",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "warn",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"${Thread.currentThread().getName()} Please make sure the package has been set ${$gloopException}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

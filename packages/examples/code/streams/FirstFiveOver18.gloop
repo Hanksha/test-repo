@@ -1,0 +1,221 @@
+{
+    "comments": "# [Using `StreamMethods.limit(Stream, Collection, long)`](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/stream-methods)\n\nThis service filters a collection of `Person`s so that only `5` `Person`s with an `age` greater than `18` are returned by the service.\n\nTo do the filtering, it makes use of [`StreamMethods`](https://docs.torocloud.com/martini/developing/services/one-liners/stream-methods/)`.filter(Stream, Collection, Closure<Boolean>)`. It further limits the number of `Person`s through `StreamMethods.limit(Stream, Collection, long)`.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\n### Properties\n\nThis service will return an array of `Person` models named `limitedPeople`. This property contains the first `5` `Person`s whose `age`s are over `18`.\n\nIts output should be similar to below (if represented in JSON):\n\n```\n{\n    \"limitedPeople\": [\n        {\n            \"name\": \"Laz\",\n            \"age\": 20\n        },\n        {\n            \"name\": \"John\",\n            \"age\": 21\n        },\n        {\n            \"name\": \"Daniel\",\n            \"age\": 21\n        },\n        {\n            \"name\": \"Jane\",\n            \"age\": 22\n        },\n        {\n            \"name\": \"Andrew\",\n            \"age\": 23\n        }\n    ]\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a value tree.\n\n### Logs\n\nThe service will log the initial collection of `Person`s to the console, and will also log the filtered and limited collection of `Person`s by the end of the service's execution.",
+    "output": [
+        {
+            "name": "limitedPeople",
+            "type": "model",
+            "array": true,
+            "reference": "streams.model.Person"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "A util method that populates a Gloop model array of 'people'",
+            "name": "streams.helper.ProvidePeople",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "people",
+                            "type": "model",
+                            "array": true,
+                            "reference": "streams.model.Person"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "people"
+                    ]
+                },
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "people"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log that it's going to start populating a list of people",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Filtering 5 people that are over 18 y.o. from the list printed in JSON: \\n\\n${people.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Filters out items based on a given condition (predicate) represented by a Groovy closure.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "stream",
+                            "type": "object",
+                            "comments": "output Stream"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "filter",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection",
+                "groovy.lang.Closure"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "collection"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "{ it ->\n\tit.age > 18\n}",
+                    "evaluate": true,
+                    "to": [
+                        "predicate"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Limits the items to be processed.",
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "limit",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection",
+                "long"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stream"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "5",
+                    "to": [
+                        "limit"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Collects the stream back into a standard list of items.",
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "toList",
+            "parameters": [
+                "java.util.stream.Stream"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stream"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "limitedPeople"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the people who are over 18 y.o. in JSON format",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Using StreamMethods.filter and StreamMethods.limit, we filtered the following people who are over 18 y.o. printed in JSON:\\n\\n${limitedPeople.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

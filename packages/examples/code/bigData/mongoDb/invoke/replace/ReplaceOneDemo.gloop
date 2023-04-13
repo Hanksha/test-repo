@@ -1,0 +1,300 @@
+{
+    "comments": "## Replacing a Document Using `replaceOne`\n\nThis Gloop service demonstrates how to query `replaceOne` to replace the first document that matches the `itemName` filter. The MongoDB service (line 5) holds the query to replace a document in the `inventory` collection.\n\nThis example service replaces a document that matches the `itemName` filter, and then checks for the modified count. If modified count is not equal to 1, then no document was replaced.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to populate the `inventoryItem` model, and the `itemName` property to be sent as an input to the query to be performed. For your convenience, the `inventoryItem` model is already populated with values; changing these values is optional but possible. However, you are required to provide a value to the `itemName` property if you want to replace a document.\n\n## Expected Output\n\nIf the query was successfully executed, it will return an `output` model that has a `modifiedCount` property. The value of this property should be `1`. A similar `INFO` message  will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Attempting to replace a document with item name: pencil\nINFO  [Martini] Replaced pencil document with item Item A\n```",
+    "input": [
+        {
+            "name": "inventoryItem",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "item",
+                    "defaultValue": "Item A"
+                },
+                {
+                    "name": "qty",
+                    "type": "integer",
+                    "defaultValue": 10
+                },
+                {
+                    "name": "status",
+                    "defaultValue": "available",
+                    "choices": [
+                        "available",
+                        "not available"
+                    ]
+                },
+                {
+                    "name": "size",
+                    "type": "model",
+                    "allowExtraProperties": true,
+                    "gloopProperties": [
+                        {
+                            "name": "h",
+                            "type": "double",
+                            "defaultValue": 8.0
+                        },
+                        {
+                            "name": "w",
+                            "type": "double",
+                            "defaultValue": 11.0
+                        },
+                        {
+                            "name": "uom",
+                            "defaultValue": "in"
+                        }
+                    ]
+                },
+                {
+                    "name": "tags",
+                    "array": true,
+                    "defaultValue": [
+                        "black",
+                        "small"
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "itemName",
+            "comments": "This will be the filter for the query, replacing the document in the collection that matches the value of this input property"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "modifiedCount",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "inventory",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Attempting to replace a document with item name: ${itemName}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This service will replace the first document found by the replace query",
+                    "name": "bigData.mongoDb.services.replace.ReplaceOne",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "gloopProperties": [
+                                        {
+                                            "name": "matchedCount",
+                                            "type": "long"
+                                        },
+                                        {
+                                            "name": "modifiedCount",
+                                            "type": "long"
+                                        },
+                                        {
+                                            "name": "upsertedId",
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "inventoryItem"
+                            ],
+                            "to": [
+                                "input",
+                                "replacement"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "itemName"
+                            ],
+                            "to": [
+                                "input",
+                                "itemName"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check if there's only one document modified",
+                    "expression": "result.modifiedCount == 1",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "lines": [
+                                        {
+                                            "from": [
+                                                "result",
+                                                "modifiedCount"
+                                            ],
+                                            "to": [
+                                                "output",
+                                                "modifiedCount"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Log this in the Martini console if the query successfully replaced a single document",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"Replaced ${itemName} document with item ${inventoryItem.item}\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "block",
+                            "label": "false",
+                            "children": [
+                                {
+                                    "declare": [
+                                        {
+                                            "path": [
+                                                "output"
+                                            ],
+                                            "variables": [
+                                                {
+                                                    "name": "message"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"Replacing document failed. No document matched with item name ${itemName}\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "output",
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Log this message in the Martini console if the query didn't match and replaced a document",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "output.message",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,75 @@
+{
+    "comments": "# [Writing to an AWS S3 File](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/vfs-methods/)\n\nThis service writes a file to an [AWS S3](https://aws.amazon.com/s3/) server by calling `vfs.util.VFSDemo.gloop`.\n\nIt specifies where and how to write the file by passing in the target location of the file (`url`), and which file system options to use (`vfsFileSystemOptions`).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). To run, AWS S3 credentials must be provided as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/) (`s3Opts`).\n\n## Expected Output\n\n### Properties\n\nThis service returns a `content` property which will contain the string written to the file. Its expected value is:\n\n```\nThis is sample content\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in JSON, XML, or in a value tree.\n\n### Logs\n\nLog messages like below are expected in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Writing the file to the remote location...\nINFO  [Martini] Done writing on the content of demoVFS.txt.\nINFO  [Martini] Retrieved the content of demoVFS.txt: This is sample content\n```",
+    "input": [
+        {
+            "name": "s3Opts",
+            "type": "model",
+            "comments": "Amazon S3 file system options",
+            "gloopProperties": [
+                {
+                    "name": "accessKey"
+                },
+                {
+                    "name": "secretKey"
+                },
+                {
+                    "name": "region"
+                },
+                {
+                    "name": "bucket"
+                },
+                {
+                    "name": "endpoint"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "content",
+                    "comments": "The content of the file"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This will call the main service and pass the options",
+            "name": "vfs.util.VFSDemo",
+            "inputs": [
+                {
+                    "from": [
+                        "s3Opts"
+                    ],
+                    "to": [
+                        "vfsFileSystemOptions",
+                        "s3Opts"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "s3://demoVFS.txt",
+                    "to": [
+                        "url"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output",
+                        "content"
+                    ]
+                }
+            ]
+        }
+    ]
+}

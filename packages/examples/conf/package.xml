@@ -1,0 +1,140 @@
+<package stateOnStartup="started" documentation-page="http://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/" id="io.toro.martini.examples" version="1" context-path="/examples">
+  <package-dependencies/>
+  <startup-services/>
+  <shutdown-services/>
+  <endpoints>
+    <endpoint type="jms-listener" name="JMSListenerDurableExample" service="gloop:endpointServices.gloop.jmsExamples.durable.listener.ReceiveJMS/endpointServices.gloop.jmsExamples.durable.listener.ReceiveJMS" enabled="false" modifiable="true">
+      <properties>
+        <property name="documentType">JMS</property>
+        <property name="track">false</property>
+        <property name="destinationName">exampleJMSListenerDurable</property>
+        <property name="destinationType">queue</property>
+        <property name="transacted">false</property>
+        <property name="concurrentConsumers">1</property>
+        <property name="maxConcurrentConsumers">1</property>
+        <property name="durable">true</property>
+        <property name="acknowledgement">1</property>
+      </properties>
+    </endpoint>
+    <endpoint type="jms-listener" name="JMSListenerExample" service="gloop:endpointServices.gloop.jmsExamples.listener.ReceiveJMS/endpointServices.gloop.jmsExamples.listener.ReceiveJMS" enabled="false" modifiable="true">
+      <properties>
+        <property name="documentType">JMS</property>
+        <property name="track">false</property>
+        <property name="destinationName">exampleJMSListener</property>
+        <property name="destinationType">queue</property>
+        <property name="transacted">false</property>
+        <property name="concurrentConsumers">1</property>
+        <property name="maxConcurrentConsumers">1</property>
+        <property name="durable">false</property>
+        <property name="acknowledgement">1</property>
+      </properties>
+    </endpoint>
+    <endpoint type="tracker-resubmit" name="TrackerResubmitExample" service="gloop:endpointServices.gloop.trackerResubmitExamples.Resubmit/endpointServices.gloop.trackerResubmitExamples.Resubmit" enabled="false" modifiable="true">
+      <properties>
+        <property name="documentType">RSS</property>
+        <property name="documentState">Started</property>
+      </properties>
+    </endpoint>
+    <endpoint type="scheduler" name="SendScheduledEmail" service="gloop:endpointServices.gloop.schedulerExamples.SchedulerService/endpointServices.gloop.schedulerExamples.SchedulerService" enabled="false" modifiable="true">
+      <properties>
+        <property name="schedule">simpleRepeating:3</property>
+        <property name="track">false</property>
+        <property name="scheduleType">simpleRepeating</property>
+        <property name="documentType">Scheduler</property>
+        <property name="stateful">false</property>
+        <property name="simpleRepeating">3</property>
+      </properties>
+    </endpoint>
+    <endpoint type="ftp-client" name="FTPClientExample" service="gloop:endpointServices.gloop.fileExamples.LogFile/endpointServices.gloop.fileExamples.LogFile" enabled="false" modifiable="true">
+      <properties>
+        <property name="schedule">repeating:1000</property>
+        <property name="strictSSL">false</property>
+        <property name="password">encryptedV2:7YXm6k3cCgetwHCAAS3ghya4LERP6NygngAhJ/LgTPXS</property>
+        <property name="protocol">ftp</property>
+        <property name="documentType">FTP Client</property>
+        <property name="remoteDir">/</property>
+        <property name="port">8808</property>
+        <property name="isPassive">false</property>
+        <property name="host">localhost</property>
+        <property name="track">false</property>
+        <property name="eventTypes">onDelete,onAdd</property>
+        <property name="username">ftp.user</property>
+      </properties>
+    </endpoint>
+    <endpoint type="rss" name="RSSExample" service="gloop:endpointServices.gloop.rssExamples.RssReader/endpointServices.gloop.rssExamples.RssReader" enabled="false" modifiable="true">
+      <properties>
+        <property name="schedule">repeating:120000</property>
+        <property name="track">true</property>
+        <property name="documentType">RSS</property>
+        <property name="onlyNew">false</property>
+        <property name="rssUrl">http://localhost:8080/api/example/server/rss?dataFormat=xml</property>
+      </properties>
+    </endpoint>
+    <endpoint type="ftp-server" name="FTPServerExample" service="" enabled="false" modifiable="true">
+      <properties>
+        <property name="groups">ESBAPIAdminGroup</property>
+        <property name="track">false</property>
+        <property name="documentType">FTP Server</property>
+        <property name="port">8808</property>
+      </properties>
+    </endpoint>
+    <endpoint type="email" name="EmailEndpointExample" service="gloop:endpointServices.gloop.emailExamples.ReadEmailAttachments/endpointServices.gloop.emailExamples.ReadEmailAttachments" enabled="false" modifiable="true">
+      <properties>
+        <property name="sendReplyOnError">false</property>
+        <property name="documentType">E-Mail</property>
+        <property name="reply-port">1</property>
+        <property name="type">imap</property>
+        <property name="ssl">true</property>
+        <property name="deleteOnReceive">false</property>
+        <property name="schedule">repeating:1000</property>
+        <property name="folder">INBOX</property>
+        <property name="sendOutputAsReply">false</property>
+        <property name="port">993</property>
+        <property name="host">imap.gmail.com</property>
+        <property name="track">false</property>
+        <property name="reply-ssl">false</property>
+        <property name="username">&lt;username&gt;@gmail.com</property>
+      </properties>
+    </endpoint>
+    <endpoint type="rest-alias" name="URLAliasExample" service="gloop:endpointServices.gloop.jmsExamples.SendJMSMessage/endpointServices.gloop.jmsExamples.SendJMSMessage" enabled="false" modifiable="true">
+      <properties>
+        <property name="requestMethods">GET</property>
+        <property name="track">false</property>
+        <property name="documentType">REST Alias</property>
+        <property name="secured">false</property>
+        <property name="url">sendJMSMessage</property>
+      </properties>
+    </endpoint>
+    <endpoint type="jms-listener" name="WebsocketListener" service="gloop:websocket.WebsocketListenerService/websocket.WebsocketListenerService" enabled="true" modifiable="true">
+      <properties>
+        <property name="documentType">JMS</property>
+        <property name="track">false</property>
+        <property name="destinationName">web-socket</property>
+        <property name="destinationType">topic</property>
+        <property name="transacted">false</property>
+        <property name="concurrentConsumers">1</property>
+        <property name="maxConcurrentConsumers">1</property>
+        <property name="durable">false</property>
+        <property name="acknowledgement">1</property>
+      </properties>
+    </endpoint>
+    <endpoint type="http-filter" name="UppercaseXPrefixedHeaders" service="gloop:endpointServices.gloop.httpFilterExamples.ToUppercaseXPrefixedHeaders/endpointServices.gloop.httpFilterExamples.ToUppercaseXPrefixedHeaders" enabled="false" modifiable="true">
+      <properties>
+        <property name="requestMethods">GET</property>
+        <property name="filterOrder">postAuthentication</property>
+        <property name="documentType">HTTP Filter</property>
+        <property name="caseSensitive">true</property>
+        <property name="pathPatternType">glob</property>
+        <property name="pathPatterns">/api/sample/*</property>
+        <property name="track">true</property>
+        <property name="priority">2147483647</property>
+      </properties>
+    </endpoint>
+  </endpoints>
+  <spring-contexts>
+    <context-file>spring-context.xml</context-file>
+  </spring-contexts>
+  <solr-cores>
+    <solr-core name="movie-core" autostart="true"/>
+  </solr-cores>
+</package>

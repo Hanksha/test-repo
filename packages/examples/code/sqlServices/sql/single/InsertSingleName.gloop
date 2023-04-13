@@ -1,0 +1,44 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which inserts a new row in the `NAMES` table, with values specified through the provided parameters.",
+    "input": [
+        {
+            "name": "insertSingleNameInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$getGeneratedKeys",
+                    "type": "boolean",
+                    "defaultValue": false
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                },
+                {
+                    "name": "firstName"
+                },
+                {
+                    "name": "lastName"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "updateCount",
+            "type": "integer"
+        },
+        {
+            "name": "generatedKeys",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "INSERT",
+    "query": "INSERT INTO NAMES (\n\tID,\n    FIRST_NAME,\n    LAST_NAME\n)\nVALUES (\n\t:id,\n    :firstName,\n    :lastName\n)"
+}

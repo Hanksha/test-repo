@@ -1,0 +1,81 @@
+{
+    "comments": "# [Using Asynchronous Gloop Steps](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/async-gloop-steps)\n\nGloop allows [concurrent](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/concurrent/) and [invoke](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/invoke/) steps to run asynchronously.\n\nIn this example [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/definition/), we will demonstrate the use of asynchronous [Gloop steps](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/) and how they work.\n\nThis service will execute the steps at lines 3-6 in separate threads. Each step will log their own messages to the console.\n\nAs the service runs, you will notice all steps logging messages at the same time. All of the log messages that will be sent by this service will be prefixed with their thread names. This is to make it easier to see which steps are using which threads.\n\nGloop will not wait for the steps at lines 3-6 to finish before responding to the HTTP request. In other words, Gloop will `return`, and respond to the HTTP request, even though the steps at lines 3-6 continue to run.\n\n## Invoking the Service\n\nThis service needs to be run [from a browser](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http) or via the [Martini Desktop's HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http). This is because Martini will always run the service in debug mode, regardless whether you choose Debug or Run to execute. Gloop does not run steps asynchronously in debug mode.\n\t\n## Expected Output\n\nUpon running this service, a response will be sent back immediately with the message:\n\n```\nGloop Service Completed. Please check the Martini logs to see how the Gloop service executed asynchronously. Visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view to learn more about viewing the Martini logs on the platform you are in.\n```\n\nDepending on how the service was invoked, the message may also be wrapped in an XML or JSON format.\n\nWhile the response has been sent, the service still continues to run in the instance's background. We know this for a fact because of the constant stream of logs being sent. \n\nUpon completion, you should see something similar to this in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO pool-26-thread-8 asyncStepDemo: This step is going to make the current thread sleep for 2 seconds\nINFO pool-26-thread-8 asyncStepDemo: Going to sleep now...\nINFO pool-26-thread-6 countdown: Current count is 0\nINFO http-nio-8080-exec-10 Package is: MartiniPackage [name=examples]\nINFO pool-26-thread-1 exampleProperty is: example value\nINFO pool-26-thread-6 countdown: Current count is 1\nINFO pool-26-thread-6 countdown: Current count is 2\nINFO pool-26-thread-6 countdown: Current count is 3\nINFO pool-26-thread-6 countdown: Current count is 4\nINFO pool-26-thread-6 countdown: Current count is 5\nINFO pool-26-thread-6 countdown: Current count is 6\nINFO pool-26-thread-6 countdown: Current count is 7\nINFO pool-26-thread-6 countdown: Current count is 8\nINFO pool-26-thread-6 countdown: Current count is 9\nINFO pool-26-thread-6 countdown: Current count is 10\nINFO pool-26-thread-6 countdown: Current count is 11\nINFO pool-26-thread-6 countdown: Current count is 12\nINFO pool-26-thread-6 countdown: Current count is 13\nINFO pool-26-thread-8 asyncStepDemo: The thread has now woken. If the service was executed correctly over HTTP, the rest of the service would have run while this thread was asleep.\nINFO pool-26-thread-6 countdown: Current count is 14\nINFO pool-26-thread-6 countdown: Current count is 15\nINFO pool-26-thread-6 countdown: Current count is 16\nINFO pool-26-thread-6 countdown: Current count is 17\nINFO pool-26-thread-6 countdown: Current count is 18\nINFO pool-26-thread-6 countdown: Current count is 19\nINFO pool-26-thread-6 countdown: Current count is 20\nINFO pool-26-thread-6 countdown: Current count is 21\nINFO pool-26-thread-6 countdown: Current count is 22\nINFO pool-26-thread-6 countdown: Current count is 23\nINFO pool-26-thread-6 countdown: Current count is 24\nINFO pool-26-thread-6 countdown: Finished counting\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. Please check the Martini logs to see how the Gloop service executed asynchronously. Visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view to learn more about viewing the Martini logs on the platform you are in."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "check if the service is being debugged. $gloopExecutionContext is a reserved variable word in Gloop expressions.",
+            "expression": "$gloopExecutionContext.isDebug()",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "label": "true",
+                    "comments": "if it's being debugged, throw an exception",
+                    "className": "io.toro.martini.GloopMethods",
+                    "methodName": "throwException",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Please execute this in run mode, not debug mode. To do this, invoke this service from a browser",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "This step will make this steps dedicated thread sleep for 5 seconds.",
+            "name": "asyncStep.util.SleepingThread",
+            "async": true
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "This will execute countdown asynchronously, note the Asynchronous property of this step is true, and the green badge on the Gloop icon",
+            "name": "asyncStep.util.Countdown",
+            "async": true
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Bonus step: To be able to get package properties when async is true, please check getPackagePropertyAsync.gloop",
+            "name": "asyncStep.util.GetPackagePropertyAsync",
+            "async": true
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a message saying which is the current Martini package ",
+            "async": true,
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"${Thread.currentThread().getName()} Package is: ${io.toro.martini.GroovyMethods.getPackage()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

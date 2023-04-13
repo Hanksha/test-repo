@@ -1,0 +1,543 @@
+{
+  "name": "report-builder-demo",
+  "path": "/reports/report-builder-demo",
+  "meta": {
+    "description": "A report page demonstrating Report Builder",
+    "version": "1.0.0"
+  },
+  "framework": {
+    "name": "bootstrap@4.0.0-alpha.2",
+    "stylesheets": [
+      "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+    ],
+    "scripts": [
+      "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+      "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+      "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js"
+    ]
+  },
+  "document": {
+    "head": {
+      "title": "Example Reports",
+      "meta": []
+    },
+    "stylesheets": [
+      "https://rawgit.com/masayuki0812/c3/master/c3.css",
+      "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+    ],
+    "scripts": [
+      "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+      "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+      "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",
+      "https://d3js.org/d3.v4.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/c3/0.5.2/c3.min.js"
+    ],
+    "contentInitialized": true,
+    "json": [
+      {
+        "htmlAttributes": {},
+        "children": [
+          {
+            "htmlAttributes": {},
+            "children": [
+              {
+                "id": "3abd8b3dbb6611eaa9236be87717f295",
+                "name": "header3abbb67cbb6611eaa923490e76af8be2",
+                "type": "widget",
+                "meta": {
+                  "description": "",
+                  "version": "",
+                  "folder": ""
+                },
+                "files": {
+                  "html": {
+                    "filename": "widget.html",
+                    "content": "<div class=\"col-sm-12 header{pageId}\">\n\t<h1>$page.title</h1>\n\t<p>$page.description</p>\n</div>",
+                    "language": "esbvelocity",
+                    "mode": "velocity",
+                    "ext": "velocity"
+                  },
+                  "css": {
+                    "filename": "widget.css",
+                    "content": ".report-container {\n\t/* page styles here */\n}\n\n.header{pageId} h1 {\n\t /* title styles here */ \n}\n\n.header{pageId} p {\n\t /* description styles here */ \n}",
+                    "language": "CSS",
+                    "mode": "css",
+                    "ext": "css"
+                  },
+                  "javascript": {
+                    "filename": "widget.js",
+                    "content": "",
+                    "language": "Javascript",
+                    "mode": "javascript",
+                    "ext": "js"
+                  },
+                  "markdown": {
+                    "filename": "README.md",
+                    "content": "",
+                    "language": "Markdown",
+                    "mode": "markdown",
+                    "ext": "md"
+                  }
+                },
+                "options": {},
+                "integrations": {},
+                "framework": {
+                  "name": "",
+                  "stylesheets": [],
+                  "scripts": []
+                },
+                "resources": {
+                  "stylesheets": [],
+                  "scripts": []
+                }
+              }
+            ],
+            "class": "row"
+          },
+          {
+            "htmlAttributes": {},
+            "children": [
+              {
+                "htmlAttributes": {},
+                "children": [
+                  {
+                    "id": "6341186fbb6611eaa9234f1a2a57ce9e",
+                    "name": "Sample Data ( Retrieved from Array data )",
+                    "type": "widget",
+                    "meta": {
+                      "description": "",
+                      "version": "",
+                      "folder": ""
+                    },
+                    "files": {
+                      "html": {
+                        "filename": "widget.html",
+                        "content": "\n\n<!--_start_of_chart_markup_-->\n      <!-- DO NOT EDIT COMMENTS -->\n      <div class=\"\">\n        <div class=\"chart-container\" id=\"sample_data___retrieved_from_array_data___container\">\n          <div class=\"chart-container__header\">Sample Data ( Retrieved from Array data )</div>\n          <div class=\"chart-container__content\">\n            <div id=\"chart_sample_data___retrieved_from_array_data__\"></div>\n          </div>\n        </div>\n      </div><!--_end_of_chart_markup_-->\n\n",
+                        "language": "HTML",
+                        "mode": "html",
+                        "ext": "html"
+                      },
+                      "css": {
+                        "filename": "widget.css",
+                        "content": "\n\n/*-start-of-chart-css-*/ /* DO NOT EDIT COMMENTS */\n\n.chart-container {\n  margin-top: 10px;\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  width: 100%;\n  height: calc(100% - 65px);\n  min-height: 300px;\n  margin-bottom: .75rem;\n  background-color: #262626;\n  color: #ccc;\n}\n\n.chart-container .chart-container__header {\n  padding: .75rem 1.25rem;\n  display: flex;\n  width: 100%;\n  background-color: #2f2f2f;\n  border-bottom: .0625rem solid #45474a;\n}\n\n.chart-container .chart-container__content {\n  padding: 15px;\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n  vertical-align: middle;\n  min-height: 320px;\n}\n\n.chart-container .chart-container__content > div {\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n}\n\ntext {\n  fill: #ccc; \n} \n/*-end-of-chart-css-*/\n\n",
+                        "language": "CSS",
+                        "mode": "css",
+                        "ext": "css"
+                      },
+                      "javascript": {
+                        "filename": "widget.js",
+                        "content": "\n\n/*-start-of-chart-script-*//* DO NOT EDIT COMMENTS */\n      ;(function(){\n        c3.generate({\n        bindto: '#chart_sample_data___retrieved_from_array_data__',\n        data: {  columns: [[\"data1\", 30, 200, 100],\n[\"data2\", 50, 20, 10],\n[\"data3\", 80, 60, 150],\n[\"data4\", 10, 230, 130]], type: 'pie',  }\n            ,\n        size: { height: 280 },\n        tooltip: {\n          show: undefined,\n          grouped: undefined,\n          format: {\n            title: function (data) {\n              return data + ''\n            },\n          },\n          position: function (data, width, height, element) {\n            const top = d3.mouse(element)[1]\n            const left = d3.mouse(element)[0] + 70\n            return {\n              top: top,\n              left: left\n            }\n          }\n        }\n      })\n      })();/*-end-of-chart-script-*/\n\n",
+                        "language": "Javascript",
+                        "mode": "javascript",
+                        "ext": "js"
+                      },
+                      "markdown": {
+                        "filename": "README.md",
+                        "content": "",
+                        "language": "Markdown",
+                        "mode": "markdown",
+                        "ext": "md"
+                      }
+                    },
+                    "options": {},
+                    "integrations": {},
+                    "framework": {
+                      "name": "bootstrap@4.0.0-alpha.2",
+                      "stylesheets": [],
+                      "scripts": []
+                    },
+                    "typography": {},
+                    "resources": {
+                      "stylesheets": [
+                        "https://rawgit.com/masayuki0812/c3/master/c3.css",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+                      ],
+                      "scripts": [
+                        "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+                        "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",
+                        "https://d3js.org/d3.v4.js",
+                        "https://cdnjs.cloudflare.com/ajax/libs/c3/0.5.2/c3.min.js"
+                      ]
+                    },
+                    "chart": {
+                      "timeSeries": {
+                        "state": false
+                      },
+                      "userInputData": "['data1', 30, 200, 100],\n['data2', 50, 20, 10],\n['data3', 80, 60, 150],\n['data4', 10, 230, 130]",
+                      "chartData": "data: {  columns: [[\"data1\", 30, 200, 100],\n[\"data2\", 50, 20, 10],\n[\"data3\", 80, 60, 150],\n[\"data4\", 10, 230, 130]], type: 'pie',  }\n            ",
+                      "chartName": "Sample Data ( Retrieved from Array data )",
+                      "chartType": "Pie",
+                      "dataTypes": "array"
+                    }
+                  }
+                ],
+                "class": "col-sm-6"
+              },
+              {
+                "htmlAttributes": {},
+                "children": [
+                  {
+                    "id": "7402cc80bb6611eaa923513fe96c15c8",
+                    "name": "Download and Upload Speeds ( From JSON data )",
+                    "type": "widget",
+                    "meta": {
+                      "description": "",
+                      "version": "",
+                      "folder": ""
+                    },
+                    "files": {
+                      "html": {
+                        "filename": "widget.html",
+                        "content": "\n\n<!--_start_of_chart_markup_-->\n      <!-- DO NOT EDIT COMMENTS -->\n      <div class=\"\">\n        <div class=\"chart-container\" id=\"download_and_upload_speeds___from_json_data___container\">\n          <div class=\"chart-container__header\">Download and Upload Speeds ( From JSON data )</div>\n          <div class=\"chart-container__content\">\n            <div id=\"chart_download_and_upload_speeds___from_json_data__\"></div>\n          </div>\n        </div>\n      </div><!--_end_of_chart_markup_-->\n\n",
+                        "language": "HTML",
+                        "mode": "html",
+                        "ext": "html"
+                      },
+                      "css": {
+                        "filename": "widget.css",
+                        "content": "\n\n/*-start-of-chart-css-*/ /* DO NOT EDIT COMMENTS */\n\n.chart-container {\n  margin-top: 10px;\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  width: 100%;\n  height: calc(100% - 65px);\n  min-height: 300px;\n  margin-bottom: .75rem;\n  background-color: #262626;\n  color: #ccc;\n}\n\n.chart-container .chart-container__header {\n  padding: .75rem 1.25rem;\n  display: flex;\n  width: 100%;\n  background-color: #2f2f2f;\n  border-bottom: .0625rem solid #45474a;\n}\n\n.chart-container .chart-container__content {\n  padding: 15px;\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n  vertical-align: middle;\n  min-height: 320px;\n}\n\n.chart-container .chart-container__content > div {\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n}\n\ntext {\n  fill: #ccc; \n} \n/*-end-of-chart-css-*/\n\n",
+                        "language": "CSS",
+                        "mode": "css",
+                        "ext": "css"
+                      },
+                      "javascript": {
+                        "filename": "widget.js",
+                        "content": "\n\n/*-start-of-chart-script-*//* DO NOT EDIT COMMENTS */\n      ;(function(){\n        c3.generate({\n        bindto: '#chart_download_and_upload_speeds___from_json_data__',\n        data: { json: [{\"name\": \"www.site1.com\", \"upload\":  200, \"download\":  200, \"total\":  400},\n{\"name\": \"www.site2.com\", \"upload\":  100, \"download\":  300, \"total\":  400},\n{\"name\": \"www.site3.com\", \"upload\":  300, \"download\":  200, \"total\":  500},\n{\"name\": \"www.site4.com\", \"upload\":  400, \"download\":  100, \"total\":  500}],\n                keys: {\n                  x: 'name',\n                  value: [\"download\",\"upload\"]\n                },\n                type: 'bar',  }\n        ,axis: { x: {  type: 'category',     },  }    ,\n        size: { height: 280 },\n        tooltip: {\n          show: undefined,\n          grouped: undefined,\n          format: {\n            title: function (data) {\n              return data + ''\n            },\n          },\n          position: function (data, width, height, element) {\n            const top = d3.mouse(element)[1]\n            const left = d3.mouse(element)[0] + 70\n            return {\n              top: top,\n              left: left\n            }\n          }\n        }\n      })\n      })();/*-end-of-chart-script-*/\n\n",
+                        "language": "Javascript",
+                        "mode": "javascript",
+                        "ext": "js"
+                      },
+                      "markdown": {
+                        "filename": "README.md",
+                        "content": "",
+                        "language": "Markdown",
+                        "mode": "markdown",
+                        "ext": "md"
+                      }
+                    },
+                    "options": {},
+                    "integrations": {},
+                    "framework": {
+                      "name": "bootstrap@4.0.0-alpha.2",
+                      "stylesheets": [],
+                      "scripts": []
+                    },
+                    "typography": {},
+                    "resources": {
+                      "stylesheets": [
+                        "https://rawgit.com/masayuki0812/c3/master/c3.css",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+                      ],
+                      "scripts": [
+                        "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+                        "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",
+                        "https://d3js.org/d3.v4.js",
+                        "https://cdnjs.cloudflare.com/ajax/libs/c3/0.5.2/c3.min.js"
+                      ]
+                    },
+                    "chart": {
+                      "userInputData": "{name: 'www.site1.com', upload: 200, download: 200, total: 400},\n{name: 'www.site2.com', upload: 100, download: 300, total: 400},\n{name: 'www.site3.com', upload: 300, download: 200, total: 500},\n{name: 'www.site4.com', upload: 400, download: 100, total: 500}",
+                      "jsonKeys": {
+                        "xValue": "name",
+                        "values": "download, upload"
+                      },
+                      "chartData": "data: { json: [{\"name\": \"www.site1.com\", \"upload\":  200, \"download\":  200, \"total\":  400},\n{\"name\": \"www.site2.com\", \"upload\":  100, \"download\":  300, \"total\":  400},\n{\"name\": \"www.site3.com\", \"upload\":  300, \"download\":  200, \"total\":  500},\n{\"name\": \"www.site4.com\", \"upload\":  400, \"download\":  100, \"total\":  500}],\n                keys: {\n                  x: 'name',\n                  value: [\"download\",\"upload\"]\n                },\n                type: 'bar',  }\n        ,axis: { x: {  type: 'category',     },  }    ",
+                      "chartName": "Download and Upload Speeds ( From JSON data )",
+                      "chartType": "bar",
+                      "dataTypes": "json"
+                    }
+                  }
+                ],
+                "class": "col-sm-6"
+              }
+            ],
+            "class": "row"
+          },
+          {
+            "htmlAttributes": {},
+            "children": [
+              {
+                "htmlAttributes": {},
+                "children": [
+                  {
+                    "id": "ab6e92d1bb6611eaa923db2f0f861e8f",
+                    "name": "Random Numbers ( From REST API )",
+                    "type": "widget",
+                    "meta": {
+                      "description": "",
+                      "version": "",
+                      "folder": ""
+                    },
+                    "files": {
+                      "html": {
+                        "filename": "widget.html",
+                        "content": "\n\n<!--_start_of_chart_markup_-->\n      <!-- DO NOT EDIT COMMENTS -->\n      <div class=\"\">\n        <div class=\"chart-container\" id=\"random_numbers___from_rest_api___container\">\n          <div class=\"chart-container__header\">Random Numbers ( From REST API )</div>\n          <div class=\"chart-container__content\">\n            <div id=\"chart_random_numbers___from_rest_api__\"></div>\n          </div>\n        </div>\n      </div><!--_end_of_chart_markup_-->\n\n",
+                        "language": "HTML",
+                        "mode": "html",
+                        "ext": "html"
+                      },
+                      "css": {
+                        "filename": "widget.css",
+                        "content": "\n\n/*-start-of-chart-css-*/ /* DO NOT EDIT COMMENTS */\n\n.chart-container {\n  margin-top: 10px;\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  width: 100%;\n  height: calc(100% - 65px);\n  min-height: 300px;\n  margin-bottom: .75rem;\n  background-color: #262626;\n  color: #ccc;\n}\n\n.chart-container .chart-container__header {\n  padding: .75rem 1.25rem;\n  display: flex;\n  width: 100%;\n  background-color: #2f2f2f;\n  border-bottom: .0625rem solid #45474a;\n}\n\n.chart-container .chart-container__content {\n  padding: 15px;\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n  vertical-align: middle;\n  min-height: 320px;\n}\n\n.chart-container .chart-container__content > div {\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n}\n\ntext {\n  fill: #ccc; \n} \n/*-end-of-chart-css-*/\n\n",
+                        "language": "CSS",
+                        "mode": "css",
+                        "ext": "css"
+                      },
+                      "javascript": {
+                        "filename": "widget.js",
+                        "content": "\n\n/*-start-of-chart-script-*//* DO NOT EDIT COMMENTS */\n      ;(function(){\n        \n      $.ajax({\n        url: 'http://127.0.0.1:8080/api/randomNumber/10',\n        method: 'GET',\n        headers: {},\n        data: 'undefined',\n        dataType: 'json',\n        success: function (response) {\n          let data = response;\n          let extraPropertyName = '';\n          let extraPropertyExpression = '';\n\n          if (data && Array.isArray(data) && extraPropertyName && extraPropertyExpression) {\n            data.forEach(function(item, index) {\n              item[extraPropertyName] = eval(extraPropertyExpression)\n            })\n          }\n\n          c3.generate({\n        bindto: '#chart_random_numbers___from_rest_api__',\n        data: { \n          json: data,\n          keys: {\n            x: 'field',\n            value: [\"value\"]\n          },\n          type: 'line',  }\n        ,axis: { x: {  type: 'category',     },  }    ,\n        size: { height: 280 },\n        tooltip: {\n          show: undefined,\n          grouped: undefined,\n          format: {\n            title: function (data) {\n              return data + ''\n            },\n          },\n          position: function (data, width, height, element) {\n            const top = d3.mouse(element)[1]\n            const left = d3.mouse(element)[0] + 70\n            return {\n              top: top,\n              left: left\n            }\n          }\n        }\n      })\n        },\n      error: function (error) {\n        $('#chart_random_numbers___from_rest_api__').html('<div style=\"text-align: center\"><h4 class=\"\">Your report will be rendered here</h4><p>Check console for logs</p></div>')\n      }\n    })\n      })();/*-end-of-chart-script-*/\n\n",
+                        "language": "Javascript",
+                        "mode": "javascript",
+                        "ext": "js"
+                      },
+                      "markdown": {
+                        "filename": "README.md",
+                        "content": "",
+                        "language": "Markdown",
+                        "mode": "markdown",
+                        "ext": "md"
+                      }
+                    },
+                    "options": {},
+                    "integrations": {},
+                    "framework": {
+                      "name": "bootstrap@4.0.0-alpha.2",
+                      "stylesheets": [],
+                      "scripts": []
+                    },
+                    "typography": {},
+                    "resources": {
+                      "stylesheets": [
+                        "https://rawgit.com/masayuki0812/c3/master/c3.css",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+                      ],
+                      "scripts": [
+                        "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+                        "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",
+                        "https://d3js.org/d3.v4.js",
+                        "https://cdnjs.cloudflare.com/ajax/libs/c3/0.5.2/c3.min.js"
+                      ]
+                    },
+                    "chart": {
+                      "timeSeries": {
+                        "state": false
+                      },
+                      "userInputData": "",
+                      "chartData": "data: { \n          json: data,\n          keys: {\n            x: 'field',\n            value: [\"value\"]\n          },\n          type: 'line',  }\n        ,axis: { x: {  type: 'category',     },  }    ",
+                      "chartName": "Random Numbers ( From REST API )",
+                      "chartType": "Line",
+                      "dataTypes": "rest",
+                      "rest": {
+                        "url": "http://127.0.0.1:8080/api/randomNumber/10",
+                        "method": "GET",
+                        "dataPath": "",
+                        "extraPropertyName": "",
+                        "extraPropertyExpression": "",
+                        "values": "value",
+                        "xValue": "field"
+                      }
+                    }
+                  }
+                ],
+                "class": "col-sm-6"
+              },
+              {
+                "htmlAttributes": {},
+                "children": [
+                  {
+                    "id": "fd5055c2bb6611eaa9238b359d84ef42",
+                    "name": "US State Count ( From Tracker using Solr REST API )",
+                    "type": "widget",
+                    "meta": {
+                      "description": "",
+                      "version": "",
+                      "folder": ""
+                    },
+                    "files": {
+                      "html": {
+                        "filename": "widget.html",
+                        "content": "\n\n<!--_start_of_chart_markup_-->\n      <!-- DO NOT EDIT COMMENTS -->\n      <div class=\"\">\n        <div class=\"chart-container\" id=\"us_state_count___from_tracker_using_solr_rest_api___container\">\n          <div class=\"chart-container__header\">US State Count ( From Tracker using Solr REST API )</div>\n          <div class=\"chart-container__content\">\n            <div id=\"chart_us_state_count___from_tracker_using_solr_rest_api__\"></div>\n          </div>\n        </div>\n      </div><!--_end_of_chart_markup_-->\n\n",
+                        "language": "HTML",
+                        "mode": "html",
+                        "ext": "html"
+                      },
+                      "css": {
+                        "filename": "widget.css",
+                        "content": "\n\n/*-start-of-chart-css-*/ /* DO NOT EDIT COMMENTS */\n\n.chart-container {\n  margin-top: 10px;\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  width: 100%;\n  height: calc(100% - 65px);\n  min-height: 300px;\n  margin-bottom: .75rem;\n  background-color: #262626;\n  color: #ccc;\n}\n\n.chart-container .chart-container__header {\n  padding: .75rem 1.25rem;\n  display: flex;\n  width: 100%;\n  background-color: #2f2f2f;\n  border-bottom: .0625rem solid #45474a;\n}\n\n.chart-container .chart-container__content {\n  padding: 15px;\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n  vertical-align: middle;\n  min-height: 320px;\n}\n\n.chart-container .chart-container__content > div {\n  display: flex;\n  width: 100%;\n  justify-content: center;\n  align-items: center;\n}\n\ntext {\n  fill: #ccc; \n} \n/*-end-of-chart-css-*/\n\n",
+                        "language": "CSS",
+                        "mode": "css",
+                        "ext": "css"
+                      },
+                      "javascript": {
+                        "filename": "widget.js",
+                        "content": "\n\n/*-start-of-chart-script-*//* DO NOT EDIT COMMENTS */\n      ;(function(){\n        \n      $.ajax({\n        url: 'http://127.0.0.1:8080/esbapi/v1/solr/core/tracker/facet/stringProp_State?q=*:*',\n        method: 'GET',\n        headers: {},\n        data: 'undefined',\n        dataType: 'json',\n        success: function (response) {\n          let data = response.facet;\n          let extraPropertyName = '';\n          let extraPropertyExpression = '';\n\n          if (data && Array.isArray(data) && extraPropertyName && extraPropertyExpression) {\n            data.forEach(function(item, index) {\n              item[extraPropertyName] = eval(extraPropertyExpression)\n            })\n          }\n\n          c3.generate({\n        bindto: '#chart_us_state_count___from_tracker_using_solr_rest_api__',\n        data: { \n          json: data,\n          keys: {\n            x: 'name',\n            value: [\"count\"]\n          },\n          type: 'bar',  }\n        ,axis: { x: {  type: 'category',     },  }    ,\n        size: { height: 280 },\n        tooltip: {\n          show: undefined,\n          grouped: undefined,\n          format: {\n            title: function (data) {\n              return data + ''\n            },\n          },\n          position: function (data, width, height, element) {\n            const top = d3.mouse(element)[1]\n            const left = d3.mouse(element)[0] + 70\n            return {\n              top: top,\n              left: left\n            }\n          }\n        }\n      })\n        },\n      error: function (error) {\n        $('#chart_us_state_count___from_tracker_using_solr_rest_api__').html('<div style=\"text-align: center\"><h4 class=\"\">Your report will be rendered here</h4><p>Check console for logs</p></div>')\n      }\n    })\n      })();/*-end-of-chart-script-*/\n\n",
+                        "language": "Javascript",
+                        "mode": "javascript",
+                        "ext": "js"
+                      },
+                      "markdown": {
+                        "filename": "README.md",
+                        "content": "",
+                        "language": "Markdown",
+                        "mode": "markdown",
+                        "ext": "md"
+                      }
+                    },
+                    "options": {},
+                    "integrations": {},
+                    "framework": {
+                      "name": "bootstrap@4.0.0-alpha.2",
+                      "stylesheets": [],
+                      "scripts": []
+                    },
+                    "typography": {},
+                    "resources": {
+                      "stylesheets": [
+                        "https://rawgit.com/masayuki0812/c3/master/c3.css",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+                      ],
+                      "scripts": [
+                        "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+                        "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",
+                        "https://d3js.org/d3.v4.js",
+                        "https://cdnjs.cloudflare.com/ajax/libs/c3/0.5.2/c3.min.js"
+                      ]
+                    },
+                    "chart": {
+                      "timeSeries": {
+                        "state": false
+                      },
+                      "userInputData": "",
+                      "chartData": "data: { \n          json: data,\n          keys: {\n            x: 'name',\n            value: [\"count\"]\n          },\n          type: 'bar',  }\n        ,axis: { x: {  type: 'category',     },  }    ",
+                      "chartName": "US State Count ( From Tracker using Solr REST API )",
+                      "chartType": "Bar",
+                      "dataTypes": "rest",
+                      "rest": {
+                        "url": "http://127.0.0.1:8080/esbapi/v1/solr/core/tracker/facet/stringProp_State?q=*:*",
+                        "method": "GET",
+                        "dataPath": "facet",
+                        "extraPropertyName": "",
+                        "extraPropertyExpression": "",
+                        "values": "count",
+                        "xValue": "name"
+                      }
+                    }
+                  }
+                ],
+                "class": "col-sm-6"
+              }
+            ],
+            "class": "row"
+          },
+          {
+            "htmlAttributes": {},
+            "children": [
+              {
+                "htmlAttributes": {},
+                "children": [
+                  {
+                    "id": "b6ac8143bb6911eaa923ad91525abe09",
+                    "name": "Number of Invokes ( Generated from Tracker )",
+                    "type": "widget",
+                    "meta": {
+                      "description": "",
+                      "version": "",
+                      "folder": ""
+                    },
+                    "files": {
+                      "html": {
+                        "filename": "widget.html",
+                        "content": "\n\n<!--_start_of_chart_markup_-->\n    <!-- DO NOT EDIT COMMENTS -->\n    <div class=\"\">\n      <div class=\"table-reports\" id=\"table_number_of_invokes___generated_from_tracker__\">\n        <div class=\"table-header\">\n          <p>\n            Number of Invokes ( Generated from Tracker ) (<span id=\"selected\"></span>)\n            \n          </p>\n        </div>\n        <div class=\"table-container\">\n          <div class=\"loading hidden\"><span>loading ...</span></div>\n          <table>\n            <thead>\n              <th width=\"75%\">Term</th>\n              <th width=\"25%\" class=\"text-center dropdown\">Count\n                <button class=\"dropdown-toggle float-right\" type=\"button\" data-toggle=\"dropdown\"><i class=\"fa fa-cog\"></i><span class=\"caret\"></span></button>\n                <div class=\"dropdown-menu list-group dropdown-menu-right\">\n                  <div class=\"dropdown-header list-group-item\">Filter by</div>\n                </div>\n              </th>\n            </thead>\n            <tbody class=\"list_number_of_invokes___generated_from_tracker__\"></tbody>\n          </table>\n        </div>\n      </div>\n    </div><!--_end_of_chart_markup_-->\n\n",
+                        "language": "HTML",
+                        "mode": "html",
+                        "ext": "html"
+                      },
+                      "css": {
+                        "filename": "widget.css",
+                        "content": "\n\n/*-start-of-chart-css-*/ /* DO NOT EDIT COMMENTS */\n\n\n.table-reports {\n  background-color: #2f2f2f;\n}\n.table-reports .table-container {\n  position: relative;\n  margin-top: 10px;\n  padding: 0 10px 10px;\n}\n.table-reports .table-header {\n  padding: 10px;\n  color: darkgrey;\n  border-bottom: 1px solid #45474a;\n}\n\n.table-reports .table-header .table-search-filter {\n  float: right;\n  margin-top: -5px;\n  width: 200px;\n  background-color: transparent;\n  border-color: #45474a;\n}\n.table-reports .no-results {\n  display: block !important;\n  padding: 20px 0;\n  color: #f0ad4e;\n  text-align: center;\n}\n.table-reports .loading {\n  position: absolute;\n  background-color: #232533;\n  width: 100%;\n  height: 350px;\n  text-align: center;\n  left: 0;\n  z-index: 10;\n  display: table;\n  color: #fff;\n}\n.table-reports .loading span {\n  display: table-cell;\n  vertical-align: middle;\n}\n.table-reports .loading.hidden {\n  display: none;\n}\n.table-reports .table-header p {\n  margin-bottom: 0;\n}\n.table-reports table  thead,\n.table-reports table tbody tr {\n  display: table;\n  width: 100%;\n  table-layout: fixed;\n}\n.table-reports thead tr th {\n  padding: 10px;\n  color: darkgrey;\n}\n.table-reports table tbody {\n  display: block;\n  height: 300px;\n  overflow: auto;\n}\n.table-reports table tbody tr td {\n  padding: 10px;\n  border-top: none;\n  color: darkgrey;\n  word-break: break-all;\n}\n.table-reports table tbody tr td .error p {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  color: gray;\n  margin-left: -50px;\n}\n.table-reports table tbody tr:nth-child(odd) {\n  background-color: #262626;\n}\n.table-reports tbody tr.error {\n  background-color: #272727;\n}\n.table-reports tbody tr:last-child td {\n  border-bottom: none !important;\n}\n.table-reports .dropdown-toggle {\n  background: transparent;\n  border: none;\n}\n.table-reports .dropdown-menu {\n  padding: 0;\n  max-height: 200px;\n  background-color: #262626;\n  overflow: auto;\n  font-weight: 400;\n}\n.table-reports .dropdown-menu .dropdown-header {\n  background-color: #262626;\n  border: 1px solid #45474a;\n}\n.table-reports .dropdown-menu .types {\n  padding: 10px;\n  cursor: pointer;\n  background-color: #262626;\n  border: 1px solid #45474a;\n  color: darkgrey;\n}\n.table-reports .dropdown-menu .types:hover {\n  background-color: #45474a;\n} \n/*-end-of-chart-css-*/\n\n",
+                        "language": "CSS",
+                        "mode": "css",
+                        "ext": "css"
+                      },
+                      "javascript": {
+                        "filename": "widget.js",
+                        "content": "\n\n/*-start-of-chart-script-*//* DO NOT EDIT COMMENTS */\n      ;(function(){\n        \n      function generateTable(value){\n        $('#table_number_of_invokes___generated_from_tracker__ .loading').removeClass('hidden')\n        $.ajax({\n          url: 'http://127.0.0.1:8080/esbapi/v1/solr/core/tracker/facet/' +  value + '?q=*:*&facet.limit=10&fq=timeReceived:[NOW-1MONTH%20TO%20NOW]',\n          method: 'get',\n          dataType: 'json', \n          success: function (data) {\n            $('#table_number_of_invokes___generated_from_tracker__ .loading').addClass('hidden')\n            var facet = data.facet\n            $('#table_number_of_invokes___generated_from_tracker__ tbody').html('');\n            $.each(facet, function(key, value) {\n              $('#table_number_of_invokes___generated_from_tracker__ tbody').append('<tr><td width=\"75%\">' + value.name + '</td><td width=\"25%\" class=\"text-center\">' + value.count + '</td></tr>');\n            });\n          },\n          error: function(){\n            $('#table_number_of_invokes___generated_from_tracker__ .loading').addClass('hidden')\n            $('#table_number_of_invokes___generated_from_tracker__ tbody').append('<tr class=\"error\"><td class=\"error text-center\"><p class=\"mb-0\">No data available</p></td></tr>');\n          }\n        });\n      }\n\n      generateTable('receiverId');\n      $('#selected').text('receiverId');\n      $('#table_number_of_invokes___generated_from_tracker__ .dropdown-toggle').hide()\n      \n\n      $('.types').on('click', function(){\n        $('#table_number_of_invokes___generated_from_tracker__  tbody tr').remove();\n        var value = $(this).data('value');\n        generateTable(value);\n        $('#table_number_of_invokes___generated_from_tracker__  #selected').text($(this).text());\n      });\n      })();/*-end-of-chart-script-*/\n\n",
+                        "language": "Javascript",
+                        "mode": "javascript",
+                        "ext": "js"
+                      },
+                      "markdown": {
+                        "filename": "README.md",
+                        "content": "",
+                        "language": "Markdown",
+                        "mode": "markdown",
+                        "ext": "md"
+                      }
+                    },
+                    "options": {},
+                    "integrations": {},
+                    "framework": {
+                      "name": "bootstrap@4.0.0-alpha.2",
+                      "stylesheets": [],
+                      "scripts": []
+                    },
+                    "typography": {},
+                    "resources": {
+                      "stylesheets": [
+                        "https://rawgit.com/masayuki0812/c3/master/c3.css",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/css/bootstrap.min.css"
+                      ],
+                      "scripts": [
+                        "https://cdn.jsdelivr.net/jquery/2.2.4/jquery.min.js",
+                        "https://cdn.jsdelivr.net/tether/1.3.2/tether.min.js",
+                        "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.2/js/bootstrap.min.js",
+                        "https://d3js.org/d3.v4.js",
+                        "https://cdnjs.cloudflare.com/ajax/libs/c3/0.5.2/c3.min.js"
+                      ]
+                    },
+                    "chart": {
+                      "timeSeries": {
+                        "state": false
+                      },
+                      "solr": {
+                        "apiBasePath": "http://127.0.0.1:8080/",
+                        "category": "tracker",
+                        "facetLimit": 10,
+                        "facetValue": "receiverId",
+                        "sameOrigin": true,
+                        "timeReceived": {
+                          "type": ""
+                        },
+                        "tableSearch": false,
+                        "advancedSearch": {
+                          "state": false,
+                          "allFacetsAdded": false,
+                          "facetList": [],
+                          "filteredFacets": []
+                        }
+                      },
+                      "chartData": "data: { columns: [], empty: {label: {text: 'No Data'}}}",
+                      "chartName": "Number of Invokes ( Generated from Tracker )",
+                      "chartType": "table-report",
+                      "dataTypes": "api"
+                    }
+                  }
+                ],
+                "class": "col-sm-12"
+              }
+            ],
+            "class": "row m-b-1"
+          }
+        ],
+        "class": "container report-container"
+      }
+    ]
+  },
+  "notes": [],
+  "integrations": {},
+  "created_at": 1593585833465
+}

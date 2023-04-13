@@ -1,0 +1,75 @@
+{
+    "comments": "# [Writing to an SFTP File](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/vfs-methods/)\n\nThis service writes a file to an SFTP server by calling `vfs.util.VFSDemo.gloop`.\n\nIt specifies where and how to write the file by passing in the target location of the file (`url`), and which file system options to use (`vfsFileSystemOptions`).\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). To run, SFTP credentials must be provided as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/) (`sftpOpts`).\n\n## Expected Output\n\n### Properties\n\nThis service returns a `content` property which will contain the string written to the file. Its expected value is:\n\n```\nThis is sample content\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in JSON, XML, or in a value tree.\n\n### Logs\n\nLog messages like below are expected in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Writing the file to the remote location...\nINFO  [Martini] Done writing on the content of demoVFS.txt.\nINFO  [Martini] Retrieved the content of demoVFS.txt: This is sample content\n```",
+    "input": [
+        {
+            "name": "sftpOpts",
+            "type": "model",
+            "comments": "FTP file system options",
+            "gloopProperties": [
+                {
+                    "name": "username"
+                },
+                {
+                    "name": "password"
+                },
+                {
+                    "name": "hostname"
+                },
+                {
+                    "name": "port"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "content",
+            "comments": "The content of the file"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "This will call the main service and pass the options",
+            "name": "vfs.util.VFSDemo",
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"sftp://${sftpOpts.username}:${sftpOpts.password}@${sftpOpts.hostname}${sftpOpts.port? \":${sftpOpts.port}\" : \"\"}/demoVFS.txt\"",
+                    "evaluate": true,
+                    "to": [
+                        "url"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "false",
+                    "to": [
+                        "vfsFileSystemOptions",
+                        "sftpOpts",
+                        "userDirIsRoot"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "15000",
+                    "to": [
+                        "vfsFileSystemOptions",
+                        "sftpOpts",
+                        "timeout"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "content"
+                    ]
+                }
+            ]
+        }
+    ]
+}

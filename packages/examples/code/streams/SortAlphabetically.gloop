@@ -1,0 +1,174 @@
+{
+    "comments": "# [Using `StreamMethods.sorted(...)`](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/stream-methods/)\n\nThis service sorts an array of `Person`s by `name`.\n\nIt does so through the use of [`StreamMethods`](https://docs.torocloud.com/martini/developing/services/one-liners/stream-methods/)`.sorted(Stream, Collection, String)`.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\nThis service will return an array of sorted `Person`s, under the output property `sortedPeople`.\n\nThe [service's output](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs) should be similar to below (if represented in JSON):\n\n```\n{\n    \"sortedPeople\": [\n        {\n            \"name\": \"Andrew\",\n            \"age\": 23\n        },\n        {\n            \"name\": \"Angela\",\n            \"age\": 12\n        },\n        {\n            \"name\": \"Daniel\",\n            \"age\": 21\n        },\n        {\n            \"name\": \"Jane\",\n            \"age\": 22\n        },\n        {\n            \"name\": \"John\",\n            \"age\": 21\n        },\n        {\n            \"name\": \"Laz\",\n            \"age\": 20\n        },\n        {\n            \"name\": \"Lianne\",\n            \"age\": 12\n        },\n        {\n            \"name\": \"William\",\n            \"age\": 23\n        }\n    ]\n}\n```\n\n[Outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Service outputs can also be viewed in XML, or in a value tree.\n\n### Logs\n\nThe service will log the initial collection of `Person`s to the console, and will also log the sorted collection of `Person`s by the end of the service's execution.",
+    "output": [
+        {
+            "name": "sortedPeople",
+            "type": "model",
+            "array": true,
+            "reference": "streams.model.Person",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "A simple service that provides data for the streams examples to process.",
+            "name": "streams.helper.ProvidePeople",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "people",
+                            "type": "model",
+                            "array": true,
+                            "reference": "streams.model.Person"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "people"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the list of people to be sorted alphabetically",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Sorting the names of the people in the list below printed in JSON:\\n\\n ${people.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Sorts Gloop Models by a certain property.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "stream",
+                            "type": "object"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "sorted",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection",
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "people"
+                    ],
+                    "to": [
+                        "collection"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "name",
+                    "to": [
+                        "sortBy"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Collects the stream elements into a new List.",
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "toList",
+            "parameters": [
+                "java.util.stream.Stream"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stream"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "sortedPeople"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log the sorted list of people",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"After using StreamMethods.sorted, the list of people is not sorted alphabetically:\\n\\n ${sortedPeople.asJson()}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

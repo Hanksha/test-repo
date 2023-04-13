@@ -1,0 +1,67 @@
+{
+    "comments": "# [Using the Gloop Script Step](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps)\r\n\r\nYou can call non-Gloop code in Gloop services through script steps. Martini supports a variety of languages including (but not limited to) Groovy, JavaScript, Kotlin, Bash, and Batch.\r\n\r\nUsing this example, we will demonstrate how you can execute [Groovy](http://groovy-lang.org/) code inside a [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/).\r\n\r\nThis service will compute the nth Fibonacci number for a given number n.\r\n\r\n## Precautions\r\n\r\nWhile you can put as many lines of Groovy code as you want in a Script step, we do not recommend it. If your Groovy code is lengthy, or if you need to re-use the code, we recommend that you put it in a separate Groovy file and annotate the methods with [Gloop annotations](https://docs.torocloud.com/martini/quick-start-guide/useful-resources/examples-package/gloop-annotations/).\r\n\r\n## Invoking the Service\r\n\r\nAs usual, this service is [run](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/) through the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/). Before execution, Martini will prompt you to enter a value for `count`. You can set it, or just use the provided default value.\r\n\r\n## Expected Output\r\n\r\n### Properties\r\n\r\nThis service will [return an `output` model]((https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs)) with a property named `fibonacciSeries`. The resulting value of `output.fibonacciSeries` depends on the provided `count` input property by the user.\r\n\r\nIf we assume that `count` was left to its default value of `10`, then it is expected for `output.fibonacciSeries`'s value to be set to `55`.\r\n\r\n### Logs\r\n\r\nBy running the service, you should expect to [see a log message](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like:\r\n\r\n```\r\nINFO  [Martini] Done with the fibonacci series, 55\r\n...\r\n```",
+    "input": [
+        {
+            "name": "count",
+            "type": "integer",
+            "defaultValue": 10
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "fibonacciSeries",
+                    "type": "integer",
+                    "defaultValue": 0
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "gloovy",
+            "comments": "In this example, we created a simple recursive method that gets the fibonacci number at a certain position n. We then set it to the output variable fibonacciSeries.",
+            "gloovyScript": "int fib( int n ) {\n    if ( n == 0 || n == 1 ) \n\t\treturn n\n    else \n\t\treturn fib( n - 1 ) + fib( n - 2 )\n}\n\noutput.fibonacciSeries = fib( count )"
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will log the resulting fibonacciSeries value in the underlying log engine.",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Done with the fibonacci series, ${output.fibonacciSeries}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

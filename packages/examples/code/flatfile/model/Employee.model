@@ -1,0 +1,14 @@
+{
+    "name": "flatfile_model_Employee",
+    "alias": "flatfile.model.Employee",
+    "type": "model",
+    "comments": "A model representing an employee. This is used by services demonstrating the use of [flat file descriptors](https://docs.torocloud.com/martini/latest/developing/gloop/service/flat-file-descriptors/).",
+    "gloopProperties": [
+        {
+            "name": "firstName"
+        },
+        {
+            "name": "lastName"
+        }
+    ]
+}

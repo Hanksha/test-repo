@@ -1,0 +1,46 @@
+{
+    "name": "RangeFacetCountEndpointOutput",
+    "type": "model",
+    "comments": "A model representing the output of the `RangeFacetCountEndpoint.gloop` service.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "name"
+        },
+        {
+            "name": "start",
+            "type": "long"
+        },
+        {
+            "name": "end",
+            "type": "long"
+        },
+        {
+            "name": "gap"
+        },
+        {
+            "name": "range_value",
+            "array": true
+        },
+        {
+            "name": "range_count",
+            "type": "integer",
+            "array": true
+        },
+        {
+            "name": "counts",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "value"
+                },
+                {
+                    "name": "count",
+                    "type": "integer"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,80 @@
+{
+    "comments": "# [Using a Gloop Cassandra Service to fetch a record](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) retrieves an entry from the `restaurants` column family based on a given name. When a match is found, the record is returned.\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite\n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nOnly the `name` is required by the service as [input](https://docs.torocloud.com/martini/developing/services/overview/input-output/). To ensure a successful search, use the name `Highway Bagels`. The record with this name is created by running `bigData/cassandra/services/batch/InsertBatchRestaurants.gloop` or `bigData/cassandra/services/batch/UpdateBatchRestaurants.gloop`.\n\nInvoking the service with the input property as null should automatically change the input to the default values and use them for the service.\n\n## Expected Output\n\nThis service's return value is represented in JSON, it would look similar to the output below:\n```\n{\n    \"output\": {\n        \"name\": \"Highway Bagels\",\n        \"restaurant_id\": 40424410,\n        \"address\": {\n            \"building\": \"1921\",\n            \"coord\": {\n                \"tupleEntry0\": -73.9539362,\n                \"tupleEntry1\": 40.6107492\n            },\n            \"street\": \"Kings Highway\",\n            \"zipcode\": 11229\n        },\n        \"borough\": \"Brooklyn\",\n        \"cuisine\": \"Bagels/Pretzels\",\n        \"grades\": [\n            {\n                \"grade\": \"A\",\n                \"score\": 10\n            }\n        ]\n    }\n}\n```\n\n[Service outputs can be viewed in the Console View](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Aside from the JSON format like above, it can also be viewed in XML or in a value tree.\n\n[Console messages](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) like the following are expected when executing this service:\n\n```\nINFO  [Martini] Getting restaurant data with name Highway Bagels\nINFO  [Martini] Received restaurant data\n```\n",
+    "input": [
+        {
+            "name": "name",
+            "defaultValue": "Highway Bagels"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Getting restaurant data with name $name\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Selects a restaurant by name and returns the restaurant",
+            "name": "bigData.cassandra.cql.single.SelectSingleRestaurant",
+            "inputs": [
+                {
+                    "from": [
+                        "name"
+                    ],
+                    "to": [
+                        "input",
+                        "name"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Received restaurant data\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

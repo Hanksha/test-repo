@@ -1,0 +1,191 @@
+{
+    "comments": "## Retrieving a List of Records Using `Find Many`\n\nThis Gloop service demonstrates how to query `find` to get a list records from a Mongo DB collection. In contrast with `FindOneDemo` example, this Gloop service holds the query (line 4) to return all the documents from the `restaurants` collection that matches the filter .\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a `city` to be sent as an input to the query to be performed. For your convenience, the `city` is already populated with a value; changing this value is optional but possible.\n\n## Expected Output\n\nIf the query is successfully executed, the service will return a list document from the `restaurants` collection. The output will be returned as a Gloop model array called `restaurants`. However, the output that will be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view) will look similar below:\n\n```\nINFO  [Martini] Listing all the restaurant found in Bronx\nINFO  [Martini] Morris Park Bake Shop\nINFO  [Martini] Wild Asia\nINFO  [Martini] Carvel Ice Cream\nINFO  [Martini] Happy Garden\n....\nINFO  [Martini] Happy Garden\nINFO  [Martini] Manhem Club\nINFO  [Martini] The New Starling Athletic Club Of The Bronx\nINFO  [Martini] Yankee Tavern\nINFO  [Martini] Mcdwyers Pub\n```",
+    "input": [
+        {
+            "name": "city",
+            "defaultValue": "Bronx",
+            "comments": "The city name to be sent as an input",
+            "choices": [
+                "Bronx",
+                "Manhattan",
+                "Queens",
+                "Staten Island",
+                "Brooklyn"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "restaurants",
+            "type": "model",
+            "array": true,
+            "comments": "The list of restaurant documents that matched with the query",
+            "allowExtraProperties": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection, as well as the documents required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "Queries the city input to this service, and will return all the documents that matches the query.\n",
+                    "name": "bigData.mongoDb.services.find.FindMany",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "queryResult",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "city"
+                            ],
+                            "to": [
+                                "input",
+                                "city"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "100",
+                            "to": [
+                                "input",
+                                "$limit"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "queryResult"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Listing all the restaurant found in ${city}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "queryResult"
+                        ]
+                    },
+                    "output": {
+                        "path": [
+                            "restaurants"
+                        ]
+                    },
+                    "append": true,
+                    "children": [
+                        {
+                            "comments": "Map each document to the output model restaurants",
+                            "lines": [
+                                {
+                                    "from": [
+                                        "queryResult"
+                                    ],
+                                    "to": [
+                                        "restaurants"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "comments": "Display the restaurant name that matched the query",
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "info",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "restaurants.name",
+                                    "evaluate": true,
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

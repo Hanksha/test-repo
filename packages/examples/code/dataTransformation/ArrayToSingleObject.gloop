@@ -1,0 +1,115 @@
+{
+    "comments": "# [Mapping an Array to a Non-Array Property](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/data-transformation/)\n\nIn this service, we will map an array to a non-array property. When mapping from an array to non-array property, Gloop will map the **first entry** of the array to the non-array property.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\n### Properties\n\nThe expected [return value](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs) of this service, in JSON format, is:\n\n```\n{\n    \"name\": {\n        \"id\": 1,\n        \"firstName\": \"Hana\",\n        \"lastName\": \"Song\"\n    },\n    \"output\": {\n        \"message\": \"Gloop Service Completed.\"\n    }\n}\n```\n\n### Logs\n\nFurthermore, the following logs would also be visible in the [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] {\n    \"names\": [\n        {\n            \"id\": 1,\n            \"firstName\": \"Hana\",\n            \"lastName\": \"Song\"\n        },\n        {\n            \"id\": 2,\n            \"firstName\": \"John\",\n            \"lastName\": \"Doe\"\n        },\n        {\n            \"id\": 3,\n            \"firstName\": \"Jane\",\n            \"lastName\": \"Smith\"\n        }\n    ]\n}\nINFO  [Martini] {\n    \"name\": {\n        \"id\": 1,\n        \"firstName\": \"Hana\",\n        \"lastName\": \"Song\"\n    }\n}\n```",
+    "output": [
+        {
+            "name": "name",
+            "type": "model",
+            "reference": "sqlServices.model.Name"
+        },
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed. View the output of this service by checking the Martini logs. See how at https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "comments": "In this step, we declare `names` property and set it as an array with three children: id, firstName, lastName",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "names",
+                            "type": "model",
+                            "array": true,
+                            "reference": "sqlServices.model.Name"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "[\n\tname {\n\t\tid 1\n\t\tfirstName 'Hana'\n\t\tlastName 'Song'\n\t},\n\tname {\n\t\tid 2\n\t\tfirstName 'John'\n\t\tlastName 'Doe'\n\t},\n\tname {\n\t\tid 3\n\t\tfirstName 'Jane'\n\t\tlastName 'Smith'\n\t}\n]",
+                    "evaluate": true,
+                    "to": [
+                        "names"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will log the content of the names array in the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "'This is the Gloop model array that will be mapped to a non-array Gloop model\\n\\n' + names.asJson()",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "In this step, we\u2019ll map the names array into a non-array Gloop model",
+            "lines": [
+                {
+                    "from": [
+                        "names"
+                    ],
+                    "to": [
+                        "name"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will log the value of the name Gloop model as a map in the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "'The result of mapping a Gloop model array to a non-array Gloop model as shown below. Only the first element is taken from the array.\\n\\n' + name.asJson()",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

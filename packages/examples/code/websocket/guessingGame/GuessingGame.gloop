@@ -1,0 +1,260 @@
+{
+    "comments": "# Number-Guessing Game\n\nThis service is an implementation of a simple number-guessing game.\n\nA user has to agree to play the game. This can be done by setting `content` to `y`. Once a user agrees, the service generates a random number **specific to the user**, and saves that number to a cache.\n\nThis service can then be repeatedly run in order to send the user's guesses. As usual, the username of the user must be provided via the [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/) `from`; the guess must be sent via `content`.\n\nTo quit the game and remove the user's entry from the cache, `content` must be set to `quit` when the service is run.\n\n## Invoking the Service\n\nThis service may be invoked via the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/).\n\nA more convenient way of running this service, albeit indirectly, is by accessing `<host>:<port>/examples/websocket` in your browser. This web page uses WebSockets.\n\nWhen a user enters a message in the chatbox, the web page sends a message to `topic://web-socket`. This triggers `WebsocketListener.gloop` to kick in, as configured by the `WebsocketListener` endpoint. `WebsocketListener.gloop` [invokes](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/invoke/) this service, passing it data from the WebSocket message. Afterwards, it calls `WebsocketPublisher.gloop` to send this service's _response_.\n\n## Expected Output\n\nThis service returns a `prefix` string property which contains the response of the service.\n\nUpon first run, `prefix` will be:\n\n```\nHello, would you like to play a guessing game? Type Y or N.\n```\n\nIf the provided guess is invalid, then `prefix` will be set to:\n\n```\nOops, invalid number.\n```\n\nIf the guess is too low:\n\n```\nOops, too low. Try again.\n```\n\nIf the guess is too high:\n\n```\nOops, too low. Try again.\n```\n\nIf the guess is a match:\n\n```\nYou got it right! :)\nWould you like to play again? Type Y or N.\n```\n\nIf the user has quit:\n\n```\nOK, bye. :(\n```",
+    "input": [
+        {
+            "name": "from"
+        },
+        {
+            "name": "content"
+        }
+    ],
+    "output": [
+        {
+            "name": "prefix",
+            "defaultValue": "Martini Bot: "
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "websocket.guessingGame.util.GetCacheUserGuessingNumber",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "userGuessingNumber",
+                            "type": "integer"
+                        }
+                    ]
+                }
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "from"
+                    ],
+                    "to": [
+                        "username"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "userGuessingNumber"
+                    ],
+                    "to": [
+                        "userGuessingNumber"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "Validate if the user guessing number is not empty",
+            "expression": "userGuessingNumber != null",
+            "children": [
+                {
+                    "type": "fork",
+                    "label": "true",
+                    "comments": "Validate user input if valid or got the correct answer",
+                    "expression": "content.equalsIgnoreCase( 'Quit' )",
+                    "children": [
+                        {
+                            "type": "invokeGloop",
+                            "label": "true",
+                            "name": "websocket.guessingGame.util.RemoveCacheUserGuessingNumber",
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "from"
+                                    ],
+                                    "to": [
+                                        "username"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "prefix + 'OK. BYE :\\'('",
+                                    "evaluate": true,
+                                    "to": [
+                                        "prefix"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "fork",
+                            "label": "false",
+                            "comments": "Validate if the user input is digit",
+                            "expression": "!content.isNumber()",
+                            "children": [
+                                {
+                                    "label": "true",
+                                    "comments": "If not, reply invalid input",
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "prefix + 'Oops, invalid number.'",
+                                            "evaluate": true,
+                                            "to": [
+                                                "prefix"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "fork",
+                                    "label": "false",
+                                    "comments": "Validate if the user got the correct number",
+                                    "expression": "userGuessingNumber == content.toInteger()",
+                                    "children": [
+                                        {
+                                            "type": "invokeGloop",
+                                            "label": "true",
+                                            "name": "websocket.guessingGame.util.RemoveCacheUserGuessingNumber",
+                                            "inputs": [
+                                                {
+                                                    "from": [
+                                                        "from"
+                                                    ],
+                                                    "to": [
+                                                        "username"
+                                                    ]
+                                                }
+                                            ],
+                                            "outputs": [
+                                                {
+                                                    "type": "set",
+                                                    "expression": "prefix + 'You got it right! :)\\nWould you like to play again? Type Y or N.'",
+                                                    "evaluate": true,
+                                                    "to": [
+                                                        "prefix"
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "type": "fork",
+                                            "label": "false",
+                                            "comments": "Valid if the user input is too high",
+                                            "expression": "content.toInteger() > userGuessingNumber",
+                                            "children": [
+                                                {
+                                                    "label": "true",
+                                                    "lines": [
+                                                        {
+                                                            "type": "set",
+                                                            "expression": "prefix + 'Oops, too high. Try again!'",
+                                                            "evaluate": true,
+                                                            "to": [
+                                                                "prefix"
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "fork",
+                                                    "label": "false",
+                                                    "comments": "Validate if the user input is too low",
+                                                    "expression": "content.toInteger() < userGuessingNumber",
+                                                    "children": [
+                                                        {
+                                                            "label": "true",
+                                                            "lines": [
+                                                                {
+                                                                    "type": "set",
+                                                                    "expression": "prefix + 'Oops, too low. Try again. '",
+                                                                    "evaluate": true,
+                                                                    "to": [
+                                                                        "prefix"
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "label": "false",
+                    "comments": "If user guessing number is empty, Ask user if he/she wants to play the game.",
+                    "expression": "content.equalsIgnoreCase( 'y' )",
+                    "children": [
+                        {
+                            "type": "invokeGloop",
+                            "label": "true",
+                            "comments": "If user said y, it means user want to play the game",
+                            "name": "websocket.guessingGame.util.CacheUserGuessingNumber",
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "from"
+                                    ],
+                                    "to": [
+                                        "username"
+                                    ]
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "prefix + 'Please guess the number from 0 - 10. Type Quit to end the game.'; ",
+                                    "evaluate": true,
+                                    "to": [
+                                        "prefix"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "fork",
+                            "label": "false",
+                            "comments": "Validate user input",
+                            "expression": "content.equalsIgnoreCase( 'n' )",
+                            "children": [
+                                {
+                                    "label": "true",
+                                    "comments": "If user said n, end the game",
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "prefix + \"OK, bye. :(\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "prefix"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "false",
+                                    "comments": "Game start message",
+                                    "lines": [
+                                        {
+                                            "type": "set",
+                                            "expression": "prefix + 'Hello, would you like to play a guessing game? Type Y or N.'",
+                                            "evaluate": true,
+                                            "to": [
+                                                "prefix"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

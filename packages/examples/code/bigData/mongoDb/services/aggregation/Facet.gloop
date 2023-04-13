@@ -1,0 +1,41 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurants",
+    "queryType": "AGGREGATE",
+    "filter": "{\n\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\t{\n\t\t$facet: {\n\t\t\t\"categorizedByAverageScore\": [\n\t\t\t\t{\n\t\t\t\t\t$match: {\n\t\t\t\t\t\tborough: \"Bronx\"\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t$addFields: {\n\t\t\t\t\t\taverageScore: {\n\t\t\t\t\t\t\t$avg: \"$grades.score\"\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t$bucketAuto: {\n\t\t\t\t\t\tgroupBy: \"$averageScore\",\n\t\t\t\t\t\tbuckets: 5,\n\t\t\t\t\t\tgranularity: \"E48\",\n\t\t\t\t\t\toutput: {\n\t\t\t\t\t\t\tcount: {\n\t\t\t\t\t\t\t\t$sum: 1\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t],\n\t\t\t\"restaurantCountByBorough\": [\n\t\t\t\t{\n\t\t\t\t\t$group: {\n\t\t\t\t\t\t_id: \"$borough\",\n\t\t\t\t\t\trestaurants: {\n\t\t\t\t\t\t\t$push: \"$name\"\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t$project: {\n\t\t\t\t\t\tcount: {\n\t\t\t\t\t\t\t$size: \"$restaurants\"\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t}\n]"
+}

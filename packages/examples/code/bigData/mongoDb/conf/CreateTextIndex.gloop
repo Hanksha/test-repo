@@ -1,0 +1,111 @@
+{
+    "comments": "This Gloop Service creates a Text index that can be used for text index search",
+    "output": [
+        {
+            "name": "created",
+            "type": "boolean",
+            "defaultValue": false
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "output",
+                            "comments": "the index name"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.MongoDbMethods",
+            "methodName": "createIndex",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "com.mongodb.client.ClientSession",
+                "java.lang.String",
+                "com.mongodb.client.model.IndexOptions"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "mongo",
+                    "to": [
+                        "connectionName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "examples",
+                    "to": [
+                        "databaseName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "restaurants",
+                    "to": [
+                        "collectionName"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "{\n\t\"$**\": 'text'\n}",
+                    "to": [
+                        "keys"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "output"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "expression": "org.apache.commons.lang3.StringUtils.isEmpty( output )",
+            "children": [
+                {
+                    "label": "false",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "true",
+                            "to": [
+                                "created"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Created a new index: ${output}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

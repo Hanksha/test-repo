@@ -1,0 +1,48 @@
+{
+    "info": {
+        "title": "Mock RSS Server",
+        "description": "An API that exposes the `CustomServerRSSFeed` service to create a mock RSS server.\n\nThis API is to be used in conjunction with the `RSSExample` endpoint. A local RSS feed server is preferable to an external one to avoid complications such as incompatibility and service delays.",
+        "contact": {
+            "url": "http://www.torocloud.com"
+        },
+        "license": {
+            "name": "W3C"
+        },
+        "version": "1.0-SNAPSHOT"
+    },
+    "basePath": "/example",
+    "paths": {
+        "/server/rss": {
+            "get": {
+                "tags": [
+                    "RSS Example"
+                ],
+                "summary": "Custom Server RSS Feed",
+                "description": "A mock RESTful web service that returns RSS feed entries.\n\n## Invoking the Service\n\nTo invoke the service directly, send a `GET` request to `<host>:<port>/<api.rest.base-path>/example/server/rss`. You can use the [Martini Desktop's HTTP Client](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#running-a-service-via-http), the [API Explorer](https://docs.torocloud.com/martini/latest/developing/api-explorer/), or an API testing tool of your choice.",
+                "produces": [
+                    "application/xml"
+                ],
+                "responses": {
+                    "-1": {
+                        "body": "rss",
+                        "description": "RSS Feed"
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "endpointServices.gloop.rssExamples.server.CustomServerRSSFeed",
+                "responseCodeField": "responseCode"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "RSS Example",
+            "externalDocumentation": {
+                "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/endpoints/#rss-endpoint"
+            }
+        }
+    ],
+    "externalDocumentation": {
+        "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/martini-endpoints/#rss-endpoint"
+    }
+}

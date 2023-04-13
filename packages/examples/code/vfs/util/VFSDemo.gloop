@@ -1,0 +1,315 @@
+{
+    "comments": "# [Using `VfsMethods` to Write to a File](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/vfs-methods)\n\nThis service fetches a file from a remote location, and rewrites it so that it contains the string, `\"This is sample content\"`.\n\nIt does so through the use of one-liners from the [`VfsMethods`](https://docs.torocloud.com/martini/latest/developing/services/one-liners/vfs-methods/) class.\n\nThe other services under `vfs.services` use this service to the grunt work of the write operation, for better readability.",
+    "input": [
+        {
+            "name": "url",
+            "comments": "file system url"
+        },
+        {
+            "name": "vfsFileSystemOptions",
+            "type": "model",
+            "reference": "io.toro.martini.vfs.VfsFileSystemOptions"
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "comments": "output of the file"
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "comments": "This will catch all the possible error throw by the vfs and third-party file server",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Writing the file to the remote location...",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Get a Gloop VFS Object from the Apache Virtual File System",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "vfsFile",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.vfs.VfsFile"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.VfsMethods",
+                    "methodName": "getVfsFile",
+                    "parameters": [
+                        "java.lang.String",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "url"
+                            ],
+                            "to": [
+                                "url"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "vfsFileSystemOptions"
+                            ],
+                            "to": [
+                                "vfsFileSystemOptions"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "vfsFile"
+                            ],
+                            "to": [
+                                "vfsFile"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will write the content of `data` input string to the chosen VFS provider.",
+                    "className": "io.toro.martini.VfsMethods",
+                    "methodName": "writeFile",
+                    "parameters": [
+                        "org.apache.commons.vfs2.FileContent",
+                        "java.lang.String",
+                        "boolean",
+                        "int"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "vfsFile",
+                                "fileContent",
+                                "vfsFileContentObject"
+                            ],
+                            "to": [
+                                "fileContent"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "This is sample content",
+                            "to": [
+                                "data"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Done writing on the content of demoVFS.txt.",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Closes an Apache VFS File Object",
+                    "className": "io.toro.martini.VfsMethods",
+                    "methodName": "close",
+                    "parameters": [
+                        "org.apache.commons.vfs2.FileObject"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "vfsFile",
+                                "vfsFileObject"
+                            ],
+                            "to": [
+                                "fileObject"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Checks if the file now exists in the VFS provider. Returns `true` if the file exists, and `false` if it doesn't.",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "isExist",
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.VfsMethods",
+                    "methodName": "exists",
+                    "parameters": [
+                        "org.apache.commons.vfs2.FileObject"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "vfsFile",
+                                "vfsFileObject"
+                            ],
+                            "to": [
+                                "fileObject"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "isExist"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check if file exist in the VFS",
+                    "expression": "isExist",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "true",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Reads the content of the file, returning it as a string",
+                                    "className": "io.toro.martini.VfsMethods",
+                                    "methodName": "readFileAsString",
+                                    "parameters": [
+                                        "org.apache.commons.vfs2.FileContent",
+                                        "int"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "vfsFile",
+                                                "fileContent",
+                                                "vfsFileContentObject"
+                                            ],
+                                            "to": [
+                                                "fileContent"
+                                            ]
+                                        }
+                                    ],
+                                    "outputs": [
+                                        {
+                                            "from": [
+                                                "output"
+                                            ],
+                                            "to": [
+                                                "output"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Send an info message to the underlying log engine",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"Retrieved the content of demoVFS.txt: ${output}\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "invokeCode",
+                            "label": "false",
+                            "comments": "Send a warn message to the underlying log engine",
+                            "unload": [
+                                [
+                                    "vfsFile"
+                                ]
+                            ],
+                            "className": "io.toro.martini.LoggerMethods",
+                            "methodName": "warn",
+                            "parameters": [
+                                "java.lang.String"
+                            ],
+                            "inputs": [
+                                {
+                                    "type": "set",
+                                    "expression": "File does not exist",
+                                    "to": [
+                                        "message"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

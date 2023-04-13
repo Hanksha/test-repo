@@ -1,0 +1,99 @@
+{
+    "comments": "This service cleans up everything created by `SqlStartupService`. It drops all tables, and deletes the created connection pool.\n\nThis Gloop service gets invoked upon package shutdown.",
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "sqlServices.conf.util.DataSourceHelper",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "datasources",
+                            "array": true
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "datasources"
+                    ],
+                    "to": [
+                        "datasources"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "input": {
+                "path": [
+                    "datasources"
+                ]
+            },
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "checks if the datasource connection exists",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "exists",
+                                    "type": "boolean"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.DatabaseConnectionPoolMethods",
+                    "methodName": "containsConnectionWithName",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "datasources"
+                            ],
+                            "to": [
+                                "name"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "output"
+                            ],
+                            "to": [
+                                "exists"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "exists",
+                    "children": [
+                        {
+                            "type": "invokeGloop",
+                            "label": "true",
+                            "name": "sqlServices.conf.util.DatabaseDeletion",
+                            "inputs": [
+                                {
+                                    "from": [
+                                        "datasources"
+                                    ],
+                                    "to": [
+                                        "poolName"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

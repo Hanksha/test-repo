@@ -1,0 +1,44 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "name"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurants",
+    "queryType": "AGGREGATE",
+    "filter": "{\n\n}",
+    "projection": "{\n\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\t{\n\t\t$match: {\n\t\t\tname: {{name:string}}\n\t\t}\n\t},\n\t{\n\t\t$unwind: \"$grades\"\n\t},\n\t{\n\t\t$project: {\n\t\t\tname: 1,\n\t\t\tgrades: 1,\n\t\t\t_id: 0\n\t\t}\n\t}\n]"
+}

@@ -1,0 +1,65 @@
+{
+    "type": "mongodb",
+    "input": [
+        {
+            "name": "input",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "$database"
+                },
+                {
+                    "name": "$collection"
+                },
+                {
+                    "name": "$clientSession",
+                    "type": "object",
+                    "objectClassName": "com.mongodb.client.ClientSession"
+                },
+                {
+                    "name": "$limit",
+                    "type": "integer"
+                },
+                {
+                    "name": "$skip",
+                    "type": "integer"
+                },
+                {
+                    "name": "mongoId",
+                    "type": "integer"
+                },
+                {
+                    "name": "address",
+                    "type": "integer"
+                },
+                {
+                    "name": "grades",
+                    "type": "integer"
+                },
+                {
+                    "name": "restaurantId",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "inputCursor",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true
+        }
+    ],
+    "connectionPoolName": "mongo",
+    "databaseName": "examples",
+    "collectionName": "restaurant",
+    "queryType": "FIND_MANY",
+    "filter": "{\n\n}",
+    "projection": "{\n\t_id: {{mongoId:int}},\n\taddress: {{address:int}},\n\tgrades: {{grades:int}},\n\trestaurant_id: {{restaurantId:int}}\n}",
+    "update": "{\n\n}",
+    "pipelines": "[\n\n]"
+}

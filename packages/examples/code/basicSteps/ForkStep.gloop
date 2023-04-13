@@ -1,0 +1,172 @@
+{
+    "comments": "# [Using the Gloop Fork Step](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps)\n\nFork steps in Gloop are very similar to Java `switch` and `if` statements. In this example [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/), we'll show how fork steps are used.\n\n## Invoking the Service\n\nBefore [executing the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), [Martini](https://docs.torocloud.com/martini/developing/ides/) will ask you to provide a value for the [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/) `inputStr`. You may select possible values from the dropdown, or enter a custom string. \n\n## Expected Output\n\n### Properties\n\nThis service will return a model named `output` with the property `message`.\n\n- If `inputStr`'s value is `\"Martini Online\"`, then `output.message` will be set to `\"The input string was Martini Online!\"`.\n- If `inputStr`'s value is `\"Martini Desktop\"`, then `output.message` will be set to `\"You have chosen Martini Desktop!\"`.\n- If `inputStr` was neither of the above but not `null`, `output.message` will be set to `\"The custom input is ${inputStr}\"`. `${inputStr}` will be substituted with the actual string value of `inputStr`.\n- If `inputStr` is `null`, then `output.message` will be set to `\"Martini Desktop is awesome!\"`.\n\n### Logs\n\nUpon setting `output.message`, the service will then proceed to logging it to the console. So you should expect to [see a message printed like this in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\n30/05/19 13:27:43.234 INFO  [Martini] You have chosen Martini Desktop!\n```",
+    "input": [
+        {
+            "name": "inputStr",
+            "choices": [
+                "Martini Desktop",
+                "Martini Online"
+            ],
+            "allowOtherValues": true
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "message",
+                    "defaultValue": "Gloop Service Completed."
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "fork",
+            "comments": "In this step, we will demonstrate the usage of fork step like a switch block. This fork step will evaluate the value of the inputStr property, and execute the matching child step whose label matches",
+            "expression": "inputStr",
+            "children": [
+                {
+                    "label": "Martini Online",
+                    "comments": "This step will run if the inputStr provided is `Martini Online`. The step will set a custom message to the message property.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "The input string was Martini Online!",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "Martini Desktop",
+                    "comments": "This step will run if the inputStr provided is `Martini Desktop`. The step will set a custom message to the message property.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "You have chosen Martini Desktop!",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "$else",
+                    "comments": "This step will run if the inputStr is not `Martini Online` or `Martini Desktop`. The step will set a custom message to the message property.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "\"The custom input is ${inputStr}\"",
+                            "evaluate": true,
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "$null",
+                    "comments": "This step will run if no value is provided to the inputStr. The step will set a custom message to the message property.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Martini Desktop",
+                            "to": [
+                                "inputStr"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputStr is null, we'll set the default value instead.",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "This step will log the current message property value to the underlying log engine",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "output",
+                        "message"
+                    ],
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "fork",
+            "comments": "This step will check if the message property contains the text `Martini Desktop`",
+            "expression": "output.message.toLowerCase().contains( 'martini desktop' )",
+            "children": [
+                {
+                    "label": "true",
+                    "comments": "If the fork step is true, then we set the output message property to upper case.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "output.message.toUpperCase()",
+                            "evaluate": true,
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "label": "false",
+                    "comments": "If the fork step is false, then we set a custom output message property.",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Martini Desktop is awesome!",
+                            "to": [
+                                "output",
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log a finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,144 @@
+{
+    "comments": "# [Selecting UUID in Cassandra](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/cql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) returns an array of records from the `uuid_example` column family in the `cassandra_examples` keyspace.\n\nThis service showcases how to handle [Universal Unique IDs (UUID)](https://docs.datastax.com/en/archived/cql/3.3/cql/cql_reference/uuid_type_r.html).\n\nIt invokes a [Gloop CQL service](https://docs.torocloud.com/martini/latest/developing/gloop/service/cql/) to communicate with the database.\n\n## Prerequisite \n\nIf you haven't created a Cassandra [database pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database-connection-pool/adding-and-removing/#adding-a-database-connection-pool), follow these steps:\n\n1. Right click the `Databases` above and click New -> Martini Database connection.\n2. Choose `Cassandra` as its type and name it `cassandra-example`.\n3.  Fill up the form with your username and password. (Default values for both the username and password is `cassandra`)\n4. Set the contact point to where your cassandra instance is located (e.g. `localhost`)\n5. Save and start the connection pool.\n6. Execute the service `bigData/cassandra/conf/CreateCassandraDatabase.gloop` to create the database.\n\nAfter following the steps, this service should work as intended. \n\n## Invoking the service\n\nUsing the [Gloop Service Editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\n## Expected Output\n\nThe output of this service depends on the entries in the `uuid_example` column family. If you want to have similar entries as described below, you should run `bigData/cassandra/services/uuid/InsertUuid.gloop`. Doing so will ensure your database contains similar data as the output below.\n\nThis service's return value is represented in JSON, it would look similar to the output below:\n\n```\n\"uuidData\": [\n    {\n        \"id\": 1,\n        \"uuid\": \"2537f6c3-5082-4dc6-9055-849f29c94101\",\n        \"uuid2\": [\n            \"3e0be3a9-2925-4267-9047-beb212ef2048\",\n            \"a899a717-8282-420b-97ce-c3e9efaa2749\"\n        ],\n        \"uuid3\": [],\n        \"uuid4\": [\n            \"2433d515-46a2-4eeb-a3ff-dcfa03990af2\",\n            \"3925c026-8932-48f8-8fd4-d48a870bebe0\"\n        ]\n    }\n]\n```\n\n[Service outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Aside from the JSON format like above, it can also be viewed in XML or in a value tree.",
+    "output": [
+        {
+            "name": "uuidData",
+            "type": "model",
+            "array": true,
+            "gloopProperties": [
+                {
+                    "name": "id",
+                    "type": "integer"
+                },
+                {
+                    "name": "uuid",
+                    "type": "object",
+                    "objectClassName": "java.util.UUID"
+                },
+                {
+                    "name": "uuid2",
+                    "type": "object",
+                    "array": true,
+                    "objectClassName": "java.util.UUID"
+                },
+                {
+                    "name": "uuid3",
+                    "type": "model",
+                    "array": true,
+                    "gloopProperties": [
+                        {
+                            "name": "name",
+                            "type": "integer"
+                        },
+                        {
+                            "name": "value",
+                            "type": "object",
+                            "objectClassName": "java.util.UUID"
+                        }
+                    ]
+                },
+                {
+                    "name": "uuid4",
+                    "type": "object",
+                    "array": true,
+                    "objectClassName": "java.util.UUID"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "comments": "Invokes the CQL query to produce a inputCursor",
+            "name": "bigData.cassandra.cql.uuid.SelectUuid",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "inputCursor",
+                            "type": "model",
+                            "array": true,
+                            "allowExtraProperties": true
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "inputCursor"
+                    ],
+                    "to": [
+                        "inputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterates over the CQL inputCursor and the uuidData output property",
+            "input": {
+                "path": [
+                    "inputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "uuidData"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Maps the CQL inputCursor data to the uuidData output property",
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.id",
+                            "evaluate": true,
+                            "to": [
+                                "uuidData",
+                                "id"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.uuid",
+                            "evaluate": true,
+                            "to": [
+                                "uuidData",
+                                "uuid"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.uuid2",
+                            "evaluate": true,
+                            "to": [
+                                "uuidData",
+                                "uuid2"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.uuid3",
+                            "evaluate": true,
+                            "to": [
+                                "uuidData",
+                                "uuid3"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "inputCursor.uuid4",
+                            "evaluate": true,
+                            "to": [
+                                "uuidData",
+                                "uuid4"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

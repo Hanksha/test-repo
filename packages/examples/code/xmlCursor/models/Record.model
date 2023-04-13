@@ -1,0 +1,26 @@
+{
+    "name": "Record",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) representing `<record>` entries in `resources/dataset.xml`.\n\nThis Gloop model is used by `xmlCursor.ReadLargeXmlFile.gloop`.",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "id"
+        },
+        {
+            "name": "first_name"
+        },
+        {
+            "name": "last_name"
+        },
+        {
+            "name": "email"
+        },
+        {
+            "name": "gender"
+        },
+        {
+            "name": "ip_address"
+        }
+    ]
+}

@@ -1,0 +1,219 @@
+{
+    "comments": "# [Using the Gloop Random Step](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/basic-gloop-steps)\n\nThrough this service, we will demonstrate how we can use [random steps](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/random/) to randomly select a first and last name string.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\t\n## Expected Output\n\n### Properties\n\nThis service will return an `output` [model](https://docs.torocloud.com/martini/latest/developing/gloop/model) with a `names` property. `output.names` shall contain the three randomly selected names.\n\nNames are set via [map set expressions](https://docs.torocloud.com/martini/latest/developing/gloop/service/step/map/#set-expressions), but ultimately the random steps at lines 3 and 8 select which map steps get executed.\n\n\n### Logs\n\nThe service will also log selected names to the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view). You should expect messages similar to below to appear:\n\n```\nINFO  [Martini] Generating random names...\nINFO  [Martini] Generated name: Jane Smith\nINFO  [Martini] Generated name: Wilson Doe\nINFO  [Martini] Generated name: Jane Winston\n```",
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "names",
+                    "array": true
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "firstName"
+                        },
+                        {
+                            "name": "lastName"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Generating random names...",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "while",
+            "comments": "This while loop will keep on looping while $gloopIndex is less than 3",
+            "expression": "3",
+            "children": [
+                {
+                    "type": "random",
+                    "comments": "This step will select a random step under it",
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "John",
+                                    "to": [
+                                        "firstName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Jane",
+                                    "to": [
+                                        "firstName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Wilson",
+                                    "to": [
+                                        "firstName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Hana",
+                                    "to": [
+                                        "firstName"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "random",
+                    "comments": "This step will select a random step under it",
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Doe",
+                                    "to": [
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Smith",
+                                    "to": [
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Winston",
+                                    "to": [
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "Song",
+                                    "to": [
+                                        "lastName"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "The step will log the generated name in the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"Generated name: ${firstName} ${lastName}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "This step will add the randomly generated name to the output property `names[]`",
+                    "className": "io.toro.martini.ArrayMethods",
+                    "methodName": "addToList",
+                    "parameters": [
+                        "java.lang.Object",
+                        "java.lang.Object"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "output",
+                                "names"
+                            ],
+                            "to": [
+                                "list"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "\"${firstName} ${lastName}\"",
+                            "evaluate": true,
+                            "to": [
+                                "element"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are in.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

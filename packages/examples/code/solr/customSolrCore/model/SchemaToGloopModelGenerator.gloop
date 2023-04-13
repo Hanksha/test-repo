@@ -1,0 +1,122 @@
+{
+    "comments": "A Gloop service capable of generating a Gloop model from a Solr schema.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/latest/developing/services/overview/input-output/) are required.\n\n## Expected Output\n\nThis service should generate a Gloop model named `MovieDocument.model` in the `solr.customSolrCore.model` package.",
+    "steps": [
+        {
+            "type": "invokeCode",
+            "comments": "fetch the current Martini Package",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "martiniPackage",
+                            "type": "object",
+                            "objectClassName": "io.toro.martini.ipackage.MartiniPackage"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.GroovyMethods",
+            "methodName": "getPackage",
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "martiniPackage"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "declare the schema path",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "movieCorePath",
+                            "type": "object"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "java.nio.file.Paths.get( martiniPackage.getInfo().home.toString(), 'solr', 'movie-core', 'conf', 'schema.xml' )",
+                    "evaluate": true,
+                    "to": [
+                        "movieCorePath"
+                    ]
+                }
+            ]
+        },
+        {
+            "comments": "read solr schema",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "schemaXml"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "type": "set",
+                    "expression": "java.nio.file.Files.readAllBytes(movieCorePath)",
+                    "evaluate": true,
+                    "to": [
+                        "schemaXml"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "generate the Gloop model",
+            "className": "io.toro.martini.SolrMethods",
+            "methodName": "solrSchemaToGloopModel",
+            "parameters": [
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "java.lang.String",
+                "java.util.List"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "schemaXml"
+                    ],
+                    "to": [
+                        "schema"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "MovieDocument",
+                    "to": [
+                        "name"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "solr.customSolrCore.model",
+                    "to": [
+                        "namespace"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "martiniPackage.getName()",
+                    "evaluate": true,
+                    "to": [
+                        "packageName"
+                    ]
+                }
+            ]
+        }
+    ]
+}

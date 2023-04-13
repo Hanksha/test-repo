@@ -1,0 +1,311 @@
+{
+    "comments": "# [Get Facet Count](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/search-indices/)\n\nThis service is similar to `ListFacetCountEndpoint`, but is only limited to a single facet field.\n\n_The `url` input property determines which Solr core gets queried. By default, this service queries the `tracker` core._\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). Populate this service's required [input properties](https://docs.torocloud.com/martini/developing/services/overview/input-output/), or use the default values already provided.\n\n## Expected Output\n\n### Properties\n\n_The output of this service varies, depending on the contents of the provided search index._\n\nThis service's return value, if represented in JSON, would look something like below:\n\n```\n{\n    \"GetFacetCountEndpointOutput\": {\n        \"name\": \"stateName\",\n        \"facet_count\": 0,\n        \"count\": 0,\n        \"facet\": []\n    }\n}\n```\n\n[Service outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Aside from the JSON format like above, it can also be viewed in XML or in a value tree.\n\n### Logs\n\nIf this is the first service you run after a fresh installation, then you will see the logs below in the [console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Checking user information...\nINFO  [Martini] Admin not found. Creating user named 'Admin'\n```",
+    "input": [
+        {
+            "name": "url",
+            "defaultValue": "http://localhost:${port}/esbapi/v1/solr/core/tracker/facet/${facetField}"
+        },
+        {
+            "name": "facetField",
+            "defaultValue": "stateName"
+        },
+        {
+            "name": "q",
+            "defaultValue": "documentTypeName:RSS"
+        },
+        {
+            "name": "headers",
+            "type": "model",
+            "array": true,
+            "reference": "io.toro.martini.http.Header"
+        }
+    ],
+    "output": [
+        {
+            "name": "GetFacetCountEndpointOutput",
+            "type": "model",
+            "reference": "solr.customTrackerSearch.model.GetFacetCountEndpointOutput"
+        }
+    ],
+    "steps": [
+        {
+            "comments": "Map the queries to a string wrapped in a Gloop model",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "queryStringParameters",
+                            "type": "model",
+                            "gloopProperties": [
+                                {
+                                    "name": "q"
+                                }
+                            ]
+                        },
+                        {
+                            "name": "port"
+                        }
+                    ]
+                }
+            ],
+            "lines": [
+                {
+                    "from": [
+                        "q"
+                    ],
+                    "to": [
+                        "queryStringParameters",
+                        "q"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "header {\n\tname 'Authorization'\n\tvalue 'Bearer bda996c8-702f-4e73-bbc3-c9ea972ffbf2'\n}\n",
+                    "to": [
+                        "headers"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "'server.http.port'.getApplicationProperty()",
+                    "evaluate": true,
+                    "to": [
+                        "port"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Generate access token for user; token will be used to access Solr API",
+            "name": "util.GenerateUserToken",
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "Admin",
+                    "to": [
+                        "username"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "Authorization"
+                    ],
+                    "to": [
+                        "headers"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "block",
+            "comments": "Execute Solr query",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send the request to Solr",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "response",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.http.Response"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.HttpMethods",
+                    "methodName": "http",
+                    "parameters": [
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "java.lang.String",
+                        "java.lang.String",
+                        "boolean",
+                        "io.toro.gloop.object.property.GloopModel",
+                        "io.toro.gloop.engine.GloopExecutionContext"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "queryStringParameters"
+                            ],
+                            "to": [
+                                "request",
+                                "parameters"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "headers"
+                            ],
+                            "to": [
+                                "request",
+                                "headers"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GloopObject",
+                            "to": [
+                                "returnAs"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Auto Detect",
+                            "to": [
+                                "responseType"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "evalStringTemplate( url )",
+                            "evaluate": true,
+                            "to": [
+                                "request",
+                                "uri"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GET",
+                            "to": [
+                                "request",
+                                "method"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "GloopObject",
+                            "to": [
+                                "returnAs"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "false",
+                            "to": [
+                                "throwHttpExceptions"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "response"
+                            ],
+                            "to": [
+                                "response"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "comments": "Check response code",
+                    "expression": "response.responseCode",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "200",
+                            "comments": "If successful",
+                            "children": [
+                                {
+                                    "comments": "Set output",
+                                    "lines": [
+                                        {
+                                            "from": [
+                                                "response",
+                                                "content"
+                                            ],
+                                            "to": [
+                                                "GetFacetCountEndpointOutput"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "block",
+                            "label": "$else",
+                            "comments": "If not successful",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Throw exception",
+                                    "className": "io.toro.martini.GloopMethods",
+                                    "methodName": "throwApiException",
+                                    "parameters": [
+                                        "io.toro.gloop.object.property.GloopModel"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "response",
+                                                "content"
+                                            ],
+                                            "to": [
+                                                "apiException",
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "break",
+                                    "comments": "Terminate service",
+                                    "expression": "$gloopAll"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Log finished message",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "The service has finished running. Learn more how this service works by checking out the line comments in each step in this service. If you want to see the output in Martini logs, visit https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view and check how to view Console logs for the platform you are using.",
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

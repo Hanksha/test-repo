@@ -1,0 +1,130 @@
+{
+    "comments": "# [Using a Gloop SQL Service to Select Records](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/sql-services/)\n\nThis [Gloop service](https://docs.torocloud.com/martini/latest/developing/gloop/service/) returns an array of records from the `ADDITIONAL_DATA` table.\n\nIt invokes a [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) to communicate with the database. This SQL service returns a [Gloop cursor](https://docs.torocloud.com/martini/latest/developing/gloop/model/cursor/), which the service iterates over to map entries to the `additionalData` output property.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/). No [inputs](https://docs.torocloud.com/martini/developing/services/overview/input-output/) are required.\n\nIf the data sources have not been initialized, it is recommended that you run `sqlServices.invoke.multiple.InvokeMultipleAdditionalDataInsert` first in order to populate the `ADDITIONAL_DATA` table. Else if the table is empty, no records can be retrieved from it.\n\n## Expected Output\n\nThis service will be returning an `additionalData` array, representing retrieved records if any.\n\n_`additionalData.image` and `additionalData.information` contain raw, untransformed `java.sql.Blob` and `java.sql.Clob` values, respectively._\n\nThis service's return value, if represented in JSON, would look something like below:\n\n```\n{\n    \"additionalData\": [\n        {\n            \"id\": 1,\n            \"image\": \"org.hsqldb.jdbc.JDBCBlobClient@5513efd2\",\n            \"information\": \"org.hsqldb.jdbc.JDBCClobClient@714ae1df\",\n            \"nameID\": 1\n        }\n    ]\n}\n```\n\n[Service outputs can be viewed in the Console view](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/#outputs). Aside from the JSON format like above, it can also be viewed in XML or in a value tree.",
+    "output": [
+        {
+            "name": "additionalData",
+            "type": "model",
+            "array": true,
+            "reference": "sqlServices.model.AdditionalData"
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeGloop",
+            "name": "util.CheckDependency"
+        },
+        {
+            "type": "invokeGloop",
+            "comments": "Invoke the sql service that produces the cursor.",
+            "name": "sqlServices.sql.multiple.SelectMultipleAdditionalData",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "selectMultipleAdditionalDataInputCursor",
+                            "type": "model",
+                            "array": true,
+                            "gloopProperties": [
+                                {
+                                    "name": "ID",
+                                    "type": "integer",
+                                    "required": true,
+                                    "allowNull": false
+                                },
+                                {
+                                    "name": "IMAGE",
+                                    "type": "object",
+                                    "required": true,
+                                    "objectClassName": "java.sql.Blob"
+                                },
+                                {
+                                    "name": "INFORMATION",
+                                    "type": "object",
+                                    "required": true,
+                                    "objectClassName": "java.sql.Clob"
+                                },
+                                {
+                                    "name": "NAME_ID",
+                                    "type": "integer",
+                                    "required": true,
+                                    "allowNull": false
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "selectMultipleAdditionalDataInputCursor"
+                    ],
+                    "to": [
+                        "selectMultipleAdditionalDataInputCursor"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "iterate",
+            "comments": "Iterate through the cursor as an input array and the additionalData variable as an output array",
+            "input": {
+                "path": [
+                    "selectMultipleAdditionalDataInputCursor"
+                ]
+            },
+            "output": {
+                "path": [
+                    "additionalData"
+                ]
+            },
+            "children": [
+                {
+                    "comments": "Map the properties of the current iteration of the cursor an element in the names variable",
+                    "lines": [
+                        {
+                            "from": [
+                                "selectMultipleAdditionalDataInputCursor",
+                                "ID"
+                            ],
+                            "to": [
+                                "additionalData",
+                                "id"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "selectMultipleAdditionalDataInputCursor",
+                                "IMAGE"
+                            ],
+                            "to": [
+                                "additionalData",
+                                "image"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "selectMultipleAdditionalDataInputCursor",
+                                "INFORMATION"
+                            ],
+                            "to": [
+                                "additionalData",
+                                "information"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "selectMultipleAdditionalDataInputCursor",
+                                "NAME_ID"
+                            ],
+                            "to": [
+                                "additionalData",
+                                "nameID"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

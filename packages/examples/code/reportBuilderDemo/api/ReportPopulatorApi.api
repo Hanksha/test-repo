@@ -1,0 +1,60 @@
+{
+    "info": {
+        "title": "Martini Runtime Example - Report Populator",
+        "description": "This RESTful API's only operation is consumed by the `report-builder-demo` report to demonstrate [charts created from REST response data](https://docs.torocloud.com/martini/latest/report-builder/creating/chart/rest/).",
+        "contact": {
+            "url": "http://www.torocloud.com"
+        },
+        "license": {
+            "name": "W3C"
+        },
+        "version": "1.0-SNAPSHOT"
+    },
+    "basePath": "/randomNumber",
+    "paths": {
+        "/{fields}": {
+            "get": {
+                "tags": [
+                    "Report Builder"
+                ],
+                "summary": "Numbers",
+                "description": "# [Charts from RESTful Web Services](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/report-builder/)\n\nThis operation returns randomly-generated `field`-`value` pairs.\n\n## Invoking the Service\n\nSend a `GET` request to `<http|https>://<host>:<port>/<api.rest.base-path>/randomNumber/{fields}`.\n\n`{fields}` is a path parameter, and must be substituted with an integer.\n\n## Expected Output\n\nThis operation would return something that looks like:\n\n```\n[\n    {\n        \"field\": \"Field 1\",\n        \"value\": 10\n    },\n    {\n        \"field\": \"Field 1\",\n        \"value\": 10\n    },\n    {\n        \"field\": \"Field 2\",\n        \"value\": 4\n    },\n    {\n        \"field\": \"Field 2\",\n        \"value\": 4\n    },\n    {\n        \"field\": \"Field 3\",\n        \"value\": 10\n    },\n    {\n        \"field\": \"Field 3\",\n        \"value\": 10\n    },\n    {\n        \"field\": \"Field 4\",\n        \"value\": 4\n    },\n    {\n        \"field\": \"Field 4\",\n        \"value\": 4\n    },\n    {\n        \"field\": \"Field 5\",\n        \"value\": 9\n    },\n    {\n        \"field\": \"Field 5\",\n        \"value\": 9\n    },\n    {\n        \"field\": \"Field 6\",\n        \"value\": 8\n    },\n    {\n        \"field\": \"Field 6\",\n        \"value\": 8\n    },\n    {\n        \"field\": \"Field 7\",\n        \"value\": 10\n    },\n    {\n        \"field\": \"Field 7\",\n        \"value\": 10\n    },\n    {\n        \"field\": \"Field 8\",\n        \"value\": 8\n    },\n    {\n        \"field\": \"Field 8\",\n        \"value\": 8\n    },\n    {\n        \"field\": \"Field 9\",\n        \"value\": 5\n    },\n    {\n        \"field\": \"Field 9\",\n        \"value\": 5\n    },\n    {\n        \"field\": \"Field 10\",\n        \"value\": 4\n    },\n    {\n        \"field\": \"Field 10\",\n        \"value\": 4\n    }\n]\n```",
+                "produces": [
+                    "application/json"
+                ],
+                "externalDocumentation": {
+                    "url": "https://docs.torocloud.com/martini/latest/developing/gloop/api/rest/creating/editor/",
+                    "description": "Click the link below to learn more about Gloop REST API Editor"
+                },
+                "parameters": [
+                    {
+                        "name": "fields",
+                        "type": "PATH",
+                        "description": "This is the number of fields for the report."
+                    }
+                ],
+                "responses": {
+                    "-1": {
+                        "body": "data",
+                        "description": "Data that will be used on a report page table."
+                    }
+                },
+                "operationType": "gloop",
+                "operationLocation": "reportBuilderDemo.Numbers",
+                "responseCodeField": "responseCode"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Report Builder",
+            "externalDocumentation": {
+                "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/report-builder/"
+            }
+        }
+    ],
+    "externalDocumentation": {
+        "url": "https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/report-builder/",
+        "description": "This RESTful API's only operation is consumed by the `report-builder-demo` report to demonstrate [charts created from REST response data](https://docs.torocloud.com/martini/latest/report-builder/creating-reports/charts/rest/)."
+    }
+}

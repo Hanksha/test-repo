@@ -1,0 +1,73 @@
+{
+    "name": "Restaurant",
+    "type": "model",
+    "comments": "A [Gloop model](https://docs.torocloud.com/martini/latest/developing/gloop/model/) containing six properties: `name`, `restaurant_id`, `address`, `borough`, `cuisine`, and `grades`. `address` and `grades` are gloop models as well, with address having `building`, `coord`, `street`, and `zipcode`. While `grades` is an array with `date`, `grade`, and `score` as its properties.\n",
+    "allowExtraProperties": true,
+    "gloopProperties": [
+        {
+            "name": "address",
+            "type": "model",
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "building",
+                    "defaultValue": "1921"
+                },
+                {
+                    "name": "coord",
+                    "type": "bigDecimal",
+                    "array": true,
+                    "defaultValue": [
+                        -73.9539362,
+                        40.6107492
+                    ]
+                },
+                {
+                    "name": "street",
+                    "defaultValue": "Kings Highway"
+                },
+                {
+                    "name": "zipcode",
+                    "defaultValue": "11229"
+                }
+            ]
+        },
+        {
+            "name": "borough",
+            "defaultValue": "Brooklyn"
+        },
+        {
+            "name": "cuisine",
+            "defaultValue": "Bagels/Pretzels"
+        },
+        {
+            "name": "grades",
+            "type": "model",
+            "array": true,
+            "allowExtraProperties": true,
+            "gloopProperties": [
+                {
+                    "name": "date",
+                    "defaultValue": "2014-10-06T08:00:00+0800"
+                },
+                {
+                    "name": "grade",
+                    "defaultValue": "A"
+                },
+                {
+                    "name": "score",
+                    "type": "bigDecimal",
+                    "defaultValue": 10
+                }
+            ]
+        },
+        {
+            "name": "name",
+            "defaultValue": "Highway Bagels"
+        },
+        {
+            "name": "restaurant_id",
+            "defaultValue": "40424410"
+        }
+    ]
+}

@@ -1,0 +1,46 @@
+{
+    "type": "customSql",
+    "comments": "A [Gloop SQL service](https://docs.torocloud.com/martini/latest/developing/gloop/sql/) which retrieves an entry from the `NAMES` table matching the given ID.",
+    "input": [
+        {
+            "name": "selectSingleNameInput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "$martiniConnectionPool"
+                },
+                {
+                    "name": "id",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "selectSingleNameOutput",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "ID",
+                    "type": "integer",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "FIRST_NAME",
+                    "required": true,
+                    "allowNull": false
+                },
+                {
+                    "name": "LAST_NAME",
+                    "required": true,
+                    "allowNull": false
+                }
+            ]
+        }
+    ],
+    "connectionPoolName": "example_db",
+    "sqlType": "SELECT_SINGLE",
+    "query": "SELECT *\nFROM\n    NAMES\nWHERE (\n    ID = :id\n)"
+}

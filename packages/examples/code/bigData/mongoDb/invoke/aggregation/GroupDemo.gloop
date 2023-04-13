@@ -1,0 +1,172 @@
+{
+    "comments": "## Grouping Documents using `$group`\n\nThis Gloop service demonstrates a simple use case of MongoDB's `$group` operator to group distinct documents by grouping them by `$group`'s `_id` field. The example groups the restaurant collection by `borough` in which all restaurant names are collected and pushed to a string array called `restaurants`.\n\nTake note that you need to setup a [MongoDB connection pool](https://docs.torocloud.com/martini/setup-and-administration/data-management/database/connection/mongodb/) with name `mongo`. This service will also attempt to create the database and collection as well as the documents you need for this example.\n\n## Invoking the Service\n\nWhen [running the service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/), the service will prompt you to provide a `borough` to be sent as an input to the query to be performed. For your convenience, the `borough` is already populated with a value; changing this value is optional but possible.\n\n## Expected Output\n\nThe MongoDB service will then execute the query to group all the documents by borough, and then finally, returning a single record that matches with the `borough` input provided in the service which is mapped to the `output` model of this service. An `INFO` log will also be [printed in the console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] The number of restaurants in Bronx is 309\n```",
+    "input": [
+        {
+            "name": "borough",
+            "defaultValue": "Bronx",
+            "choices": [
+                "Staten Island",
+                "Manhattan",
+                "Queens",
+                "Brooklyn",
+                "Bronx"
+            ]
+        }
+    ],
+    "output": [
+        {
+            "name": "output",
+            "type": "model",
+            "gloopProperties": [
+                {
+                    "name": "borough"
+                },
+                {
+                    "name": "restaurantCount",
+                    "type": "integer"
+                }
+            ]
+        }
+    ],
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "type": "invokeGloop",
+                    "comments": "Initializes the database and collection required for this service if it hasn't initialized the required resources already",
+                    "name": "bigData.mongoDb.conf.InitializeCollection",
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "restaurants",
+                            "to": [
+                                "collectionName"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeGloop",
+                    "comments": "This MongoDB service uses $group operator to group all the restaurants by borough, and then pushes all the restaurants located in that borough to an array using $push operator and then finally filtering the result based on the borough input.",
+                    "name": "bigData.mongoDb.services.aggregation.Group",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "result",
+                                    "type": "model",
+                                    "array": true,
+                                    "allowExtraProperties": true
+                                }
+                            ]
+                        }
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "borough"
+                            ],
+                            "to": [
+                                "input",
+                                "borough"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "inputCursor"
+                            ],
+                            "to": [
+                                "result"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "iterate",
+                    "input": {
+                        "path": [
+                            "result"
+                        ]
+                    },
+                    "children": [
+                        {
+                            "lines": [
+                                {
+                                    "type": "set",
+                                    "expression": "result._id",
+                                    "evaluate": true,
+                                    "to": [
+                                        "output",
+                                        "borough"
+                                    ]
+                                },
+                                {
+                                    "type": "set",
+                                    "expression": "result?.restaurants?.size()",
+                                    "evaluate": true,
+                                    "to": [
+                                        "output",
+                                        "restaurantCount"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "\"The number of restaurants in ${borough} is ${output.restaurantCount}\"",
+                            "evaluate": true,
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String",
+                        "java.lang.Throwable"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "realException"
+                            ],
+                            "to": [
+                                "throwable"
+                            ]
+                        },
+                        {
+                            "from": [
+                                "$gloopException",
+                                "gloopStackTrace"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

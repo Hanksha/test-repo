@@ -1,0 +1,144 @@
+{
+    "comments": "# [Using `StreamMethods.filter(Stream, Collection, Closure<Boolean>)`](https://docs.torocloud.com/martini/latest/quick-start/resources/examples-package/stream-methods/)\n\nThis service takes in an array of strings and filters them so that only strings starting with a certain provided substring are returned by the service.\n\nTo do the filtering, it makes use of [`StreamMethods`](https://docs.torocloud.com/martini/developing/services/one-liners/stream-methods/)`.filter(Stream, Collection, Closure<Boolean>)`.\n\n## Invoking the Service\n\nUsing the [Gloop Service editor](https://docs.torocloud.com/martini/latest/developing/gloop/service/editor/) is the fastest way to [run this service](https://docs.torocloud.com/martini/latest/developing/gloop/service/running/).\n\nAn array of words must be provided through the `words` [input property](https://docs.torocloud.com/martini/developing/services/overview/input-output/); and `startsWith`, which is the string prefix the service will use for filtering.\n\n## Expected Output\n\n### Properties\n\nThis service will return `filteredWords`, an output property containing the array of filtered strings. This property's value depends on the inputs provided to the service.\n\nIf `startsWith` was set to `G`, and the following strings were the entries provided for `words`:\n\n```\nHello\nWorld\nHi\nGloop\nGroovy\n```\n\n... then the service would return the following entries for `filteredWords`:\n\n```\nGloop\nGroovy\n```\n\n### Logs\n\nUpon running this service, you should see log messages like below in [Martini console](https://docs.torocloud.com/martini/latest/setup-and-administration/monitoring/logs/#console-view):\n\n```\nINFO  [Martini] Filtering words that starts with G form the words array: [Hello, World, Hi, Gloop, Groovy]\nINFO  [Martini] Filtered word/s based on input: [Gloop, Groovy]\n```",
+    "input": [
+        {
+            "name": "words",
+            "array": true,
+            "defaultValue": [
+                "Hello",
+                "World",
+                "Hi",
+                "Gloop",
+                "Groovy"
+            ]
+        },
+        {
+            "name": "startWith",
+            "required": true,
+            "defaultValue": "G"
+        }
+    ],
+    "output": [
+        {
+            "name": "filteredWords",
+            "array": true
+        }
+    ],
+    "steps": [
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Filtering words that starts with ${startWith} from the words array: ${words}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Filters out items based on a given condition (predicate) represented by a Groovy closure.",
+            "declare": [
+                {
+                    "variables": [
+                        {
+                            "name": "stream",
+                            "type": "object",
+                            "objectClassName": "stream.Stream"
+                        }
+                    ]
+                }
+            ],
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "filter",
+            "parameters": [
+                "java.util.stream.Stream",
+                "java.util.Collection",
+                "groovy.lang.Closure"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "words"
+                    ],
+                    "to": [
+                        "collection"
+                    ]
+                },
+                {
+                    "type": "set",
+                    "expression": "{ it ->\n\tit.startsWith(startWith)\n}",
+                    "evaluate": true,
+                    "to": [
+                        "predicate"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "comments": "Collects the stream back into a standard list of items.",
+            "className": "io.toro.martini.StreamMethods",
+            "methodName": "toList",
+            "parameters": [
+                "java.util.stream.Stream"
+            ],
+            "inputs": [
+                {
+                    "from": [
+                        "stream"
+                    ],
+                    "to": [
+                        "stream"
+                    ]
+                }
+            ],
+            "outputs": [
+                {
+                    "from": [
+                        "output"
+                    ],
+                    "to": [
+                        "filteredWords"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "invokeCode",
+            "className": "io.toro.martini.LoggerMethods",
+            "methodName": "info",
+            "parameters": [
+                "java.lang.String"
+            ],
+            "inputs": [
+                {
+                    "type": "set",
+                    "expression": "\"Filtered word/s based on input: ${filteredWords}\"",
+                    "evaluate": true,
+                    "to": [
+                        "message"
+                    ]
+                }
+            ]
+        }
+    ]
+}

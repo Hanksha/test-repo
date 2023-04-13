@@ -1,0 +1,222 @@
+{
+    "comments": "This Gloop service will create a user required by the example Solr services to work.",
+    "steps": [
+        {
+            "type": "block",
+            "blockType": "TRY_CATCH",
+            "children": [
+                {
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "user",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.user.User"
+                                }
+                            ]
+                        }
+                    ],
+                    "lines": [
+                        {
+                            "type": "set",
+                            "expression": "Admin",
+                            "to": [
+                                "user",
+                                "username"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "DEFAULT",
+                            "to": [
+                                "user",
+                                "password"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "Admin",
+                            "to": [
+                                "user",
+                                "displayName"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "admin@torocloud.com",
+                            "to": [
+                                "user",
+                                "emailAddress"
+                            ]
+                        },
+                        {
+                            "type": "set",
+                            "expression": "true",
+                            "to": [
+                                "user",
+                                "enabled"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an info message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "info",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "type": "set",
+                            "expression": "Checking user information...",
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "invokeCode",
+                    "declare": [
+                        {
+                            "variables": [
+                                {
+                                    "name": "userExists",
+                                    "type": "model",
+                                    "reference": "io.toro.martini.user.User"
+                                }
+                            ]
+                        }
+                    ],
+                    "className": "io.toro.martini.UserGroupMethods",
+                    "methodName": "findUser",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "user",
+                                "username"
+                            ],
+                            "to": [
+                                "username"
+                            ]
+                        }
+                    ],
+                    "outputs": [
+                        {
+                            "from": [
+                                "user"
+                            ],
+                            "to": [
+                                "userExists"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "fork",
+                    "expression": "userExists?.username",
+                    "children": [
+                        {
+                            "type": "block",
+                            "label": "$null",
+                            "children": [
+                                {
+                                    "type": "invokeCode",
+                                    "comments": "Send an info message to the underlying log engine",
+                                    "className": "io.toro.martini.LoggerMethods",
+                                    "methodName": "info",
+                                    "parameters": [
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "type": "set",
+                                            "expression": "\"${user.username} not found. Creating user named '${user.username}'\"",
+                                            "evaluate": true,
+                                            "to": [
+                                                "message"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.UserGroupMethods",
+                                    "methodName": "saveUser",
+                                    "parameters": [
+                                        "io.toro.gloop.object.property.GloopModel"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "user"
+                                            ],
+                                            "to": [
+                                                "user"
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "invokeCode",
+                                    "className": "io.toro.martini.UserGroupMethods",
+                                    "methodName": "addUserToGroup",
+                                    "parameters": [
+                                        "java.lang.String",
+                                        "java.lang.String"
+                                    ],
+                                    "inputs": [
+                                        {
+                                            "from": [
+                                                "user",
+                                                "username"
+                                            ],
+                                            "to": [
+                                                "username"
+                                            ]
+                                        },
+                                        {
+                                            "type": "set",
+                                            "expression": "ESBAPIAdminGroup",
+                                            "to": [
+                                                "groupname"
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "catch": [
+                {
+                    "type": "invokeCode",
+                    "comments": "Send an error message to the underlying log engine",
+                    "className": "io.toro.martini.LoggerMethods",
+                    "methodName": "error",
+                    "parameters": [
+                        "java.lang.String"
+                    ],
+                    "inputs": [
+                        {
+                            "from": [
+                                "$gloopException",
+                                "message"
+                            ],
+                            "to": [
+                                "message"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
